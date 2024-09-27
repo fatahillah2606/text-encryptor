@@ -67,7 +67,7 @@ def mulai():
   if pilihan == 1:
     # Ganti kunci
     kunci = input("Masukan kunci baru: ")
-    key, tidak_punya = get_valid_key(user_key)
+    key, tidak_punya = get_valid_key(kunci)
     print("Kunci berhasil diubah")
 
   elif pilihan == 2:
