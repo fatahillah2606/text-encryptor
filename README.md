@@ -22,23 +22,17 @@ A simple project for encryption and decryption, and also password generation.
    python -m venv venv
    ```
 
-For Windows:
+   For Windows:
 
-    ```bash
-    venv\Scripts\activate
-    ```
+       venv\Scripts\activate
 
-For Linux/MacOS:
+   For Linux/MacOS:
 
-    ```bash
-    source venv/bin/activate
-    ```
+       source venv/bin/activate
 
-Install dependencies:
+   Install dependencies:
 
-    ```bash
-    pip install -r requirements.txt
-    ```
+       pip install -r requirements.txt
 
 3. Use
 
