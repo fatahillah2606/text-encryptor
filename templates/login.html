@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Login</title>
+        <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+        />
+        <!-- Local CSS -->
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='styles/output.css') }}"
+        />
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='styles/style.css') }}"
+        />
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='styles/login.css') }}"
+        />
+    </head>
+    <body class="w-full h-screen flex items-center justify-center p-3">
+        <!-- Login box -->
+        <div
+            class="login-box w-full max-w-md h-auto rounded-[30px] shadow-lg p-5"
+        >
+            <div
+                class="icon block my-5 mx-auto bg-white rounded-[20px] w-14 h-14 shadow-lg"
+            >
+                <span
+                    class="material-symbols-rounded text-4xl leading-14! block! text-center! text-zinc-800"
+                >
+                    login
+                </span>
+            </div>
+            <h2 class="text-center text-zinc-800 font-bold text-xl">
+                Welcome!
+            </h2>
+            <p class="text-center mt-3 text-zinc-600">
+                Please log in to get started. Or click the button below for
+                other options.
+            </p>
+
+            <!-- Form -->
+            <form
+                action=""
+                method="post"
+                name="login"
+                class="my-5 mx-0 w-full flex flex-col gap-3"
+            >
+                <div
+                    class="w-full flex items-center rounded-2xl bg-slate-100 relative"
+                >
+                    <span
+                        class="material-symbols-rounded w-12 block! text-center! text-zinc-600"
+                    >
+                        person
+                    </span>
+                    <input
+                        type="text"
+                        name="username"
+                        id="username"
+                        maxlength="60"
+                        placeholder="Username"
+                        class="w-full text-base py-4 px-0 text-zinc-600 outline-none"
+                        required
+                    />
+                </div>
+                <div
+                    class="w-full flex items-center rounded-2xl bg-slate-100 relative"
+                >
+                    <span
+                        class="material-symbols-rounded w-12 block! text-center! text-zinc-600"
+                    >
+                        key
+                    </span>
+                    <input
+                        type="password"
+                        name="password"
+                        id="password"
+                        maxlength="60"
+                        placeholder="Password"
+                        class="w-full text-base py-4 px-0 text-zinc-600 outline-none"
+                        required
+                    />
+                    <span
+                        class="material-symbols-rounded w-12 block! text-center! text-zinc-600 cursor-pointer"
+                        id="visibility"
+                    >
+                        visibility
+                    </span>
+                </div>
+                <p class="support-text text-red-500 m-0 ml-3 text-xs text-left">
+                    Support Text
+                </p>
+                <button
+                    type="submit"
+                    class="py-4 rounded-2xl text-white text-base cursor-pointer mt-5"
+                >
+                    Get Started
+                </button>
+            </form>
+            <div
+                class="flex items-center justify-center relative mb-5"
+                id="or-text"
+            >
+                <span class="z-10 bg-white w-12 block text-center text-zinc-600"
+                    >Or</span
+                >
+            </div>
+
+            <!-- Other option -->
+            <div class="flex items-center justify-center gap-5 mb-5">
+                <a
+                    href="/pages/encryptor/text-encryptor"
+                    class="flex items-center justify-center gap-3 shadow-md bg-white py-3 px-5 rounded-2xl w-full text-zinc-600!"
+                >
+                    <span class="material-symbols-rounded"> encrypted </span>
+                    <span>Encryptor</span>
+                </a>
+                <a
+                    href="/pages/register"
+                    class="flex items-center justify-center gap-3 shadow-md bg-white py-3 px-5 rounded-2xl w-full text-zinc-600!"
+                >
+                    <span class="material-symbols-rounded"> person_add </span>
+                    <span>Register</span>
+                </a>
+            </div>
+        </div>
+    </body>
+</html>

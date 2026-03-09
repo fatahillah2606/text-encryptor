@@ -1,0 +1,129 @@
+{% extends 'guest/base.html' %}
+
+<!-- Title -->
+{% block title %}Text Encryptor{% endblock %}
+
+<!-- Section -->
+{% block section %}
+<section class="flex">
+    <nav class="flex flex-col gap-2.5 w-80">
+        <a
+            href="/pages/encryptor/password-generator"
+            class="flex items-center justify-start gap-2.5 py-2.5 text-zinc-600 hover:text-blue-400"
+            ><span class="material-symbols-rounded"> password </span>
+            <span>Password Generator</span>
+        </a>
+        <a
+            href="#"
+            class="flex items-center justify-start gap-2.5 py-2.5 text-blue-400 hover:text-blue-400"
+            ><span class="material-symbols-rounded"> lock </span>
+            <span>Text Encryptor</span>
+        </a>
+        <a
+            href="/pages/encryptor/text-decryptor"
+            class="flex items-center justify-start gap-2.5 py-2.5 text-zinc-600 hover:text-blue-400"
+            ><span class="material-symbols-rounded"> lock_open_right </span>
+            <span>Text Decryptor</span>
+        </a>
+    </nav>
+    <section class="w-full h-auto flex flex-col gap-5 relative">
+        <div class="w-full h-auto border border-zinc-200 bg-white rounded-2xl">
+            <h2
+                class="text-xl text-zinc-800 font-semibold p-5 border-b border-zinc-200"
+            >
+                Encrypt text
+            </h2>
+            <div>
+                <form
+                    action=""
+                    method="post"
+                    name="encryption-form"
+                    id="encryption-form"
+                >
+                    <textarea
+                        name="unencrypted_text"
+                        id="unencrypted_text"
+                        placeholder="Enter the text you want to encrypt"
+                        class="w-full h-full min-h-52 p-2.5 resize-none text-zinc-600 outline-0"
+                    ></textarea>
+                    <button
+                        type="submit"
+                        class="flex items-center justify-center gap-2.5 cursor-pointer text-white bg-linear-to-r from-cyan-500 to-blue-500 hover:bg-linear-to-bl focus:ring-4 focus:outline-none focus:ring-cyan-300 dark:focus:ring-cyan-800 font-medium rounded-xl text-sm px-4 py-2.5 m-5 text-center leading-5"
+                    >
+                        <span class="material-symbols-rounded"> lock </span>
+                        <span>Encrypt</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+        <div class="w-full h-auto border border-zinc-200 bg-white rounded-2xl">
+            <h2
+                class="text-xl text-zinc-800 font-semibold p-5 border-b border-zinc-200"
+            >
+                Encrypted text
+            </h2>
+            <div class="relative">
+                <textarea
+                    name="result"
+                    id="result"
+                    placeholder="Encrypted text will shown here"
+                    class="w-full h-full min-h-52 p-2.5 resize-none text-zinc-600 outline-0"
+                    readonly
+                ></textarea>
+                <span
+                    class="material-symbols-rounded absolute top-0 right-0 text-lg! text-zinc-600 mr-2.5 cursor-pointer"
+                    onclick="copyText('result')"
+                >
+                    file_copy
+                </span>
+            </div>
+        </div>
+        {% include 'guest/key_popup.html' %}
+    </section>
+</section>
+{% endblock %}
+
+<!-- Script -->
+{% block script %}
+<script>
+    const encryptionForm = document.getElementById("encryption-form");
+    const resultField = document.getElementById("result");
+    const encrypt_api = "/api/encryptor/encrypt_text";
+
+    function encryptText() {
+        const encryptionKey = sessionStorage.getItem("encryption_key");
+        let formData = new FormData(encryptionForm);
+
+        formData.append("key", encryptionKey);
+        formData = Object.fromEntries(formData.entries());
+
+        fetch(encrypt_api, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
+        })
+            .then(async (response) => {
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error("Failed to fetch API" || data.message);
+                }
+                return data;
+            })
+            .then((data) => {
+                showToast(data.message);
+                resultField.value = data.data.encrypted_text;
+            })
+            .catch((error) => {
+                showToast("An error has occurred.");
+                console.error(error);
+            });
+    }
+
+    encryptionForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        encryptText();
+    });
+</script>
+{% endblock %}
