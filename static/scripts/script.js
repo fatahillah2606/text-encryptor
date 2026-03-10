@@ -19,6 +19,7 @@ function dismisToast() {
     }
 }
 
+// Copy text
 function copyText(field) {
     const fieldId = document.getElementById(field);
 
@@ -30,6 +31,7 @@ function copyText(field) {
     showToast("Text copied.");
 }
 
+// Increase value
 function increaseValue(field) {
     const numField = document.getElementById(field);
     let value = parseInt(numField.value, 10);

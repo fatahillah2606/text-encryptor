@@ -148,6 +148,10 @@ def password_generator():
                     "error", 404, "No encryption key available", [], {}
                 ), 404
 
+        # Check if password length is 0 or bellow
+        if length <= 0:
+            raise ValueError("Password length must be at least 1 character long!")
+
         password = generate_password(length)
         valid_key = get_valid_key(key)
 
@@ -161,14 +165,8 @@ def password_generator():
 
         return api_response("success", 200, "Password successfully created", data, {})
 
-    except ValueError:
-        return api_response(
-            "error",
-            400,
-            "Password length must be a numbers and at least 1 character long!",
-            [],
-            {},
-        ), 400
+    except ValueError as err:
+        return api_response("error", 400, str(err), [], {}), 400
 
     except Exception as err:
         return api_response("error", 500, str(err), [], {}), 500

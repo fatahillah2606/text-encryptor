@@ -1,7 +1,7 @@
 import os
 
 from dotenv import load_dotenv
-from flask import Flask, redirect, render_template, url_for
+from flask import Flask, redirect, render_template, url_for, session
 from flask.sansio.app import timedelta
 
 from routes.api import api_route
@@ -23,6 +23,15 @@ app.register_blueprint(api_route, url_prefix="/api/")
 @app.route("/")
 def home():
     return redirect(url_for("pages.login"))
+
+# For debug only
+@app.route("/session_clear")
+def clearSession():
+    try:
+        session.clear()
+        return "<h1>Session cleared.</h1>"
+    except Exception as err:
+        return f"<h1>An error occurred.</h1><br><p>{err}</p>"
 
 
 if __name__ == "__main__":

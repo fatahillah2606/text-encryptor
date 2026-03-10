@@ -34,8 +34,24 @@ A simple project for encryption and decryption, and also password generator.
 
         pip install -r requirements.txt
 
-3.  Use
+3.  Install node packages
 
     ```bash
-    python3 ./src/encryptor.py
+    npm install
     ```
+
+## Usage
+
+### Start the Flask
+
+```bash
+python app.py
+```
+
+### Start tailwindcss cli
+
+```bash
+npx @tailwindcss/cli -i ./static/styles/input.css -o ./static/styles/output.css --watch
+```
+
+Open your browser and navigate to http://127.0.0.1:5000/

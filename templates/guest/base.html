@@ -22,22 +22,22 @@
             href="{{ url_for('static', filename='styles/guest.css') }}"
         />
     </head>
-    <body class="bg-zinc-100">
+    <body class="bg-zinc-100 dark:bg-zinc-900">
         <!-- Navbar -->
         <nav
-            class="w-full min-h-16 flex items-center justify-between py-0 px-5 shadow-lg sticky top-0 bg-white"
+            class="w-full min-h-16 flex items-center justify-between py-0 px-5 shadow-lg sticky top-0 bg-white dark:bg-zinc-800"
         >
             <div class="logo flex items-center justify-center gap-2.5">
                 <span
-                    class="material-symbols-rounded bg-zinc-800 text-white p-2 rounded-xl text-2xl"
+                    class="material-symbols-rounded bg-zinc-800 dark:bg-white text-white dark:text-zinc-800 p-2 rounded-xl text-2xl"
                 >
                     encrypted
                 </span>
-                <h2 class="text-zinc-800">Hello, Guest.</h2>
+                <h2 class="text-zinc-800 dark:text-zinc-200">Hello, Guest.</h2>
             </div>
             <a
                 href="/pages/login"
-                class="flex items-center justify-center gap-2.5 border border-zinc-200 rounded-2xl py-2.5 px-5 text-zinc-600"
+                class="flex items-center justify-center gap-2.5 border border-zinc-200 dark:border-zinc-700 rounded-2xl py-2.5 px-5 text-zinc-600 dark:text-zinc-300"
             >
                 <span class="material-symbols-rounded"> account_circle </span
                 ><span>Login</span>
@@ -47,17 +47,19 @@
         <!-- Main content -->
         <main class="w-full max-w-7xl h-auto p-2.5 block my-5 mx-auto">
             <header
-                class="flex items-center justify-between flex-wrap border-b border-zinc-200 py-5 mb-5 gap-2.5"
+                class="flex items-center justify-between flex-wrap border-b border-zinc-200 dark:border-zinc-700 py-5 mb-5 gap-2.5"
             >
-                <h2 class="text-zinc-800 text-3xl font-bold">Text Encryptor</h2>
+                <h2 class="text-zinc-800 dark:text-zinc-200 text-3xl font-bold">
+                    Text Encryptor
+                </h2>
                 <form
                     action=""
                     method="post"
-                    name="header-key-form"
-                    id="header-key-form"
+                    name="header_key_form"
+                    id="header_key_form"
                 >
                     <div
-                        class="flex items-center justify-center gap-1.5 border border-zinc-200 py-2.5 px-5 rounded-2xl text-zinc-600"
+                        class="flex items-center justify-center gap-1.5 border border-zinc-200 dark:border-zinc-700 py-2.5 px-5 rounded-2xl text-zinc-600 dark:text-zinc-300"
                     >
                         <label for="encryption_key">Key:</label>
                         <input
@@ -65,7 +67,7 @@
                             placeholder="Enter encryption key here"
                             name="encryption_key"
                             id="encryption_key"
-                            class="h-6 outline-0 text-zinc-500"
+                            class="h-6 outline-0 text-zinc-500 dark:text-zinc-400"
                         />
                         <div class="buttons flex items-center gap-2.5">
                             <button
@@ -101,12 +103,6 @@
             class="hidden absolute bottom-5 left-5 flex items-center w-full max-w-xs p-4 dark:text-zinc-500 dark:bg-white rounded-lg shadow-sm text-zinc-400 bg-zinc-800"
             role="alert"
         >
-            <div
-                class="inline-flex items-center justify-center shrink-0 w-8 h-8 dark:text-blue-500 dark:bg-blue-100 rounded-lg bg-blue-800 text-blue-200"
-            >
-                <span class="material-symbols-rounded"> info_i </span>
-                <span class="sr-only">Info icon</span>
-            </div>
             <div class="ms-3 text-sm font-normal" id="toast-message">
                 Set yourself free.
             </div>
@@ -123,7 +119,9 @@
         <script src="{{ url_for('static', filename='scripts/script.js') }}"></script>
         <script>
             const keyPopupModal = document.getElementById("key_popup_modal");
-            const headerKeyForm = document.getElementById("header-key-form");
+            const headerKeyForm = document.getElementById("header_key_form");
+            const keyPopupForm = document.getElementById("key_popup_form");
+
             const key_api_uri = "/api/encryptor/encryption_key";
 
             // Check if encryption key has been set
@@ -144,7 +142,8 @@
 
                             if (!response.ok) {
                                 throw new Error(
-                                    "Failed to fetch API" || data.message,
+                                    data.message ||
+                                        `Failed to fetch API: ${key_api_uri}`,
                                 );
                             }
                             return data;
@@ -160,7 +159,7 @@
                             keyPopupModal.classList.remove("hidden");
                             headerKeyForm.encryption_key.value = "";
 
-                            showToast("An error has occurred.");
+                            showToast(error);
                             console.error(error);
                         });
                 }
@@ -178,7 +177,8 @@
 
                         if (!response.ok) {
                             throw new Error(
-                                "Failed to fetch API" || data.message,
+                                data.message ||
+                                    `Failed to fetch API: ${key_api_uri}`,
                             );
                         }
                         return data;
@@ -189,10 +189,50 @@
                         checkEncryptionKey();
                     })
                     .catch((error) => {
-                        showToast("An error has occurred.");
+                        showToast(error);
                         console.error(error);
                     });
             }
+
+            // Set encryption key
+            function setEncryptionKey(encyptionKey) {
+                fetch(key_api_uri, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ key: encyptionKey }),
+                })
+                    .then(async (response) => {
+                        const data = await response.json();
+                        if (!response.ok) {
+                            throw new Error(
+                                data.message ||
+                                    `Failed to fetch API: ${key_api_uri}`,
+                            );
+                        }
+                        return data;
+                    })
+                    .then((data) => {
+                        sessionStorage.setItem("encryption_key", data.data.key);
+                        showToast("Encryption key has been set.");
+                        checkEncryptionKey();
+                    })
+                    .catch((error) => {
+                        showToast(error);
+                        console.error(error);
+                    });
+            }
+
+            keyPopupForm.addEventListener("submit", (event) => {
+                event.preventDefault();
+                setEncryptionKey(keyPopupForm.key_field.value);
+            });
+
+            headerKeyForm.addEventListener("submit", (event) => {
+                event.preventDefault();
+                setEncryptionKey(headerKeyForm.encryption_key.value);
+            });
 
             checkEncryptionKey();
         </script>

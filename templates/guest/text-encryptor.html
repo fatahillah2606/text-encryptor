@@ -9,7 +9,7 @@
     <nav class="flex flex-col gap-2.5 w-80">
         <a
             href="/pages/encryptor/password-generator"
-            class="flex items-center justify-start gap-2.5 py-2.5 text-zinc-600 hover:text-blue-400"
+            class="flex items-center justify-start gap-2.5 py-2.5 text-zinc-600 dark:text-zinc-300 hover:text-blue-400"
             ><span class="material-symbols-rounded"> password </span>
             <span>Password Generator</span>
         </a>
@@ -21,15 +21,17 @@
         </a>
         <a
             href="/pages/encryptor/text-decryptor"
-            class="flex items-center justify-start gap-2.5 py-2.5 text-zinc-600 hover:text-blue-400"
+            class="flex items-center justify-start gap-2.5 py-2.5 text-zinc-600 dark:text-zinc-300 hover:text-blue-400"
             ><span class="material-symbols-rounded"> lock_open_right </span>
             <span>Text Decryptor</span>
         </a>
     </nav>
     <section class="w-full h-auto flex flex-col gap-5 relative">
-        <div class="w-full h-auto border border-zinc-200 bg-white rounded-2xl">
+        <div
+            class="w-full h-auto border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded-2xl"
+        >
             <h2
-                class="text-xl text-zinc-800 font-semibold p-5 border-b border-zinc-200"
+                class="text-xl text-zinc-800 dark:text-zinc-200 font-semibold p-5 border-b border-zinc-200 dark:border-zinc-700"
             >
                 Encrypt text
             </h2>
@@ -44,7 +46,7 @@
                         name="unencrypted_text"
                         id="unencrypted_text"
                         placeholder="Enter the text you want to encrypt"
-                        class="w-full h-full min-h-52 p-2.5 resize-none text-zinc-600 outline-0"
+                        class="w-full h-full min-h-52 p-2.5 resize-none text-zinc-600 dark:text-zinc-300 outline-0"
                     ></textarea>
                     <button
                         type="submit"
@@ -56,9 +58,11 @@
                 </form>
             </div>
         </div>
-        <div class="w-full h-auto border border-zinc-200 bg-white rounded-2xl">
+        <div
+            class="w-full h-auto border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded-2xl"
+        >
             <h2
-                class="text-xl text-zinc-800 font-semibold p-5 border-b border-zinc-200"
+                class="text-xl text-zinc-800 dark:text-zinc-200 font-semibold p-5 border-b border-zinc-200 dark:border-zinc-700"
             >
                 Encrypted text
             </h2>
@@ -67,11 +71,11 @@
                     name="result"
                     id="result"
                     placeholder="Encrypted text will shown here"
-                    class="w-full h-full min-h-52 p-2.5 resize-none text-zinc-600 outline-0"
+                    class="w-full h-full min-h-52 p-2.5 resize-none text-zinc-600 dark:text-zinc-300 outline-0"
                     readonly
                 ></textarea>
                 <span
-                    class="material-symbols-rounded absolute top-0 right-0 text-lg! text-zinc-600 mr-2.5 cursor-pointer"
+                    class="material-symbols-rounded absolute top-1.5 right-0 text-lg! text-zinc-600 dark:text-zinc-300 mr-2.5 cursor-pointer"
                     onclick="copyText('result')"
                 >
                     file_copy
@@ -107,7 +111,9 @@
             .then(async (response) => {
                 const data = await response.json();
                 if (!response.ok) {
-                    throw new Error("Failed to fetch API" || data.message);
+                    throw new Error(
+                        data.message || `Failed to fetch API: ${encrypt_api}`,
+                    );
                 }
                 return data;
             })
@@ -116,7 +122,7 @@
                 resultField.value = data.data.encrypted_text;
             })
             .catch((error) => {
-                showToast("An error has occurred.");
+                showToast(error);
                 console.error(error);
             });
     }
