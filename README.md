@@ -7,6 +7,7 @@ A simple project for encryption and decryption, and also password generator.
 ## Requirement
 
 - Python 3
+- Node.js
 
 ## Installation
 
