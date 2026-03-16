@@ -1,13 +1,13 @@
-{% extends 'guest/base.html' %}
+{% extends 'base.html' %}
 
 <!-- Title -->
-{% block title %}Text Decryptor{% endblock %}
+{% block title %}Text Encryptor{% endblock %}
 
 <!-- Section -->
 {% block section %}
 <section class="flex">
     <!-- Sidebar -->
-    {% include 'guest/sidebar.html' %}
+    {% include 'sidebar.html' %}
     <section class="w-full h-auto flex flex-col gap-5 relative">
         <div
             class="w-full h-auto border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded-2xl"
@@ -15,29 +15,27 @@
             <h2
                 class="text-lg text-zinc-800 dark:text-zinc-200 font-semibold p-5 border-b border-zinc-200 dark:border-zinc-700"
             >
-                Decrypt text
+                Encrypt text
             </h2>
             <div>
                 <form
                     action=""
                     method="post"
-                    name="decryption-form"
-                    id="decryption-form"
+                    name="encryption-form"
+                    id="encryption-form"
                 >
                     <textarea
-                        name="encrypted_text"
-                        id="encrypted_text"
-                        placeholder="Enter the text you want to Decrypt"
+                        name="unencrypted_text"
+                        id="unencrypted_text"
+                        placeholder="Enter the text you want to encrypt"
                         class="w-full h-full min-h-52 p-2.5 resize-none text-zinc-600 dark:text-zinc-300 outline-0"
                     ></textarea>
                     <button
                         type="submit"
                         class="flex items-center justify-center gap-2.5 cursor-pointer m-5 text-white bg-linear-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-linear-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
                     >
-                        <span class="material-symbols-rounded">
-                            lock_open_right
-                        </span>
-                        <span>Decrypt</span>
+                        <span class="material-symbols-rounded"> lock </span>
+                        <span>Encrypt</span>
                     </button>
                 </form>
             </div>
@@ -48,13 +46,13 @@
             <h2
                 class="text-lg text-zinc-800 dark:text-zinc-200 font-semibold p-5 border-b border-zinc-200 dark:border-zinc-700"
             >
-                Decrypted text
+                Encrypted text
             </h2>
             <div class="relative">
                 <textarea
                     name="result"
                     id="result"
-                    placeholder="Decrypted text will shown here"
+                    placeholder="Encrypted text will shown here"
                     class="w-full h-full min-h-52 p-2.5 resize-none text-zinc-600 dark:text-zinc-300 outline-0"
                     readonly
                 ></textarea>
@@ -66,7 +64,6 @@
                 </span>
             </div>
         </div>
-        {% include 'guest/key_popup.html' %}
     </section>
 </section>
 {% endblock %}
@@ -74,24 +71,23 @@
 <!-- Script -->
 {% block script %}
 <script>
-    const decryptionForm = document.getElementById("decryption-form");
+    const encryptionForm = document.getElementById("encryption-form");
     const resultField = document.getElementById("result");
-    const decrypt_api = "/api/encryptor/decrypt_text";
+    const encrypt_api = "/api/encryptor/encrypt_text";
 
-    async function decryptText() {
+    async function encryptText() {
         let encryptionKey = sessionStorage.getItem("encryption_key");
         encryptionKey = JSON.parse(encryptionKey);
 
-        let formData = new FormData(decryptionForm);
-
+        let formData = new FormData(encryptionForm);
         formData.append("key", encryptionKey.key);
         formData = Object.fromEntries(formData.entries());
 
         // send request
         try {
-            const result = await sendRequest(decrypt_api, formData, "POST");
+            const result = await sendRequest(encrypt_api, formData, "POST");
 
-            resultField.value = result.data.decrypted_text;
+            resultField.value = result.data.encrypted_text;
 
             showToast(result.message);
         } catch (error) {
@@ -100,9 +96,9 @@
         }
     }
 
-    decryptionForm.addEventListener("submit", (event) => {
+    encryptionForm.addEventListener("submit", (event) => {
         event.preventDefault();
-        decryptText();
+        encryptText();
     });
 </script>
 {% endblock %}

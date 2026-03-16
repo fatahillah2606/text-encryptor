@@ -1,0 +1,9 @@
+{% macro sidebar_item(label, icon, url, current, target) %}
+<a
+    href="{{ url }}"
+    class="sidebar-menu{% if current == target %} active text-blue-600 dark:text-blue-500 {% else %} text-zinc-600 dark:text-zinc-300 {% endif %} flex items-center justify-start gap-2.5 py-2.5 hover:text-blue-600 hover:dark:text-blue-500"
+>
+    <span class="material-symbols-rounded"> {{ icon }} </span>
+    <span>{{ label }}</span>
+</a>
+{% endmacro %}

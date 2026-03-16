@@ -1,15 +1,32 @@
 import os
+import secrets
+from datetime import datetime, timezone
 
 from dotenv import load_dotenv
-from flask import Flask, redirect, render_template, url_for, session
+from flask import Flask, redirect, session, url_for
 from flask.sansio.app import timedelta
 
 from routes.api import api_route
 from routes.pages import pages_route
+from src.init_db import create_database
 
 load_dotenv()
 
-SESSION_KEY = os.getenv("SESSION_KEY")
+SESSION_KEY = secrets.token_hex()
+# SESSION_KEY = os.getenv("SESSION_KEY") # for development, to prevent logged out when restarting
+
+# Check db
+db_path = os.path.join("db", "vault_manager.db")
+
+
+def check_and_setup_db():
+    print("Checking database...")
+    if not os.path.exists(db_path):
+        print("Database not found. Generating...")
+        create_database()
+    else:
+        print("Database found!")
+
 
 app = Flask(__name__)
 app.secret_key = SESSION_KEY
@@ -20,19 +37,27 @@ app.register_blueprint(pages_route, url_prefix="/pages/")
 app.register_blueprint(api_route, url_prefix="/api/")
 
 
+# Check session
+@app.before_request
+def check_session():
+    expired = session.get("expired")
+
+    if expired:
+        current_time = datetime.now(timezone.utc)
+        expired_time = datetime.fromisoformat(expired)
+
+        if current_time > expired_time:
+            session.clear()
+            redirect(url_for("pages.login"))
+
+        session["expired"] = (current_time + timedelta(hours=1)).isoformat()
+
+
 @app.route("/")
 def home():
     return redirect(url_for("pages.login"))
 
-# For debug only
-@app.route("/session_clear")
-def clearSession():
-    try:
-        session.clear()
-        return "<h1>Session cleared.</h1>"
-    except Exception as err:
-        return f"<h1>An error occurred.</h1><br><p>{err}</p>"
-
 
 if __name__ == "__main__":
+    check_and_setup_db()
     app.run(host="0.0.0.0", debug=True)

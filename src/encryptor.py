@@ -31,7 +31,7 @@ def encrypt_aes(text, key):
     cipher = AES.new(key, AES.MODE_CBC)
     iv = cipher.iv  # Initialization Vector
     encrypted_message = cipher.encrypt(pad(text.encode(), AES.block_size))
-    return iv + encrypted_message
+    return iv, encrypted_message
 
 
 # Decryptor
@@ -54,13 +54,3 @@ def generate_password(passLenth):
 
     except Exception as error:
         return error
-
-
-# How to use Encrypt
-# print(binascii.hexlify(encrypt_aes("Hidden message", get_valid_key("key"))).decode())
-
-# How to use Decrypt
-# conver_text = binascii.unhexlify(
-#     "22b6ebdfa4f41e54e46ecefcd215e766dc5b4cadc6a9f758c5a118d78ed272d9"
-# )
-# print(decrypt_aes(conver_text, get_valid_key("key")))

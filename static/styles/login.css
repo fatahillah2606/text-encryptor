@@ -8,8 +8,8 @@ body {
 
 /* Login box */
 .login-box {
-    background-image: linear-gradient(to bottom, #cdf5fe, #fff 50%);
-    border: 1px solid rgba(178, 190, 195, 0.5);
+    background-image: linear-gradient(to bottom, #7dd3fc, #fff 50%);
+    border: 1px solid rgba(125, 211, 252, 0.5);
 }
 
 .login-box form button {
@@ -27,8 +27,21 @@ body {
     background-color: #dfe6e9;
 }
 
-/* @media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: dark) {
     body {
         background-image: url("/static/images/bg_login_dark.jpg");
     }
-} */
+
+    /* Login box */
+    .login-box {
+        background-image: linear-gradient(to bottom, #0c4a6e, #18181b 50%);
+        border: 1px solid rgba(12, 74, 110, 0.5);
+    }
+    .login-box form button {
+        background-image: linear-gradient(to bottom, #0284c7, #1e40af);
+        border: 1px solid rgba(116, 185, 255, 0.5);
+    }
+    .login-box #or-text::before {
+        background-color: #27272a;
+    }
+}

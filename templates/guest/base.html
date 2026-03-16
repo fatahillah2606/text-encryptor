@@ -17,10 +17,9 @@
             rel="stylesheet"
             href="{{ url_for('static', filename='styles/style.css') }}"
         />
-        <link
-            rel="stylesheet"
-            href="{{ url_for('static', filename='styles/guest.css') }}"
-        />
+
+        <!-- Tailwind CSS -->
+        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     </head>
     <body class="bg-zinc-100 dark:bg-zinc-900">
         <!-- Navbar -->
@@ -29,7 +28,7 @@
         >
             <div class="logo flex items-center justify-center gap-2.5">
                 <span
-                    class="material-symbols-rounded bg-zinc-800 dark:bg-white text-white dark:text-zinc-800 p-2 rounded-xl text-2xl"
+                    class="material-symbols-rounded bg-zinc-800 dark:bg-white text-white dark:text-zinc-800 p-2 rounded-xl text-2xl material-icon-fill"
                 >
                     encrypted
                 </span>
@@ -37,7 +36,7 @@
             </div>
             <a
                 href="/pages/login"
-                class="flex items-center justify-center gap-2.5 border border-zinc-200 dark:border-zinc-700 rounded-2xl py-2.5 px-5 text-zinc-600 dark:text-zinc-300"
+                class="flex items-center justify-center gap-2.5 border border-zinc-200 hover:border-zinc-400 dark:border-zinc-700 dark:hover:border-zinc-500 rounded-2xl py-2.5 px-5 text-zinc-600 dark:text-zinc-300"
             >
                 <span class="material-symbols-rounded"> account_circle </span
                 ><span>Login</span>
@@ -83,7 +82,7 @@
                                 type="button"
                                 class="w-6 h-6 leading-6 cursor-pointer"
                                 title="Generate key"
-                                onclick="generateEncryptionKey()"
+                                onclick="setEncryptionKey('')"
                             >
                                 <span class="material-symbols-rounded">
                                     wand_stars
@@ -115,113 +114,27 @@
                 <span class="material-symbols-rounded"> close </span>
             </button>
         </div>
-        <!-- Script -->
+        <!-- Scripts -->
+        <script src="{{ url_for('static', filename='scripts/api.js') }}"></script>
+        <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
         <script src="{{ url_for('static', filename='scripts/script.js') }}"></script>
         <script>
             const keyPopupModal = document.getElementById("key_popup_modal");
             const headerKeyForm = document.getElementById("header_key_form");
             const keyPopupForm = document.getElementById("key_popup_form");
 
-            const key_api_uri = "/api/encryptor/encryption_key";
-
             // Check if encryption key has been set
             function checkEncryptionKey() {
-                const encryptionKey = sessionStorage.getItem("encryption_key");
+                let encryptionKey = sessionStorage.getItem("encryption_key");
                 if (encryptionKey) {
+                    encryptionKey = JSON.parse(encryptionKey);
+
+                    headerKeyForm.encryption_key.value = encryptionKey.key;
                     keyPopupModal.classList.add("hidden");
-                    headerKeyForm.encryption_key.value = encryptionKey;
                 } else {
-                    fetch(key_api_uri, {
-                        method: "GET",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                    })
-                        .then(async (response) => {
-                            const data = await response.json();
-
-                            if (!response.ok) {
-                                throw new Error(
-                                    data.message ||
-                                        `Failed to fetch API: ${key_api_uri}`,
-                                );
-                            }
-                            return data;
-                        })
-                        .then((data) => {
-                            const serverKey = data.data.key;
-                            sessionStorage.setItem("encryption_key", serverKey);
-
-                            keyPopupModal.classList.add("hidden");
-                            headerKeyForm.encryption_key.value = serverKey;
-                        })
-                        .catch((error) => {
-                            keyPopupModal.classList.remove("hidden");
-                            headerKeyForm.encryption_key.value = "";
-
-                            showToast(error);
-                            console.error(error);
-                        });
+                    keyPopupModal.classList.remove("hidden");
+                    headerKeyForm.encryption_key.value = "";
                 }
-            }
-
-            // Generate Encryption Key
-            function generateEncryptionKey() {
-                fetch(key_api_uri, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ key: "" }),
-                })
-                    .then(async (response) => {
-                        const data = await response.json();
-
-                        if (!response.ok) {
-                            throw new Error(
-                                data.message ||
-                                    `Failed to fetch API: ${key_api_uri}`,
-                            );
-                        }
-                        return data;
-                    })
-                    .then((data) => {
-                        sessionStorage.setItem("encryption_key", data.data.key);
-                        showToast("Key generated");
-                        checkEncryptionKey();
-                    })
-                    .catch((error) => {
-                        showToast(error);
-                        console.error(error);
-                    });
-            }
-
-            // Set encryption key
-            function setEncryptionKey(encyptionKey) {
-                fetch(key_api_uri, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ key: encyptionKey }),
-                })
-                    .then(async (response) => {
-                        const data = await response.json();
-                        if (!response.ok) {
-                            throw new Error(
-                                data.message ||
-                                    `Failed to fetch API: ${key_api_uri}`,
-                            );
-                        }
-                        return data;
-                    })
-                    .then((data) => {
-                        sessionStorage.setItem("encryption_key", data.data.key);
-                        showToast("Encryption key has been set.");
-                        checkEncryptionKey();
-                    })
-                    .catch((error) => {
-                        showToast(error);
-                        console.error(error);
-                    });
             }
 
             keyPopupForm.addEventListener("submit", (event) => {

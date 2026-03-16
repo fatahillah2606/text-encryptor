@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Login</title>
+        <title>Register</title>
         <link
             rel="stylesheet"
             href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
@@ -33,41 +33,80 @@
                 <span
                     class="material-symbols-rounded text-4xl leading-14! block! text-center! text-zinc-800 dark:text-white"
                 >
-                    login
+                    person_add
                 </span>
             </div>
             <h2
                 class="text-center text-zinc-800 dark:text-zinc-200 font-bold text-xl"
             >
-                Welcome!
+                Let's sign up!
             </h2>
             <p class="text-center mt-3 text-zinc-600 dark:text-zinc-300">
-                Log in to get started. Also you can choose another option using
-                the button below.
+                Register to use the password manager feature. Or you can choose
+                another option using the button below.
             </p>
 
             <!-- Form -->
             <form
                 action=""
                 method="post"
-                name="login_form"
-                id="login_form"
+                name="register_form"
+                id="register_form"
                 class="my-5 mx-0 w-full flex flex-col gap-3"
             >
+                <!-- Username -->
+                <div class="grid gap-4 mb-4 grid-cols-2">
+                    <div
+                        class="col-span-2 sm:col-span-1 flex items-center rounded-2xl bg-slate-100 dark:bg-zinc-800 relative"
+                    >
+                        <span
+                            class="material-symbols-rounded w-12 block! text-center! text-zinc-600 dark:text-zinc-300"
+                        >
+                            person
+                        </span>
+                        <input
+                            type="text"
+                            name="name"
+                            id="name"
+                            maxlength="60"
+                            placeholder="Your name"
+                            class="w-full text-base py-4 px-0 text-zinc-600 dark:text-zinc-300 outline-none"
+                            required
+                        />
+                    </div>
+                    <div
+                        class="col-span-2 sm:col-span-1 flex items-center rounded-2xl bg-slate-100 dark:bg-zinc-800 relative"
+                    >
+                        <span
+                            class="material-symbols-rounded w-12 block! text-center! text-zinc-600 dark:text-zinc-300"
+                        >
+                            person
+                        </span>
+                        <input
+                            type="text"
+                            name="username"
+                            id="username"
+                            maxlength="60"
+                            placeholder="Username"
+                            class="w-full text-base py-4 px-0 text-zinc-600 dark:text-zinc-300 outline-none"
+                            required
+                        />
+                    </div>
+                </div>
+                <!-- Password -->
                 <div
                     class="w-full flex items-center rounded-2xl bg-slate-100 dark:bg-zinc-800 relative"
                 >
                     <span
                         class="material-symbols-rounded w-12 block! text-center! text-zinc-600 dark:text-zinc-300"
                     >
-                        person
+                        key
                     </span>
                     <input
-                        type="text"
-                        name="username"
-                        id="username"
-                        maxlength="60"
-                        placeholder="Username"
+                        type="password"
+                        name="password"
+                        id="password"
+                        placeholder="Password"
                         class="w-full text-base py-4 px-0 text-zinc-600 dark:text-zinc-300 outline-none"
                         required
                     />
@@ -82,20 +121,31 @@
                     </span>
                     <input
                         type="password"
-                        name="password"
-                        id="password"
-                        maxlength="60"
-                        placeholder="Password"
+                        name="retype_password"
+                        id="retype_password"
+                        placeholder="Retype Password"
                         class="w-full text-base py-4 px-0 text-zinc-600 dark:text-zinc-300 outline-none"
                         required
                     />
-                    <span
-                        onclick="showPassword(this, 'password')"
-                        class="material-symbols-rounded w-12 block! text-center! text-zinc-600 dark:text-zinc-300 cursor-pointer"
-                        id="visibility"
+                </div>
+                <div class="flex items-center ml-3">
+                    <input
+                        id="show_pw"
+                        type="checkbox"
+                        value=""
+                        onchange="
+                            showPasswordCheckBox(this, [
+                                'password',
+                                'retype_password',
+                            ])
+                        "
+                        class="w-4 h-4 text-blue-600 bg-zinc-100 border-zinc-300 rounded-sm focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-zinc-800 focus:ring-2 dark:bg-zinc-700 dark:border-zinc-600"
+                    />
+                    <label
+                        for="show_pw"
+                        class="ms-2 text-sm font-medium text-zinc-900 dark:text-zinc-400"
+                        >Show password</label
                     >
-                        visibility
-                    </span>
                 </div>
                 <p
                     class="support-text hidden text-red-600 dark:text-red-500 m-0 ml-3 text-xs text-left"
@@ -106,7 +156,7 @@
                     type="submit"
                     class="py-4 rounded-2xl text-white text-base cursor-pointer mt-5 focus:scale-95"
                 >
-                    Get Started
+                    Register
                 </button>
             </form>
             <div
@@ -129,25 +179,26 @@
                     <span>Encryptor</span>
                 </a>
                 <a
-                    href="/pages/register"
+                    href="/pages/login"
                     class="flex items-center justify-center gap-3 shadow-md bg-white hover:bg-slate-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 py-3 px-5 rounded-2xl w-full text-zinc-600! dark:text-zinc-300!"
                 >
-                    <span class="material-symbols-rounded"> person_add </span>
-                    <span>Register</span>
+                    <span class="material-symbols-rounded"> login </span>
+                    <span>Login</span>
                 </a>
             </div>
         </div>
+        <!-- Scripts -->
         <script src="{{ url_for('static', filename='scripts/script.js') }}"></script>
         <script>
-            const login_api = "/api/auth/login";
-            const loginForm = document.getElementById("login_form");
+            const regist_api = "/api/auth/register";
+            const registerForm = document.getElementById("register_form");
             const supportText = document.querySelector(".support-text");
 
-            function login(formulir) {
+            function register(formulir) {
                 let formData = new FormData(formulir);
                 formData = Object.fromEntries(formData.entries());
 
-                fetch(login_api, {
+                fetch(regist_api, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -159,7 +210,7 @@
                         if (!response.ok) {
                             throw new Error(
                                 data.message ||
-                                    `Failed to fetch API: ${login_api}`,
+                                    `Failed to fetch API: ${regist_api}`,
                             );
                         }
                         return data;
@@ -168,15 +219,26 @@
                         location.href = "/pages/dashboard";
                     })
                     .catch((error) => {
-                        showSupportText(supportText, error);
+                        showSupportText(showSupportText, error);
                         console.error(error);
                     });
             }
 
-            loginForm.addEventListener("submit", (event) => {
+            registerForm.addEventListener("submit", (event) => {
                 event.preventDefault();
                 hideSupportText(supportText);
-                login(loginForm);
+
+                if (
+                    registerForm.password.value ===
+                    registerForm.retype_password.value
+                ) {
+                    register(registerForm);
+                } else {
+                    showSupportText(
+                        supportText,
+                        "The password does not match!",
+                    );
+                }
             });
         </script>
     </body>

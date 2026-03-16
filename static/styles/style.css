@@ -13,3 +13,12 @@
 .remove-arrow {
     -moz-appearance: textfield !important;
 }
+
+.sidebar-menu:hover,
+.sidebar-menu.active {
+    font-variation-settings: "FILL" 1;
+}
+
+.material-icon-fill {
+    font-variation-settings: "FILL" 1;
+}
