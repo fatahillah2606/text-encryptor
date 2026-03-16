@@ -111,7 +111,7 @@
                             type="text"
                             name="key_name"
                             id="key_name"
-                            class="bg-zinc-50 border border-zinc-300 text-zinc-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:placeholder-zinc-400 dark:text-white"
+                            class="bg-zinc-100 border border-zinc-300 text-zinc-600 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:placeholder-zinc-400 dark:text-zinc-300"
                             placeholder="Name of your key (Ex. Hoyoverse accounts)"
                             required
                         />
@@ -127,7 +127,7 @@
                                 type="text"
                                 name="the_key"
                                 id="the_key"
-                                class="bg-zinc-50 border border-zinc-300 text-zinc-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:placeholder-zinc-400 dark:text-white"
+                                class="bg-zinc-100 border border-zinc-300 text-zinc-600 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:placeholder-zinc-400 dark:text-zinc-300"
                                 placeholder="Enter encryption key here"
                                 required
                             />
@@ -228,7 +228,7 @@
                             type="text"
                             name="key_name"
                             id="key_name"
-                            class="bg-zinc-50 border border-zinc-300 text-zinc-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:placeholder-zinc-400 dark:text-white"
+                            class="bg-zinc-100 border border-zinc-300 text-zinc-600 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:placeholder-zinc-400 dark:text-zinc-300"
                             placeholder="Name of your key (Ex. Hoyoverse accounts)"
                             required
                         />
@@ -244,28 +244,17 @@
                                 type="text"
                                 name="the_key"
                                 id="the_key"
-                                class="bg-zinc-50 border border-zinc-300 text-zinc-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-900 dark:border-zinc-700 dark:placeholder-zinc-400 dark:text-white"
+                                readonly
+                                class="bg-zinc-200 border border-zinc-300 text-zinc-700 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-700 dark:border-zinc-700 dark:placeholder-zinc-400 dark:text-zinc-200 outline-0 cursor-not-allowed"
                                 placeholder="Enter encryption key here"
-                                required
                             />
-                            <button
-                                title="Generate key"
-                                type="button"
-                                onclick="
-                                    generateKey(
-                                        document.getElementById('the_key'),
-                                    )
-                                "
-                                class="flex items-center justify-center absolute top-1/2 right-1.5 rounded-md cursor-pointer -translate-y-1/2 p-1 bg-blue-700 hover:bg-blue-800 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                            >
-                                <span
-                                    class="material-symbols-rounded text-white"
-                                >
-                                    wand_stars
-                                </span>
-                            </button>
                         </div>
                     </div>
+                    <p
+                        class="col-span-2 text-zinc-400 dark:text-zinc-500 text-sm"
+                    >
+                        You cannot change the encryption key. At least for now.
+                    </p>
                 </div>
                 <button
                     type="submit"
