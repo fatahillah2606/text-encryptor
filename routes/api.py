@@ -1,14 +1,11 @@
 import binascii
-import os
-import sqlite3
-from datetime import datetime, timedelta, timezone
 from functools import wraps
 
-import bcrypt
 from flask import Blueprint, jsonify, request, session
 
-from src.data_manager import get_user_key, get_user_key_all, delete_user_key, get_user_password, get_user_password_all, delete_user_password
+from src.data_manager import KeyManager, PasswordManager, UserManager
 from src.encryptor import decrypt_aes, encrypt_aes, generate_password, get_valid_key
+from src.essentials import createLoginSession
 
 
 # API Response
@@ -21,20 +18,6 @@ def api_response(status, code, message, data, pagination):
         "pagination": pagination if pagination else {},
     }
     return jsonify(response)
-
-
-# bcrypt hashing
-def bcryptHashing(text):
-    hashedText = bcrypt.hashpw(text.encode("utf-8"), bcrypt.gensalt())
-    hashedText = hashedText.decode("utf-8")
-    return hashedText
-
-
-# bcrypt check
-def bcryptCheck(text, hashedText):
-    encodeText = text.encode("utf-8")
-    encodeHashedText = hashedText.encode("utf-8")
-    return bcrypt.checkpw(encodeText, encodeHashedText)
 
 
 # API protection
@@ -54,6 +37,7 @@ api_route = Blueprint("api", __name__)
 #
 # Encrptor process
 #
+
 
 # encription key
 @api_route.route("/encryptor/encryption_key", methods=["POST", "GET"])
@@ -189,13 +173,13 @@ def password_generator():
 # Auth process
 #
 
+user = UserManager()
+
+
 # Register
 @api_route.route("/auth/register", methods=["POST"])
 def register():
     try:
-        # Database path
-        db_path = os.path.join("db", "vault_manager.db")
-
         # Data
         data = request.json
         name = str(data.get("name"))
@@ -205,30 +189,13 @@ def register():
 
         # Check if password match
         if password == retypePassword:
-            hashedPassword = bcryptHashing(retypePassword)
-
             # Insert into database
-            with sqlite3.connect(db_path) as conn:
-                query = (
-                    "INSERT INTO users (name, username, password_hash) VALUES (?, ?, ?)"
-                )
-
-                cursor = conn.cursor()
-                cursor.execute("PRAGMA foreign_keys = ON;")
-                cursor.execute(query, (name, username, hashedPassword))
-
-                user_id = cursor.lastrowid
-                conn.commit()
+            result = user.register(name, username, retypePassword)
 
             # Log in
-            session.permanent = True
-            session["exipred"] = (
-                datetime.now(timezone.utc) + timedelta(hours=1)
-            ).isoformat()
-            session["user_id"] = user_id
-            session["name"] = name
-            session["username"] = username
-            session["key"] = retypePassword
+            createLoginSession(
+                result["user_id"], result["name"], result["username"], retypePassword
+            )
 
             # Respond to client
             return api_response("success", 200, "Successfully registered", [], {})
@@ -244,49 +211,26 @@ def register():
 @api_route.route("/auth/login", methods=["POST"])
 def login():
     try:
-        # Database path
-        db_path = os.path.join("db", "vault_manager.db")
-
         # Data
         data = request.json
         username = str(data.get("username"))
         password = str(data.get("password"))
 
         # Check into database
-        with sqlite3.connect(db_path) as conn:
-            query = "SELECT * FROM users WHERE username = ?"
+        status, result = user.authenticate(username, password)
 
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
-            cursor.execute("PRAGMA foreign_keys = ON;")
-            cursor.execute(query, (username,))
-            userdata = cursor.fetchone()
+        if status == "success":
+            createLoginSession(
+                result["user_id"], result["name"], result["username"], password
+            )
+            return api_response("success", 200, "User verified", [], {})
 
-            # If user available
-            if userdata:
-                # Check the password
-                valid = bcryptCheck(password, userdata["password_hash"])
-                if valid:
-                    # Log in
-                    session.permanent = True
-                    session["expired"] = (
-                        datetime.now(timezone.utc) + timedelta(hours=1)
-                    ).isoformat()
-                    session["user_id"] = userdata["user_id"]
-                    session["name"] = userdata["name"]
-                    session["username"] = userdata["username"]
-                    session["key"] = password
+        elif status == "fail":
+            return api_response("error", 403, result, [], {}), 403
 
-                    return api_response("success", 200, "User verified", [], {})
-                else:
-                    return api_response(
-                        "error", 403, "Incorrect username or password", [], {}
-                    ), 403
-
-            else:
-                return api_response(
-                    "error", 403, "Incorrect username or password", [], {}
-                ), 403
+        # If database error
+        else:
+            return api_response("error", 500, result, [], {}), 500
 
     except Exception as err:
         return api_response("error", 500, str(err), [], {}), 500
@@ -307,15 +251,18 @@ def whoAmI():
 
 
 #
-# Data manager process
+# Key manager
 #
+
+keys = KeyManager()
+
 
 # Get all user keys
 @api_route.route("/user/keys", methods=["GET"])
 @logged_in_only_api
 def listUserKeys():
     try:
-        userKeys = get_user_key_all(session["user_id"], session["key"])
+        userKeys = keys.get_user_key_all(session["user_id"], session["key"])
         return api_response("success", 200, "Keys available", userKeys, {})
 
     except Exception as err:
@@ -327,7 +274,7 @@ def listUserKeys():
 @logged_in_only_api
 def listUserKey(key_id):
     try:
-        userKeys = get_user_key(key_id, session["user_id"], session["key"])
+        userKeys = keys.get_user_key(key_id, session["user_id"], session["key"])
 
         if userKeys:
             return api_response("success", 200, "Keys available", userKeys, {})
@@ -336,20 +283,20 @@ def listUserKey(key_id):
 
     except Exception as err:
         return api_response("error", 500, str(err), [], {}), 500
-    
+
 
 # Delete key
 @api_route.route("/user/key/<key_id>/delete", methods=["DELETE"])
 @logged_in_only_api
 def deleteKey(key_id):
     try:
-        result = delete_user_key(key_id)
+        status, result = keys.delete_user_key(key_id)
 
-        if result is True:
-            return api_response("success", 200, "Key deleted successfully.", [], {})
+        if status == "success":
+            return api_response("success", 200, result, [], {})
         else:
             return api_response("error", 500, result, [], {}), 500
-        
+
     except Exception as err:
         return api_response("error", 500, str(err), [], {}), 500
 
@@ -359,59 +306,55 @@ def deleteKey(key_id):
 @logged_in_only_api
 def createEncryptionKey():
     try:
-        # Database path
-        db_path = os.path.join("db", "vault_manager.db")
-
         # Data
         data = request.json
         keyName = str(data.get("key_name"))
         theKey = str(data.get("the_key"))
+
         user_id = session["user_id"]
+        session_key = session["key"]
 
-        # Encrypt the key with master key
-        master_key = get_valid_key(session["key"])
-        iv, encrypted_key = encrypt_aes(theKey, master_key["encoded_key"])
+        # Insert into db
+        status, result = keys.create_user_key(keyName, theKey, user_id, session_key)
 
-        # Proceed into database
-        with sqlite3.connect(db_path) as conn:
-            query = "INSERT INTO keys (user_id, key_name, encrypted_key, iv) VALUES (?, ?, ?, ?)"
-
-            cursor = conn.cursor()
-            cursor.execute("PRAGMA foreign_keys = ON;")
-            cursor.execute(query, (user_id, keyName, encrypted_key, iv))
-
-            conn.commit()
-
-        return api_response(
-            "success", 200, f"Successfully added key: {keyName}", [], {}
-        )
+        if status == "success":
+            return api_response("success", 200, result, [], {})
+        else:
+            return api_response("error", 500, result, [], {}), 500
 
     except Exception as err:
         return api_response("error", 500, str(err), [], {}), 500
-    
 
-# 
+
+#
 # Password manager
-# 
+#
+
+passwords = PasswordManager()
+
 
 # Get all user passwords
 @api_route.route("/user/passwords", methods=["GET"])
 @logged_in_only_api
 def listUserPasswords():
     try:
-        userPasswords = get_user_password_all(session["user_id"], session["key"])
+        userPasswords = passwords.get_user_password_all(
+            session["user_id"], session["key"]
+        )
         return api_response("success", 200, "Passwords available", userPasswords, {})
 
     except Exception as err:
         return api_response("error", 500, str(err), [], {}), 500
-    
+
 
 # Get some user password
 @api_route.route("/user/password/<password_id>", methods=["GET"])
 @logged_in_only_api
 def listUserPassword(password_id):
     try:
-        userPassword = get_user_password(password_id, session["user_id"], session["key"])
+        userPassword = passwords.get_user_password(
+            password_id, session["user_id"], session["key"]
+        )
 
         if userPassword:
             return api_response("success", 200, "Password available", userPassword, {})
@@ -420,7 +363,6 @@ def listUserPassword(password_id):
 
     except Exception as err:
         return api_response("error", 500, str(err), [], {}), 500
-    
 
 
 # Delete password
@@ -428,16 +370,15 @@ def listUserPassword(password_id):
 @logged_in_only_api
 def deletePassword(password_id):
     try:
-        result = delete_user_password(password_id)
+        status, result = passwords.delete_user_password(password_id)
 
-        if result is True:
-            return api_response("success", 200, "Password deleted successfully.", [], {})
+        if status == "success":
+            return api_response("success", 200, result, [], {})
         else:
             return api_response("error", 500, result, [], {}), 500
-        
+
     except Exception as err:
         return api_response("error", 500, str(err), [], {}), 500
-
 
 
 # Create new password
@@ -445,35 +386,25 @@ def deletePassword(password_id):
 @logged_in_only_api
 def createPassword():
     try:
-        # Database path
-        db_path = os.path.join("db", "vault_manager.db")
-
         # Data
         data = request.json
         serviceName = str(data.get("new_service_name"))
         username = str(data.get("new_username"))
         password = str(data.get("new_password"))
         selectedKeyId = int(data.get("new_selected_key"))
+
         user_id = session["user_id"]
+        session_key = session["key"]
 
-        # Encrypt the password with selected key
-        selected_key = get_user_key(selectedKeyId, user_id, session["key"])
-        valid_selected_key = get_valid_key(selected_key["encryption_key"])
-        iv, encrypted_password = encrypt_aes(password, valid_selected_key["encoded_key"])
-
-        # Proceed into database
-        with sqlite3.connect(db_path) as conn:
-            query = "INSERT INTO passwords (user_id, key_id, service_name, username_account, encrypted_password, iv) VALUES (?, ?, ?, ?, ?, ?)"
-
-            cursor = conn.cursor()
-            cursor.execute("PRAGMA foreign_keys = ON;")
-            cursor.execute(query, (user_id, selectedKeyId, serviceName, username, encrypted_password, iv))
-
-            conn.commit()
-
-        return api_response(
-            "success", 200, f"Successfully added password: {serviceName}", [], {}
+        # Insert into db
+        status, result = passwords.create_user_password(
+            serviceName, username, password, selectedKeyId, user_id, session_key
         )
+
+        if status == "success":
+            return api_response("success", 200, result, [], {})
+        else:
+            return api_response("error", 500, result, [], {}), 500
 
     except Exception as err:
         return api_response("error", 500, str(err), [], {}), 500

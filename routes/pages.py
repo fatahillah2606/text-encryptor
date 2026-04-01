@@ -3,7 +3,7 @@ import os
 import sqlite3
 from functools import wraps
 
-from flask import Blueprint, redirect, render_template, request, session, url_for
+from flask import Blueprint, redirect, render_template, session, url_for
 
 from src.encryptor import decrypt_aes, get_valid_key
 
@@ -57,7 +57,11 @@ def inject_globals():
                     decrypted_key = decrypt_aes(key_from_db, master_key["encoded_key"])
 
                     user_keys.append(
-                        {"key_id": row["key_id"], "key_name": row["key_name"], "encrypted_key": decrypted_key}
+                        {
+                            "key_id": row["key_id"],
+                            "key_name": row["key_name"],
+                            "encrypted_key": decrypted_key,
+                        }
                     )
     else:
         user_keys = []
