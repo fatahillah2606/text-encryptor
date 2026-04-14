@@ -1,0 +1,141 @@
+{% extends 'components/base.html' %}
+
+<!-- Title -->
+{% block title %}Account Manager{% endblock %}
+
+<!-- Section -->
+{% block section %}
+<section
+    class="w-full! h-[calc(100vh-72px)] overflow-auto p-0 md:p-2.5 md:pl-0 md:pt-0"
+>
+    <div
+        class="bg-md-background w-full h-full md:rounded-4xl overflow-auto p-5"
+    >
+        <div class="flex justify-center">
+            <div class="w-full max-w-2xl animate-showup">
+                <!-- Heading -->
+                <div
+                    class="flex items-center justify-start gap-2.5 bg-md-background z-10"
+                >
+                    <md-icon-button
+                        class="md:hidden"
+                        onclick="movePage('/pages/dashboard')"
+                    >
+                        <md-icon>arrow_back</md-icon>
+                    </md-icon-button>
+                    <h1
+                        class="md-typescale-headline-small text-md-on-surface font-bold!"
+                    >
+                        Account Manager
+                    </h1>
+                </div>
+
+                <!-- Main -->
+                <div class="flex flex-col gap-8">
+                    <div
+                        class="rounded-2xl overflow-hidden flex flex-col gap-1"
+                    >
+                        <div
+                            class="relative py-2.5 px-5 bg-md-surface-container rounded-md flex items-center gap-5 cursor-pointer"
+                        >
+                            <md-icon class="text-md-on-surface"
+                                >assignment_ind</md-icon
+                            >
+                            <div>
+                                <h2
+                                    class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
+                                >
+                                    Your Name
+                                </h2>
+                                <p
+                                    class="md-typescale-body-medium text-md-secondary m-0"
+                                >
+                                    {{ name }}
+                                </p>
+                            </div>
+                            <md-ripple></md-ripple>
+                        </div>
+
+                        <div
+                            class="relative py-2.5 px-5 bg-md-surface-container rounded-md flex items-center gap-5 cursor-pointer"
+                        >
+                            <md-icon class="text-md-on-surface">person</md-icon>
+                            <div>
+                                <h2
+                                    class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
+                                >
+                                    Username
+                                </h2>
+                                <p
+                                    class="md-typescale-body-medium text-md-secondary m-0"
+                                >
+                                    {{ username }}
+                                </p>
+                            </div>
+                            <md-ripple></md-ripple>
+                        </div>
+
+                        <div
+                            class="relative py-2.5 px-5 bg-md-surface-container rounded-md flex items-center gap-5 cursor-pointer"
+                        >
+                            <md-icon class="text-md-on-surface"
+                                >password</md-icon
+                            >
+                            <div>
+                                <h2
+                                    class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
+                                >
+                                    Password
+                                </h2>
+                                <p
+                                    class="md-typescale-body-medium text-md-secondary m-0"
+                                >
+                                    The password remains accessible in the
+                                    current session to function as a master
+                                    encryption key for stored user data.
+                                </p>
+                            </div>
+                            <md-ripple></md-ripple>
+                        </div>
+                    </div>
+
+                    <div
+                        class="rounded-2xl overflow-hidden flex flex-col gap-1"
+                    >
+                        <div
+                            class="relative py-2.5 px-5 bg-md-surface-container rounded-md flex items-center gap-5 cursor-pointer"
+                        >
+                            <md-icon class="text-md-on-surface"
+                                >delete_forever</md-icon
+                            >
+                            <div>
+                                <h2
+                                    class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
+                                >
+                                    Delete your account
+                                </h2>
+                                <p
+                                    class="md-typescale-body-medium text-md-secondary m-0"
+                                >
+                                    If you delete your account, all keys and
+                                    passwords you stored will be deleted. Please
+                                    proceed with caution.
+                                </p>
+                            </div>
+                            <md-ripple></md-ripple>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+<!-- Modals -->
+{% block modals %} {% endblock %}
+
+<!-- Script -->
+{% block script %}
+<script></script>
+{% endblock %}

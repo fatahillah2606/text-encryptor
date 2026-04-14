@@ -1,7 +1,70 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+@import url("/static/fonts/Inter-4.1/inter.css");
+@import url("/static/styles/material-theme/light.css");
+@import url("/static/styles/material-theme/dark.css");
+
+@font-face {
+    font-family: "Material Symbols Rounded";
+    font-style: normal;
+    src: url("/static/icons/material-symbols/MaterialSymbolsRounded.woff2")
+        format("woff");
+}
+
+:root {
+    font-family: Inter, sans-serif;
+    font-feature-settings:
+        "liga" 1,
+        "calt" 1; /* fix for Chrome */
+
+    --md-ref-typeface-brand: Inter, sans-serif;
+    --md-ref-typeface-plain: Inter, sans-serif;
+}
+@supports (font-variation-settings: normal) {
+    :root {
+        font-family: InterVariable, sans-serif;
+        --md-ref-typeface-brand: Inter, sans-serif;
+        --md-ref-typeface-plain: Inter, sans-serif;
+    }
+}
 
 * {
-    font-family: "Inter", sans-serif;
+    box-sizing: border-box;
+}
+
+a {
+    text-decoration: none;
+}
+
+button {
+    background: none;
+    border: none;
+}
+
+input {
+    background: none;
+    border: none;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
+md-icon {
+    font-family: "Material Symbols Rounded";
+}
+
+.material-symbols-rounded {
+    font-family: "Material Symbols Rounded";
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px; /* Preferred icon size */
+    display: inline-block;
+    line-height: 1;
+    text-transform: none;
+    letter-spacing: normal;
+    word-wrap: normal;
+    white-space: nowrap;
+    direction: ltr;
 }
 
 .remove-arrow::-webkit-inner-spin-button,

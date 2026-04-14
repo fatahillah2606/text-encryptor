@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@material/web": "^2.4.1",
     "@tailwindcss/cli": "^4.2.1",
     "tailwindcss": "^4.2.1"
   }

@@ -31,10 +31,6 @@ A simple project for text encryption and decryption, featuring a password manage
 
         source .venv/bin/activate
 
-    Install dependencies:
-
-        pip install -r requirements.txt
-
 3.  Install node packages (optional)
 
     ```bash
@@ -46,7 +42,7 @@ A simple project for text encryption and decryption, featuring a password manage
 ### Start the Flask
 
 ```bash
-python app.py
+python run.py
 ```
 
 ### Start Tailwindcss cli (optional)
@@ -57,4 +53,4 @@ npx @tailwindcss/cli -i ./static/styles/input.css -o ./static/styles/output.css 
 
 Open your browser and navigate to http://127.0.0.1:5000/
 
-**Note**: The Tailwindcss and Flowbite CDNs are already included in the code. So, there is no need to install Node.js packages—or even use Node.js at all.
+**Note**: Tailwindcss and Material Web are already bundled, so there's no need to install any Node.js packages—or even use Node.js at all.

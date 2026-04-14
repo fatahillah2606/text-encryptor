@@ -1,3 +1,30 @@
+// Account info
+const accountInfoElm = document.getElementById("account-info");
+
+function toggleAccountInfo() {
+    if (accountInfoElm.classList.contains("hidden")) {
+        accountInfoElm.classList.remove("hidden");
+    } else {
+        accountInfoElm.classList.add("hidden");
+    }
+}
+
+// App menu
+const appMenuElm = document.getElementById("app-menu");
+
+function toggleAppMenu() {
+    if (appMenuElm.classList.contains("hidden")) {
+        appMenuElm.classList.remove("hidden");
+    } else {
+        appMenuElm.classList.add("hidden");
+    }
+}
+
+// Move page
+function movePage(uri) {
+    location.href = uri;
+}
+
 // Toast
 let autoDismis;
 function showToast(message) {
@@ -18,6 +45,20 @@ function showToast(message) {
     }
 }
 
+// Alert dialog
+async function showAlert(headline, content) {
+    const dialog = document.getElementById("alert-dialog");
+
+    if (dialog) {
+        dialog.querySelector('[slot="headline"]').innerText = headline;
+        dialog.querySelector("form").innerText = content;
+
+        await dialog.show();
+    } else {
+        console.error("Alert dialog not found in this page!");
+    }
+}
+
 function dismisToast() {
     const toast = document.querySelector("#toast-default");
 
@@ -29,15 +70,62 @@ function dismisToast() {
 }
 
 // Copy text
-function copyText(field) {
-    const fieldId = document.getElementById(field);
+function copyText(field, copyBtn) {
+    const element = document.getElementById(field);
+    if (!element) return;
 
-    fieldId.select();
-    fieldId.setSelectionRange(0, 99999); // For mobile devices
+    // Grab text depending on the element type
+    const text =
+        element.value !== undefined ? element.value : element.innerText;
 
-    navigator.clipboard.writeText(fieldId.value);
+    navigator.clipboard
+        .writeText(text)
+        .then(() => {
+            copyBtn.textContent = "Copied";
+            copyBtn.disabled = true;
 
-    showToast("Text copied.");
+            setTimeout(() => {
+                copyBtn.textContent = "Copy";
+                copyBtn.disabled = false;
+            }, 2000);
+
+            showToast("Text copied.");
+        })
+        .catch((err) => {
+            showAlert("Clipboard write failed.", err);
+            console.error("Clipboard write failed.", err);
+        });
+}
+
+function copyTextIconBtn(field, copyIconBtn, event) {
+    event.preventDefault();
+
+    const element = document.getElementById(field);
+    if (!element) return;
+
+    const copyIcon = copyIconBtn.querySelector("md-icon");
+
+    // Grab text depending on the element type
+    const text =
+        element.value !== undefined ? element.value : element.innerText;
+
+    navigator.clipboard
+        .writeText(text)
+        .then(() => {
+            copyIcon.textContent = "check";
+            copyIcon.disabled = true;
+
+            setTimeout(() => {
+                copyIcon.textContent = "content_copy";
+                copyIcon.disabled = false;
+            }, 1000);
+
+            showToast("Text copied.");
+        })
+        .catch((err) => {
+            showAlert("Clipboard write failed.", err);
+            console.error("Clipboard write failed.", err);
+        });
 }
 
 // Show password
@@ -54,20 +142,21 @@ function showPassword(elmClicked, elmPassword) {
 }
 
 function showPasswordCheckBox(elmCheckBox, elmPasswords) {
-    const passwordField = [];
-
     // Get all password elm
-    elmPasswords.forEach((elm) => {
-        passwordField.push(document.getElementById(elm));
-    });
+    const passwordField = elmPasswords.map((id) => document.getElementById(id));
 
     // Change all password type
     passwordField.forEach((elm) => {
-        if (elmCheckBox.checked) {
-            elm.type = "text";
-        } else {
-            elm.type = "password";
+        if (elm) {
+            elm.type = elmCheckBox.checked ? "text" : "password";
         }
+    });
+}
+
+function showPw(checkboxId, fieldId) {
+    const checkboxElm = document.getElementById(checkboxId);
+    checkboxElm.addEventListener("change", (e) => {
+        showPasswordCheckBox(e.target, fieldId);
     });
 }
 
@@ -96,12 +185,12 @@ function decreaseValue(field) {
 
 // Supporting text
 function showSupportText(elm, message) {
-    elm.textContent = message;
-    elm.classList.remove("hidden");
+    elm.error = true;
+    elm.errorText = message;
 }
 
 function hideSupportText(elm) {
-    elm.classList.add("hidden");
+    elm.error = false;
 }
 
 // auto generate key
@@ -124,7 +213,22 @@ async function setEncryptionKey(theKey) {
 
         saveKeyToSession(keyData);
     } catch (error) {
-        showToast(error);
+        showAlert("An error occured", error);
+        console.error(error);
+    }
+}
+
+// Generate key
+async function generateKey(elmId) {
+    try {
+        const elm = document.querySelector(elmId);
+
+        data = { key: "" };
+        const result = await sendRequest(key_api_uri, data, "POST");
+
+        elm.value = result.data.key;
+    } catch (error) {
+        showAlert("An error occured", error);
         console.error(error);
     }
 }
@@ -142,4 +246,19 @@ function saveKeyToSession(data) {
 function logout() {
     sessionStorage.clear();
     location.href = "/pages/logout";
+}
+
+// Confirm dialog
+async function confirmDialog(dialogId, headline, content) {
+    const dialog = document.getElementById(dialogId);
+    dialog.querySelector('[slot="headline"]').innerText = headline;
+    dialog.querySelector("form").innerText = content;
+
+    dialog.show();
+
+    return new Promise((resolve) => {
+        dialog.addEventListener("closed", () => resolve(dialog.returnValue), {
+            once: true,
+        });
+    });
 }

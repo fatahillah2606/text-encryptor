@@ -14,6 +14,54 @@ class UserManager:
     def __init__(self, db_path=os.path.join("db", "vault_manager.db")):
         self.db_path = db_path
 
+    # Get availabel users
+    def getAvailableUsers(self):
+        query = "SElECT name, username FROM users"
+
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                cursor.execute("PRAGMA foreign_keys = ON;")
+                cursor.execute(query)
+
+                rows = cursor.fetchall()
+
+                result = []
+
+                for row in rows:
+                    result.append({"name": row["name"], "username": row["username"]})
+
+                return result
+
+        except sqlite3.Error as err:
+            return f"Database error: {str(err)}"
+
+    # Get user
+    def getUser(self, username):
+        query = "SELECT name, username FROM users WHERE username = ?"
+
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                cursor.execute("PRAGMA foreign_keys = ON;")
+                cursor.execute(query, (username,))
+
+                data = cursor.fetchone()
+                result = {}
+
+                if data:
+                    result = {"name": data["name"], "username": data["username"]}
+
+                    return "success", result
+
+                else:
+                    return "failed", "User not found!"
+
+        except sqlite3.Error as err:
+            return "error", f"Database error: {str(err)}"
+
     # Register
     def register(self, name, username, password):
         query = "INSERT INTO users (name, username, password_hash) VALUES (?, ?, ?)"
@@ -58,11 +106,11 @@ class UserManager:
                     if valid:
                         return "success", userdata
                     else:
-                        return "fail", "Incorrect username or password!"
+                        return "fail", "Incorrect password!"
 
                 # If username not found
                 else:
-                    return "fail", "Incorrect username or password!"
+                    return "fail", "Username not found!"
 
         except sqlite3.Error as err:
             return "error", f"Database error: {str(err)}"

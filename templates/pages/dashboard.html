@@ -1,0 +1,233 @@
+{% extends 'components/base.html' %}
+
+<!-- Title -->
+{% block title %}Dashboard{% endblock %}
+
+<!-- Section -->
+{% block section %}
+<section
+    class="w-full! h-[calc(100vh-72px)] overflow-auto p-0 md:p-2.5 md:pl-0 md:pt-0"
+>
+    <div
+        class="bg-md-background w-full h-full md:rounded-4xl overflow-auto p-5"
+    >
+        <div class="flex flex-col gap-5 relative animate-showup">
+            <div
+                class="flex items-center justify-start md:justify-center md:flex-col gap-2.5 md:gap-2 my-2.5"
+            >
+                <!-- Profile picture -->
+                <div
+                    class="w-20 h-20 md:w-28 md:h-28 bg-md-on-primary rounded-full flex items-center justify-center"
+                >
+                    {% if 'username' in session %}
+                    <span class="text-md-secondary font-bold text-4xl">
+                        {{ name[0] }}
+                    </span>
+                    {% else %}
+                    <span
+                        class="material-symbols-rounded material-icon-fill text-md-secondary font-bold text-4xl! md:text-6xl!"
+                    >
+                        person
+                    </span>
+                    {% endif %}
+                </div>
+                <div>
+                    <h2
+                        class="text-md-on-surface text-2xl md:text-3xl font-bold text-left md:text-center m-0"
+                    >
+                        {{ name if name else 'Guest' }}
+                    </h2>
+                    <p class="text-md-on-surface text-left md:text-center m-0">
+                        {{ username if username else 'guest'}}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Chip menu -->
+            <md-chip-set
+                class="hidden md:flex flex-wrap gap-2.5 items-center justify-center"
+            >
+                <!-- For Logged in user -->
+                {% if 'username' in session %}
+                <md-assist-chip
+                    label="Key manager"
+                    onclick="movePage('/pages/key_manager')"
+                ></md-assist-chip>
+                <md-assist-chip
+                    label="Password Manager"
+                    onclick="movePage('/pages/password_manager')"
+                ></md-assist-chip>
+                <md-assist-chip
+                    label="Text Encryptor"
+                    onclick="movePage('/pages/text_encryptor')"
+                ></md-assist-chip>
+                <md-assist-chip
+                    label="Text Decryptor"
+                    onclick="movePage('/pages/text_decryptor')"
+                ></md-assist-chip>
+
+                {% else %}
+                <!-- For guest mode -->
+                <md-assist-chip
+                    label="Password Generator"
+                    onclick="movePage('/pages/password_generator')"
+                ></md-assist-chip>
+                <md-assist-chip
+                    label="Text Encryptor"
+                    onclick="movePage('/pages/text_encryptor')"
+                ></md-assist-chip>
+                <md-assist-chip
+                    label="Text Decryptor"
+                    onclick="movePage('/pages/text_decryptor')"
+                ></md-assist-chip>
+                {% endif %}
+            </md-chip-set>
+
+            <!-- Menu -->
+            <div class="flex flex-col gap-8 md:hidden">
+                {% if 'username' in session%}
+                <div class="rounded-3xl overflow-hidden flex flex-col gap-1">
+                    <a
+                        href="/pages/account_manager"
+                        class="relative flex items-center justify-start p-3 gap-2.5 bg-md-surface-variant dark:bg-black rounded-md cursor-pointer"
+                    >
+                        <span
+                            class="material-symbols-rounded w-10 h-10 rounded-full block! text-center! leading-10! bg-blue-300 text-blue-900! shrink-0"
+                        >
+                            account_circle
+                        </span>
+                        <div>
+                            <h4 class="text-md-on-surface m-0 mb-1.5 font-bold">
+                                Account Manager
+                            </h4>
+                            <p class="text-sm text-md-secondary m-0">
+                                Update your profile, handle and security
+                                credentials.
+                            </p>
+                        </div>
+
+                        <md-ripple></md-ripple>
+                    </a>
+                </div>
+                <div class="rounded-3xl overflow-hidden flex flex-col gap-1">
+                    <a
+                        href="/pages/key_manager"
+                        class="relative flex items-center justify-start p-3 gap-2.5 bg-md-surface-variant dark:bg-black rounded-md cursor-pointer"
+                    >
+                        <span
+                            class="material-symbols-rounded w-10 h-10 rounded-full block! text-center! leading-10! bg-green-300 text-green-900! shrink-0"
+                        >
+                            key
+                        </span>
+                        <div>
+                            <h4 class="text-md-on-surface m-0 mb-1.5 font-bold">
+                                Key Manager
+                            </h4>
+                            <p class="text-sm text-md-secondary m-0">
+                                Securely organize and manage your encryption
+                                keys.
+                            </p>
+                        </div>
+
+                        <md-ripple></md-ripple>
+                    </a>
+                    <a
+                        href="/pages/password_manager"
+                        class="relative flex items-center justify-start p-3 gap-2.5 bg-md-surface-variant dark:bg-black rounded-md cursor-pointer"
+                    >
+                        <span
+                            class="material-symbols-rounded w-10 h-10 rounded-full block! text-center! leading-10! bg-green-300 text-green-900! shrink-0"
+                        >
+                            password
+                        </span>
+                        <div>
+                            <h4 class="text-md-on-surface m-0 mb-1.5 font-bold">
+                                Password Manager
+                            </h4>
+                            <p class="text-sm text-md-secondary m-0">
+                                A vault for all your saved login credentials.
+                            </p>
+                        </div>
+
+                        <md-ripple></md-ripple>
+                    </a>
+                </div>
+                {% endif %}
+                <div class="rounded-3xl overflow-hidden flex flex-col gap-1">
+                    <a
+                        href="/pages/password_generator"
+                        class="relative flex items-center justify-start p-3 gap-2.5 bg-md-surface-variant dark:bg-black rounded-md cursor-pointer"
+                    >
+                        <span
+                            class="material-symbols-rounded w-10 h-10 rounded-full block! text-center! leading-10! bg-yellow-300 text-yellow-900! shrink-0"
+                        >
+                            password_2
+                        </span>
+                        <div>
+                            <h4 class="text-md-on-surface m-0 mb-1.5 font-bold">
+                                Password Generator
+                            </h4>
+                            <p class="text-sm text-md-secondary m-0">
+                                Create complex, high-entropy passwords
+                                instantly.
+                            </p>
+                        </div>
+
+                        <md-ripple></md-ripple>
+                    </a>
+                </div>
+                <div class="rounded-3xl overflow-hidden flex flex-col gap-1">
+                    <a
+                        href="/pages/text_encryptor"
+                        class="relative flex items-center justify-start p-3 gap-2.5 bg-md-surface-variant dark:bg-black rounded-md cursor-pointer"
+                    >
+                        <span
+                            class="material-symbols-rounded w-10 h-10 rounded-full block! text-center! leading-10! bg-red-300 text-red-900! shrink-0"
+                        >
+                            lock
+                        </span>
+                        <div>
+                            <h4 class="text-md-on-surface m-0 mb-1.5 font-bold">
+                                Text Encryptor
+                            </h4>
+                            <p class="text-sm text-md-secondary m-0">
+                                Transform your messages into secure, unreadable
+                                code.
+                            </p>
+                        </div>
+
+                        <md-ripple></md-ripple>
+                    </a>
+                    <a
+                        href="/pages/text_decryptor"
+                        class="relative flex items-center justify-start p-3 gap-2.5 bg-md-surface-variant dark:bg-black rounded-md cursor-pointer"
+                    >
+                        <span
+                            class="material-symbols-rounded w-10 h-10 rounded-full block! text-center! leading-10! bg-red-300 text-red-900! shrink-0"
+                        >
+                            lock_open_right
+                        </span>
+                        <div>
+                            <h4 class="text-md-on-surface m-0 mb-1.5 font-bold">
+                                Text Decryptor
+                            </h4>
+                            <p class="text-sm text-md-secondary m-0">
+                                Restore encrypted text back to its original
+                                form.
+                            </p>
+                        </div>
+
+                        <md-ripple></md-ripple>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+<!-- Modals -->
+{% block modals %} {% endblock %}
+
+<!-- Script -->
+{% block script %} {% endblock %}

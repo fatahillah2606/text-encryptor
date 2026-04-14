@@ -3,7 +3,7 @@ import secrets
 from datetime import datetime, timezone
 
 from dotenv import load_dotenv
-from flask import Flask, redirect, session, url_for
+from flask import Flask, redirect, render_template, session, url_for
 from flask.sansio.app import timedelta
 
 from routes.api import api_route
@@ -12,8 +12,10 @@ from src.init_db import create_database
 
 load_dotenv()
 
-SESSION_KEY = secrets.token_hex()
-# SESSION_KEY = os.getenv("SESSION_KEY") # for development, to prevent logged out when restarting
+# SESSION_KEY = secrets.token_hex()
+SESSION_KEY = os.getenv(
+    "SESSION_KEY"
+)  # for development, to prevent logged out when restarting
 
 # Check db
 db_path = os.path.join("db", "vault_manager.db")
@@ -55,7 +57,12 @@ def check_session():
 
 @app.route("/")
 def home():
-    return redirect(url_for("pages.login"))
+    return redirect(url_for("pages.dashboard"))
+
+
+@app.route("/experiment")
+def experiment():
+    return render_template("experiment.html")
 
 
 if __name__ == "__main__":

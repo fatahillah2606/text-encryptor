@@ -250,6 +250,30 @@ def whoAmI():
     return api_response("success", 200, f"Hello, {session['name']}", userData, {})
 
 
+# Check username availablity
+@api_route.route("/auth/username/available", methods=["POST"])
+def checkAvailablity():
+    try:
+        # Data
+        data = request.json
+        username = str(data.get("username"))
+
+        # Check into database
+        status, result = user.getUser(username)
+
+        if status == "success":
+            return api_response("error", 409, "Username already in use!", [], {}), 409
+
+        elif status == "failed":
+            return api_response("success", 200, "Username available!", [], {})
+
+        else:
+            return api_response("error", 500, result, [], {}), 500
+
+    except Exception as err:
+        return api_response("error", 500, str(err), [], {}), 500
+
+
 #
 # Key manager
 #

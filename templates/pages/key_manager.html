@@ -1,0 +1,472 @@
+{% extends 'components/base.html' %}
+
+<!-- Title -->
+{% block title %}Key Manager{% endblock %}
+
+<!-- Section -->
+{% block section %}
+<section
+    class="w-full! h-[calc(100vh-72px)] overflow-auto p-0 md:p-2.5 md:pl-0 md:pt-0"
+>
+    <div
+        class="bg-md-background w-full h-full md:rounded-4xl overflow-auto p-5"
+    >
+        <div class="flex justify-center">
+            <div class="w-full max-w-2xl animate-showup">
+                <!-- Heading -->
+                <div
+                    class="flex items-center justify-start gap-2.5 bg-md-background z-10"
+                >
+                    <md-icon-button
+                        class="md:hidden"
+                        onclick="movePage('/pages/dashboard')"
+                    >
+                        <md-icon>arrow_back</md-icon>
+                    </md-icon-button>
+                    <h1
+                        class="md-typescale-headline-small text-md-on-surface font-bold!"
+                    >
+                        Key Manager
+                    </h1>
+                </div>
+
+                <!-- Search bar -->
+                <search
+                    class="w-full h-12 overflow-hidden rounded-full bg-md-surface-variant mb-5 relative"
+                >
+                    <form action="" class="flex items-center">
+                        <md-icon class="text-md-on-surface w-12 h-12 shrink-0">
+                            search
+                        </md-icon>
+                        <input
+                            type="search"
+                            class="w-full h-12 outline-0 text-md-on-surface text-lg"
+                            placeholder="Search"
+                        />
+                    </form>
+                    <md-ripple></md-ripple>
+                </search>
+
+                <!-- Main -->
+                <div class="flex flex-col gap-8">
+                    <div
+                        class="rounded-2xl overflow-hidden flex flex-col gap-1"
+                        id="key_list"
+                    >
+                        {% for i in range(10) %}
+                        <div
+                            class="relative py-5 px-5 bg-md-surface-container rounded-md flex items-center gap-5 cursor-pointer"
+                        >
+                            <div
+                                class="w-6 h-6 rounded-full bg-md-surface-variant animate-pulse"
+                            ></div>
+                            <div>
+                                <div
+                                    class="bg-md-surface-variant w-40 h-5 rounded-lg animate-pulse mb-1.5"
+                                ></div>
+                            </div>
+                            <md-ripple></md-ripple>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+<!-- Modals -->
+{% block modals %}
+
+<!-- Modal for new/add account -->
+<md-dialog id="new-key-modal">
+    <div slot="headline">Add new key</div>
+
+    <!-- Modal content -->
+    <form slot="content" id="new_key" name="new_key" method="post">
+        <div class="grid grid-cols-2 gap-4">
+            <md-filled-text-field
+                label="Key name"
+                value=""
+                name="key_name"
+                id="key_name"
+                class="col-span-2"
+                type="text"
+                required
+            >
+            </md-filled-text-field>
+            <md-filled-text-field
+                label="Key"
+                value=""
+                name="the_key"
+                id="the_key"
+                class="col-span-2"
+                type="text"
+                required
+            >
+            </md-filled-text-field>
+            <div class="col-span-2">
+                <md-outlined-button
+                    type="button"
+                    onclick="generateKey('#the_key')"
+                >
+                    Generate
+                </md-outlined-button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Modal action -->
+    <div slot="actions">
+        <md-text-button
+            form="new_key"
+            type="reset"
+            onclick="closeNewKeyModal()"
+        >
+            Cancel
+        </md-text-button>
+        <md-text-button form="new_key" type="submit"> Add </md-text-button>
+    </div>
+</md-dialog>
+
+<!-- Modal for edit existing account -->
+<md-dialog id="edit-key-modal">
+    <div slot="headline">Key info</div>
+
+    <!-- Modal content -->
+    <form slot="content" id="edit_key" name="edit_key" method="post">
+        <div class="grid grid-cols-2 gap-4">
+            <md-filled-text-field
+                label="Key name"
+                value=""
+                name="edit_key_name"
+                id="edit_key_name"
+                class="col-span-2"
+                type="text"
+                required
+                readonly
+            >
+            </md-filled-text-field>
+            <md-filled-text-field
+                label="Key"
+                value=""
+                name="edit_key"
+                id="edit_key"
+                class="col-span-2"
+                type="text"
+                required
+                readonly
+            >
+            </md-filled-text-field>
+            <div class="col-span-2">
+                <md-outlined-button
+                    type="button"
+                    onclick="generateKey('#edit_key')"
+                    disabled
+                >
+                    Generate
+                </md-outlined-button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Modal option -->
+    <div slot="actions" id="modal_option" class="">
+        <md-text-button type="button" onclick="closeEditKeyModal()">
+            Cancel
+        </md-text-button>
+        <div class="flex-1"></div>
+        <md-text-button
+            form="edit_key"
+            type="button"
+            name="delete_key"
+            id="delete_key"
+        >
+            Delete
+        </md-text-button>
+        <md-text-button type="button" onclick="enableEditing()">
+            Edit
+        </md-text-button>
+    </div>
+
+    <!-- Modal action -->
+    <div slot="actions" id="modal_action" class="hidden">
+        <md-text-button
+            form="edit_key"
+            type="button"
+            name="reset_info"
+            id="reset_info"
+        >
+            Reset
+        </md-text-button>
+        <div class="flex-1"></div>
+        <md-text-button
+            form="edit_key"
+            type="button"
+            name="cancle_editing"
+            id="cancle_editing"
+        >
+            Cancel
+        </md-text-button>
+        <md-text-button form="edit_key" type="submit"> Save </md-text-button>
+    </div>
+</md-dialog>
+
+<!-- Confirm delete dialog -->
+<md-dialog id="confirm-delete">
+    <div slot="headline">Dialog headline</div>
+    <md-icon slot="icon">delete_outline</md-icon>
+    <form id="form" slot="content" method="dialog">Dialog content.</form>
+    <div slot="actions">
+        <md-text-button form="form" value="delete">Delete</md-text-button>
+        <md-filled-tonal-button form="form" value="cancel" autofocus>
+            Cancel
+        </md-filled-tonal-button>
+    </div>
+</md-dialog>
+{% endblock %}
+
+<!-- FABs -->
+{% block fabs %}
+<md-fab label="Add" variant="primary" onclick="openNewKeyModal()">
+    <md-icon slot="icon">add</md-icon>
+</md-fab>
+{% endblock %}
+
+<!-- Script -->
+{% block script %}
+<script>
+    // Define variable
+    // API
+    const createNewKeyApi = "/api/user/create/key";
+
+    // New key modal
+    const newKeyModal = document.getElementById("new-key-modal");
+    const newKeyForm = newKeyModal.querySelector("#new_key");
+
+    // Edit key modal
+    const editKeyModal = document.getElementById("edit-key-modal");
+    const editKeyForm = editKeyModal.querySelector("#edit_key");
+
+    const editModalOption = editKeyModal.querySelector("#modal_option");
+    const editModalAction = editKeyModal.querySelector("#modal_action");
+
+    const editModalHeadline = editKeyModal.querySelector("[slot='headline']");
+
+    // Confirm delete dialog
+    const confirmDeleteDialog = document.getElementById("confirm-delete");
+
+    // Etc
+    const keyList = document.getElementById("key_list");
+
+    // Functions
+    // Show/Close new key modal
+    async function openNewKeyModal() {
+        await newKeyModal.show();
+    }
+
+    async function closeNewKeyModal() {
+        await newKeyModal.close();
+        newKeyModal.reset();
+    }
+
+    // Add new key
+    async function createNewKey(theForm) {
+        try {
+            let formData = new FormData(theForm);
+            formData = Object.fromEntries(formData.entries());
+
+            // Send request
+            const result = await sendRequest(createNewKeyApi, formData, "POST");
+
+            // Reinit the keys
+            loadKeys();
+
+            showToast(result.message);
+            newKeyModal.close();
+        } catch (error) {
+            showAlert("Failed to add", error);
+            console.error(error);
+        }
+    }
+
+    newKeyForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        createNewKey(newKeyForm);
+    });
+
+    // Show/Close edit key modal
+    async function openEditKeyModal() {
+        await editKeyModal.show();
+    }
+
+    async function closeEditKeyModal() {
+        await editKeyModal.close();
+        editKeyForm.reset();
+    }
+
+    // Get key info
+    async function getKeyInfo(uri) {
+        try {
+            // Send request
+            const result = await sendRequest(uri, {}, "GET");
+            const data = result.data;
+
+            // Set the form values
+            editKeyForm.edit_key_name.value = data.key_name;
+            editKeyForm.edit_key.value = data.encryption_key;
+        } catch (error) {
+            showAlert("An error occured", error);
+            console.error(error);
+        }
+    }
+
+    // Open existing account
+    async function openExistingKey(uri) {
+        // Set the action button
+        editKeyForm.reset_info.setAttribute("onclick", `getKeyInfo("${uri}")`);
+        editKeyForm.cancle_editing.setAttribute(
+            "onclick",
+            `disableEditing("${uri}")`,
+        );
+        editKeyForm.delete_key.setAttribute("onclick", `deleteKey("${uri}")`);
+
+        getKeyInfo(uri);
+
+        // Show the modal
+        openEditKeyModal();
+    }
+
+    // Set to readonly
+    function setToReadonly() {
+        editKeyForm.edit_key_name.setAttribute("readonly", "");
+        editKeyForm.edit_key.setAttribute("readonly", "");
+    }
+
+    // Set to writeable
+    function setToWriteable() {
+        editKeyForm.edit_key_name.removeAttribute("readonly");
+        editKeyForm.edit_key.removeAttribute("readonly");
+    }
+
+    // Enable editing
+    function enableEditing() {
+        editModalHeadline.textContent = "Edit key";
+        setToWriteable();
+
+        editModalOption.classList.add("hidden");
+        editModalAction.classList.remove("hidden");
+    }
+
+    // Disable editing
+    function disableEditing(uri) {
+        // Reset the info
+        getKeyInfo(uri);
+
+        editModalHeadline.textContent = "Key info";
+        setToReadonly();
+
+        editModalOption.classList.remove("hidden");
+        editModalAction.classList.add("hidden");
+    }
+
+    // Prevents dialogs from remaining in edit mode when closed.
+    editKeyModal.addEventListener("closed", () => {
+        editModalHeadline.textContent = "Key info";
+        setToReadonly();
+
+        editModalOption.classList.remove("hidden");
+        editModalAction.classList.add("hidden");
+    });
+
+    // Delete
+    async function deleteKey(uri) {
+        // Wait for the response
+        const choise = await confirmDialog(
+            "confirm-delete",
+            "Delete Key?",
+            "This will delete the password associated with this key.",
+        );
+
+        if (choise === "delete") {
+            try {
+                // Send request
+                const result = await sendRequest(`${uri}/delete`, {}, "DELETE");
+
+                if (result.code === 200) {
+                    closeEditKeyModal();
+                    showToast(result.message);
+
+                    // Reinit keys
+                    loadKeys();
+                }
+            } catch (error) {
+                showAlert("Failed to delete", error);
+                console.error(error);
+            }
+        }
+    }
+
+    // Load keys
+    async function loadKeys() {
+        try {
+            const result = await sendRequest(userKeysAPI, {}, "GET"); // Note: userKeysAPI already declared in base.html
+            const keys = result.data;
+
+            // Remove master key from list
+            const filteredKey = keys.filter(
+                (item) => item.key_name !== "master_key",
+            );
+
+            if (filteredKey.length !== 0) {
+                keyElm = "";
+                // Show the keys
+                filteredKey.forEach((key) => {
+                    keyElm += `
+                        <div
+                            class="relative py-5 px-5 bg-md-surface-container rounded-md flex items-center gap-5 cursor-pointer"
+                            onclick="openExistingKey('/api/user/key/${key.key_id}')"
+                        >
+                            <md-icon class="text-md-on-surface">key_vertical</md-icon>
+                            <div>
+                                <h2
+                                    class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
+                                >
+                                    ${key.key_name}
+                                </h2>
+                            </div>
+                            <md-ripple></md-ripple>
+                        </div>
+                    `;
+                });
+
+                keyList.innerHTML = keyElm;
+            } else {
+                keyList.innerHTML = `
+                    <blockquote
+                            class="flex items-start bg-md-on-primary rounded-2xl w-full m-0 p-5 gap-2.5"
+                        >
+                            <md-icon class="text-md-secondary shrink-0">
+                                info
+                            </md-icon>
+                            <p
+                                class="md-typescale-body-large text-md-secondary italic! font-semibold! m-0"
+                            >
+                                "The way forward is locked. No key has been saved here
+                                yet. You should create a new one... It's better to be
+                                prepared before we move on."
+                            </p>
+                        </blockquote>
+                `;
+            }
+        } catch (error) {
+            showAlert("An error occured", error);
+            console.error(error);
+        }
+    }
+
+    // Load all key
+    loadKeys();
+</script>
+{% endblock %}

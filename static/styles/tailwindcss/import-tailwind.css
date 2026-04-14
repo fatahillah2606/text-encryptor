@@ -1,0 +1,56 @@
+/* @import "tailwindcss"; */
+
+@layer theme, base, components, utilities;
+
+@import "tailwindcss/theme" layer(theme);
+@import "tailwindcss/utilities" layer(utilities);
+
+@import url("/static/styles/material-theme/light.css");
+@import url("/static/styles/material-theme/dark.css");
+
+/* @import "tailwindcss/preflight" layer(base); */
+
+@theme {
+    /* Surface & Background (The most important for layout) */
+    --color-md-surface: var(--md-sys-color-surface);
+    --color-md-on-surface: var(--md-sys-color-on-surface);
+    --color-md-surface-container: var(--md-sys-color-surface-container);
+    --color-md-background: var(--md-sys-color-background);
+    --color-md-surface-variant: var(--md-sys-color-surface-variant);
+
+    /* Brand Accents */
+    --color-md-primary: var(--md-sys-color-primary);
+    --color-md-on-primary: var(--md-sys-color-on-primary);
+    --color-md-secondary: var(--md-sys-color-secondary);
+
+    /* Indicators & Borders */
+    --color-md-error: var(--md-sys-color-error);
+    --color-md-outline: var(--md-sys-color-outline);
+    --color-md-outline-variant: var(--md-sys-color-outline-variant);
+
+    /* Show up animation */
+    --animate-showup: showup 0.5s ease;
+    @keyframes showup {
+        from {
+            transform: translateY(5%);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0%);
+            opacity: 1;
+        }
+    }
+
+    /* Show toast */
+    --animate-showtoast: showtoast 0.3s ease;
+    @keyframes showtoast {
+        from {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0px);
+            opacity: 1;
+        }
+    }
+}

@@ -5,7 +5,11 @@ from functools import wraps
 
 from flask import Blueprint, redirect, render_template, session, url_for
 
+from src.data_manager import UserManager
 from src.encryptor import decrypt_aes, get_valid_key
+
+# Get available users
+user = UserManager()
 
 
 # pages protection
@@ -77,18 +81,31 @@ def inject_globals():
 
 @pages_route.route("/login")
 def login():
+    # Get user list
+    userList = user.getAvailableUsers()
+
     if "username" in session:
         return redirect(url_for("pages.dashboard"))
+    elif userList:
+        return render_template("pages/login.html", userlist=userList)
     else:
-        return render_template("login.html")
+        return redirect(url_for("pages.register"))
 
 
 @pages_route.route("/register")
 def register():
+    # Get user list
+    userList = user.getAvailableUsers()
+
     if "username" in session:
         return redirect(url_for("pages.dashboard"))
     else:
-        return render_template("register.html")
+        notice = (
+            "No user accounts have been registered yet. To begin using the full password manager suite, please create an account."
+            if not userList
+            else ""
+        )
+        return render_template("pages/register.html", notice=notice)
 
 
 @pages_route.route("/logout")
@@ -98,54 +115,42 @@ def logout():
 
 
 @pages_route.route("/dashboard")
-@logged_in_only_pages
 def dashboard():
-    return render_template("dashboard.html", active_page="dashboard")
+    return render_template("pages/dashboard.html", active_page="dashboard")
+
+
+@pages_route.route("/account_manager")
+@logged_in_only_pages
+def account_manager():
+    return render_template("pages/account_manager.html", active_page="account_manager")
 
 
 @pages_route.route("/key_manager")
 @logged_in_only_pages
 def key_manager():
-    return render_template("key_manager.html", active_page="key_manager")
+    return render_template("pages/key_manager.html", active_page="key_manager")
 
 
 @pages_route.route("/password_manager")
 @logged_in_only_pages
 def password_manager():
-    return render_template("password_manager.html", active_page="password_manager")
-
-
-@pages_route.route("/password_generator")
-@logged_in_only_pages
-def password_generator():
-    return render_template("password_generator.html", active_page="password_generator")
-
-
-@pages_route.route("/text_encryptor")
-@logged_in_only_pages
-def text_encryptor():
-    return render_template("text_encryptor.html", active_page="text_encryptor")
-
-
-@pages_route.route("/text_decryptor")
-@logged_in_only_pages
-def text_decryptor():
-    return render_template("text_decryptor.html", active_page="text_decryptor")
-
-
-# Guest menu
-@pages_route.route("/guest/password-generator")
-def passwordGenerator():
     return render_template(
-        "guest/password-generator.html", active_page="passwordGenerator"
+        "pages/password_manager.html", active_page="password_manager"
     )
 
 
-@pages_route.route("/guest/text-encryptor")
-def textEncryptor():
-    return render_template("guest/text-encryptor.html", active_page="textEncryptor")
+@pages_route.route("/password_generator")
+def password_generator():
+    return render_template(
+        "pages/password_generator.html", active_page="password_generator"
+    )
 
 
-@pages_route.route("/guest/text-decryptor")
-def textDecryptor():
-    return render_template("guest/text-decryptor.html", active_page="textDecryptor")
+@pages_route.route("/text_encryptor")
+def text_encryptor():
+    return render_template("pages/text_encryptor.html", active_page="text_encryptor")
+
+
+@pages_route.route("/text_decryptor")
+def text_decryptor():
+    return render_template("pages/text_decryptor.html", active_page="text_decryptor")

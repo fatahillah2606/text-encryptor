@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Document</title>
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='styles/tailwindcss/tailwind.css') }}"
+        />
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='styles/style.css') }}"
+        />
+        <script src="{{ url_for('static', filename='scripts/material-web.js') }}"></script>
+    </head>
+    <body class="bg-md-background">
+        <span class="md-typescale-display-medium"> Hello Material! </span>
+        <md-dialog open>
+            <div slot="headline">
+                <span class="md-typescale-headline-medium">
+                    Hello Material!
+                </span>
+            </div>
+            <form
+                slot="content"
+                id="form-id"
+                method="dialog"
+                class="flex flex-col items-start gap-4"
+            >
+                <p
+                    class="md-typescale-body-medium text-zinc-800 dark:text-zinc-200"
+                >
+                    Check out these controls in a form!
+                </p>
+                <md-checkbox></md-checkbox>
+                <div>
+                    <md-radio name="group"></md-radio>
+                    <md-radio name="group"></md-radio>
+                    <md-radio name="group"></md-radio>
+                </div>
+                <md-outlined-text-field
+                    label="Favorite color"
+                    value="Blue"
+                ></md-outlined-text-field>
+                <div class="flex gap-2" slot="actions">
+                    <md-outlined-button type="reset">Reset</md-outlined-button>
+                    <md-outlined-button type="button">Close</md-outlined-button>
+                </div>
+            </form>
+        </md-dialog>
+    </body>
+</html>

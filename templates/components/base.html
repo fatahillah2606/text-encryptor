@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>
+            {% block title %}{% endblock %} | {{ name if name else 'Text
+            Encryptor' }}
+        </title>
+        <!-- Local CSS -->
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='styles/tailwindcss/tailwind.css') }}"
+        />
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='styles/style.css') }}"
+        />
+        <script src="{{ url_for('static', filename='scripts/material-web.js') }}"></script>
+    </head>
+    <body class="grid grid-rows-[72px_1fr] h-screen bg-md-surface-container">
+        <!-- Navbar -->
+        {% include 'components/navbar.html' %}
+
+        <main class="relative grid md:grid-cols-[88px_1fr] h-full">
+            <!-- Sidebar -->
+            {% include 'components/sidebar.html' %}
+
+            <!-- Main Section -->
+            {% block section %}{% endblock %}
+        </main>
+
+        <!-- Modals -->
+        <md-dialog id="key-selector-modal">
+            <div slot="headline">Encryption Key</div>
+            <form
+                slot="content"
+                class="grid grid-cols-1 gap-2.5"
+                id="key-selector"
+                name="key-selector"
+                method=""
+            >
+                <!-- Context -->
+                <p
+                    class="md-typescale-body-medium text-md-on-surface"
+                    id="dialog-context"
+                >
+                    No active encryption key detected. Please provide a key to
+                    enable encryption and decryption features. Click the
+                    Generate button to create a strong, random key
+                    automatically.
+                </p>
+
+                <!-- Select option -->
+                {% if 'username' in session %}
+                <md-filled-select
+                    id="option_key"
+                    name="option_key"
+                    label="Select a key"
+                    required
+                >
+                    <md-select-option
+                        value="{{ key }}"
+                        data-context="Master key"
+                    >
+                        <div slot="headline">Master key</div>
+                    </md-select-option>
+
+                    {% for key in user_keys %}
+                    <md-select-option
+                        value="{{ key['encrypted_key'] }} "
+                        data-context="{{ key['key_name'] }}"
+                    >
+                        <div slot="headline">{{ key['key_name'] }}</div>
+                    </md-select-option>
+                    {% endfor %}
+
+                    <md-select-option value="manual" data-context="Manual">
+                        <div slot="headline">Manual</div>
+                    </md-select-option>
+                </md-filled-select>
+                {% endif %}
+
+                <!-- Manual option -->
+                <md-filled-text-field
+                    label="Encryption key"
+                    name="custom_key"
+                    id="custom_key"
+                    required
+                >
+                </md-filled-text-field>
+                <div>
+                    <md-outlined-button
+                        type="button"
+                        id="generate_key"
+                        name="generate_key"
+                    >
+                        Generate
+                    </md-outlined-button>
+                </div>
+
+                {% if 'username' not in session %}
+                <!-- Context -->
+                <p class="md-typescale-body-medium text-md-on-surface">
+                    <b>Notice:</b> In Guest Mode, this key is temporary and will
+                    not be stored. Ensure you save it elsewhere if you plan to
+                    decrypt this data later.
+                </p>
+                {% endif %}
+            </form>
+            <div slot="actions">
+                <md-text-button onclick="closeKeyModal()">
+                    Cancel
+                </md-text-button>
+                <md-text-button
+                    type="submit"
+                    form="key-selector"
+                    id="set_key"
+                    name="set_key"
+                    disabled
+                >
+                    Confirm
+                </md-text-button>
+            </div>
+        </md-dialog>
+
+        {% block modals %}{% endblock %}
+
+        <!-- FABs -->
+        <div class="fixed bottom-7 right-7">{% block fabs %}{% endblock %}</div>
+
+        <!-- Alert Dialog -->
+        {% include 'components/alert_dialog.html' %}
+
+        <!-- Toast -->
+        {% include 'components/toast.html' %}
+
+        <!-- Scripts -->
+        <script src="{{ url_for('static', filename='scripts/script.js') }}"></script>
+        <script src="{{ url_for('static', filename='scripts/api.js') }}"></script>
+        <script>
+            // Encryption key modal
+            const keySelectorModal =
+                document.getElementById("key-selector-modal");
+
+            const keySelectorForm = document.getElementById("key-selector");
+            const optionKey = keySelectorForm.option_key;
+            const dialogContext = document.getElementById("dialog-context");
+
+            const userKeysAPI = "/api/user/keys";
+
+            // Show/Close key modal
+            async function openKeyModal() {
+                await keySelectorModal.show();
+            }
+
+            async function closeKeyModal() {
+                await keySelectorModal.close();
+                keySelectorForm.set_key.disabled = true;
+            }
+
+            // Set value of keySelector option
+            function setKeySelectorValue(targetValue) {
+                const availableValues = Array.from(optionKey.options).map(
+                    (opt) => opt.value,
+                );
+
+                // Check if value is available
+                if (availableValues.includes(targetValue)) {
+                    optionKey.value = targetValue;
+                } else {
+                    optionKey.value = "manual";
+                }
+            }
+
+            // Check encryption key
+            async function checkEncryptionKey() {
+                let encryptionKey = sessionStorage.getItem("encryption_key");
+                if (encryptionKey) {
+                    encryptionKey = JSON.parse(encryptionKey);
+
+                    // Set the key selector value
+                    if (optionKey) {
+                        setKeySelectorValue(encryptionKey.key);
+
+                        // If the value was manual
+                        if (optionKey.value == "manual") {
+                            keySelectorForm.custom_key.value =
+                                encryptionKey.key;
+                            keySelectorForm.custom_key.disabled = false;
+                        } else {
+                            keySelectorForm.custom_key.value =
+                                encryptionKey.key;
+                            keySelectorForm.custom_key.disabled = true;
+                        }
+                    } else {
+                        // If no option value (guest mode)
+                        // Remove encryption key except it was manual
+                        if (encryptionKey.name !== "manual") {
+                            sessionStorage.removeItem("encryption_key");
+
+                            // recall the function
+                            checkEncryptionKey();
+                        } else {
+                            keySelectorForm.custom_key.value =
+                                encryptionKey.key;
+                        }
+                    }
+
+                    // Change modal context
+                    dialogContext.textContent =
+                        "Choose a key to authorize the current session's encryption and decryption tasks.";
+                } else {
+                    try {
+                        const result = await sendRequest(
+                            userKeysAPI,
+                            {},
+                            "GET",
+                        );
+                        const masterKey = result.data[0];
+
+                        saveKeyToSession(masterKey);
+                        checkEncryptionKey();
+                    } catch (error) {
+                        openKeyModal();
+                        console.error(error);
+                    }
+                }
+            }
+
+            // Key selector form handler
+            // Set encryption key
+            async function changeActiveKey(keyValue, keyName) {
+                if (keyValue == "manual") {
+                    manualKeyForm.classList.remove("hidden");
+                } else {
+                    keyData = {
+                        name: keyName,
+                        key: keyValue,
+                    };
+
+                    sessionStorage.setItem(
+                        "encryption_key",
+                        JSON.stringify(keyData),
+                    );
+
+                    showToast("Encryption key changed.");
+                }
+            }
+
+            // Option key listener
+            if (optionKey) {
+                optionKey.addEventListener("change", () => {
+                    // Enable submit key
+                    keySelectorForm.set_key.disabled = false;
+
+                    // Set value of custom key field
+                    const selectedOption = optionKey.selectedOptions[0];
+                    if (selectedOption) {
+                        const value = selectedOption.value;
+
+                        if (value !== "manual") {
+                            keySelectorForm.custom_key.value = value;
+                        } else {
+                            keySelectorForm.custom_key.value = "";
+                        }
+                    }
+
+                    // Check the custom key field
+                    if (optionKey.value == "manual") {
+                        // Enable custom key field
+                        keySelectorForm.custom_key.disabled = false;
+
+                        // Enable/disable submit key
+                        if (keySelectorForm.custom_key.value.trim() !== "") {
+                            keySelectorForm.set_key.disabled = false;
+                        } else {
+                            keySelectorForm.set_key.disabled = true;
+                        }
+                    } else {
+                        keySelectorForm.custom_key.disabled = true;
+                    }
+                });
+            }
+
+            // Custom key field
+            function checkCustomKeyField() {
+                if (keySelectorForm.custom_key.value.trim() !== "") {
+                    keySelectorForm.set_key.disabled = false;
+                } else {
+                    keySelectorForm.set_key.disabled = true;
+                }
+            }
+
+            keySelectorForm.custom_key.addEventListener("keyup", () => {
+                checkCustomKeyField();
+            });
+
+            // Generate key btn
+            keySelectorForm.generate_key.addEventListener("click", () => {
+                generateKey("#custom_key");
+                keySelectorForm.set_key.disabled = false;
+            });
+
+            // On submit
+            keySelectorForm.addEventListener("submit", (event) => {
+                event.preventDefault();
+
+                if (!keySelectorForm.set_key.disabled) {
+                    if (optionKey && optionKey.value !== "manual") {
+                        // Set active key base on choosed option
+                        const selectedOption = optionKey.selectedOptions[0];
+
+                        if (selectedOption) {
+                            const value = selectedOption.value;
+                            const customContext =
+                                selectedOption.getAttribute("data-context");
+
+                            changeActiveKey(value, customContext);
+                            checkEncryptionKey();
+                        }
+                    } else {
+                        setEncryptionKey(keySelectorForm.custom_key.value);
+                    }
+
+                    closeKeyModal();
+                }
+            });
+
+            // Check the encryption key
+            checkEncryptionKey();
+
+            // Etc
+            // Toggle menu
+            const sidebar = document.getElementById("sidebar");
+            const menuBtn = document.getElementById("menu-btn");
+            const menuIcon = menuBtn.querySelector("md-icon");
+
+            menuBtn.addEventListener("click", () => {
+                if (sidebar.classList.contains("-translate-x-full")) {
+                    sidebar.classList.remove("-translate-x-full");
+                    menuIcon.textContent = "menu_open";
+                } else {
+                    sidebar.classList.add("-translate-x-full");
+                    menuIcon.textContent = "menu";
+                }
+            });
+
+            // Profile menu
+            const userProfile = document.body.querySelector("#user-profile");
+            const profileMenu = document.body.querySelector("#profile-menu");
+            if (userProfile) {
+                userProfile.addEventListener("click", () => {
+                    profileMenu.open = !profileMenu.open;
+                });
+            }
+        </script>
+        {% block script %}{% endblock %}
+    </body>
+</html>

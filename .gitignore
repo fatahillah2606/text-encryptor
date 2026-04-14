@@ -168,7 +168,7 @@ cython_debug/
 node_modules/
 
 # Tailwind
-/static/styles/output.css
+# /static/styles/output.css
 
 # Database
 db/

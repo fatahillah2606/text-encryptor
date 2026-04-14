@@ -1,0 +1,152 @@
+{% extends 'components/base.html' %}
+
+<!-- Title -->
+{% block title %}Text Decryptor{% endblock %}
+
+<!-- Section -->
+{% block section %}
+<section
+    class="w-full! h-[calc(100vh-72px)] overflow-auto p-0 md:p-2.5 md:pl-0 md:pt-0"
+>
+    <div
+        class="bg-md-background w-full h-full md:rounded-4xl overflow-auto p-5"
+    >
+        <div class="flex justify-center animate-showup">
+            <div class="w-full max-w-2xl">
+                <!-- Heading -->
+                <div
+                    class="flex items-center justify-start gap-2.5 bg-md-background z-10"
+                >
+                    <md-icon-button
+                        class="md:hidden"
+                        onclick="movePage('/pages/dashboard')"
+                    >
+                        <md-icon>arrow_back</md-icon>
+                    </md-icon-button>
+                    <h1
+                        class="md-typescale-headline-small text-md-on-surface font-bold!"
+                    >
+                        Text Decryptor
+                    </h1>
+                </div>
+
+                <!-- Main -->
+                <div class="flex flex-col gap-8">
+                    <div
+                        class="rounded-2xl overflow-hidden flex flex-col gap-1"
+                    >
+                        <!-- title -->
+                        <div class="p-5 bg-md-surface-container rounded-md">
+                            <h2
+                                class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
+                            >
+                                Decrypt text
+                            </h2>
+                        </div>
+
+                        <!-- body -->
+                        <div class="p-5 bg-md-surface-container rounded-md">
+                            <form
+                                action=""
+                                method="post"
+                                name="decryption-form"
+                                id="decryption-form"
+                                class="flex flex-col gap-5"
+                            >
+                                <md-filled-text-field
+                                    type="textarea"
+                                    label="Enter the text you want to Decrypt"
+                                    rows="3"
+                                    class="resize-y"
+                                    name="encrypted_text"
+                                    id="encrypted_text"
+                                    required
+                                >
+                                </md-filled-text-field>
+                                <div>
+                                    <md-filled-tonal-button type="submit">
+                                        Decrypt
+                                        <md-icon slot="icon"
+                                            >lock_open_right</md-icon
+                                        >
+                                    </md-filled-tonal-button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div
+                        class="rounded-2xl overflow-hidden flex flex-col gap-1"
+                    >
+                        <!-- title -->
+                        <div
+                            class="p-5 bg-md-surface-container rounded-md flex items-center justify-between"
+                        >
+                            <h2
+                                class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
+                            >
+                                Decrypted text
+                            </h2>
+                            <md-text-button onclick="copyText('result', this)">
+                                Copy
+                            </md-text-button>
+                        </div>
+
+                        <!-- body -->
+                        <div class="p-5 bg-md-surface-container rounded-md">
+                            <md-filled-text-field
+                                type="textarea"
+                                label="Decrypted text will shown here"
+                                rows="3"
+                                class="w-full resize-y"
+                                id="result"
+                                name="result"
+                                readonly
+                            >
+                            </md-filled-text-field>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+<!-- Modals -->
+{% block modals %} {% endblock %}
+
+<!-- Script -->
+{% block script %}
+<script>
+    const decryptionForm = document.getElementById("decryption-form");
+    const resultField = document.getElementById("result");
+    const decrypt_api = "/api/encryptor/decrypt_text";
+
+    async function decryptText() {
+        let encryptionKey = sessionStorage.getItem("encryption_key");
+        encryptionKey = JSON.parse(encryptionKey);
+
+        let formData = new FormData(decryptionForm);
+        formData.append("key", encryptionKey.key);
+        formData = Object.fromEntries(formData.entries());
+
+        // send request
+        try {
+            const result = await sendRequest(decrypt_api, formData, "POST");
+
+            resultField.value = result.data.decrypted_text;
+
+            showToast(result.message);
+        } catch (error) {
+            showAlert("Decryption failed", error);
+            console.error(error);
+        }
+    }
+
+    decryptionForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        decryptText();
+    });
+</script>
+{% endblock %}
