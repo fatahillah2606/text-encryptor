@@ -12,10 +12,8 @@ from src.init_db import create_database
 
 load_dotenv()
 
-# SESSION_KEY = secrets.token_hex()
-SESSION_KEY = os.getenv(
-    "SESSION_KEY"
-)  # for development, to prevent logged out when restarting
+SESSION_KEY = secrets.token_hex()
+# SESSION_KEY = os.getenv("SESSION_KEY")  # for development, to prevent logged out when restarting
 
 # Check db
 db_path = os.path.join("db", "vault_manager.db")
