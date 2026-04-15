@@ -1,7 +1,6 @@
 import binascii
 import os
 import sqlite3
-from webbrowser import Error
 
 from src.encryptor import decrypt_aes, encrypt_aes, get_valid_key
 from src.essentials import bcryptCheck, bcryptHashing
@@ -233,6 +232,98 @@ class KeyManager:
         except sqlite3.Error as err:
             return "error", f"Database error: {str(err)}"
 
+    # Edit key
+    def edit_user_key(self, key_id, keyName, theKey, user_id, session_key):
+        try:
+            # Get the current key first
+            currentKey = self.get_user_key(key_id, user_id, session_key)
+
+            # Get all user passwords releted to the key
+            passwordList = []
+
+            with sqlite3.connect(self.db_path) as conn:
+                query = "SELECT * FROM passwords WHERE key_id = ? AND user_id = ?"
+
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                cursor.execute("PRAGMA foreign_keys = ON;")
+
+                cursor.execute(query, (key_id, user_id))
+                rows = cursor.fetchall()
+
+                if rows:
+                    for row in rows:
+                        # Combine iv + encrypted_key and unhexlify
+                        password_from_db = binascii.hexlify(
+                            row["iv"] + row["encrypted_password"]
+                        ).decode()
+                        password_from_db = binascii.unhexlify(password_from_db)
+
+                        # Make it valid
+                        valid_key = get_valid_key(currentKey["encryption_key"])
+
+                        # Decrypt password
+                        decrypted_password = decrypt_aes(
+                            password_from_db, valid_key["encoded_key"]
+                        )
+
+                        passwordList.append(
+                            {
+                                "password_id": row["password_id"],
+                                "password": decrypted_password,
+                            }
+                        )
+
+            # Now change the key
+            newKey = ""
+
+            with sqlite3.connect(self.db_path) as conn:
+                query = "UPDATE keys SET key_name = ?, encrypted_key = ?, iv = ? WHERE key_id = ?"
+
+                master_key = get_valid_key(session_key)
+                iv, encrypted_key = encrypt_aes(theKey, master_key["encoded_key"])
+
+                # Save to newKey
+                newKey = binascii.hexlify(iv + encrypted_key).decode()
+                newKey = binascii.unhexlify(newKey)
+
+                # Save new key to database
+                cursor = conn.cursor()
+                cursor.execute("PRAGMA foreign_keys = ON;")
+                cursor.execute(query, (keyName, encrypted_key, iv, key_id))
+
+                conn.commit
+
+            # Re-encrypt related password
+            if passwordList:
+                for eachPassword in passwordList:
+                    with sqlite3.connect(self.db_path) as conn:
+                        query = "UPDATE passwords SET encrypted_password = ?, iv = ? WHERE password_id = ?"
+
+                        # Decrypt the key first
+                        master_key = get_valid_key(session_key)
+                        decrypted_key = decrypt_aes(newKey, master_key["encoded_key"])
+
+                        # Encrypt the password
+                        validate_key = get_valid_key(decrypted_key)
+                        iv, encrypted_password = encrypt_aes(
+                            eachPassword["password"], validate_key["encoded_key"]
+                        )
+
+                        # Insert the re-encrypted password
+                        cursor = conn.cursor()
+                        cursor.execute("PRAGMA foreign_keys = ON;")
+                        cursor.execute(
+                            query, (encrypted_password, iv, eachPassword["password_id"])
+                        )
+
+                        conn.commit()
+
+            return "success", f"Successfully edited key: {keyName}"
+
+        except sqlite3.Error as err:
+            return "error", f"Database error: {str(err)}"
+
     # Delete key
     def delete_user_key(self, key_id):
         query = "DELETE FROM keys WHERE key_id = ?"
@@ -342,7 +433,7 @@ class PasswordManager:
                     )
                     valid_key = get_valid_key(passwordKey["encryption_key"])
 
-                    # Decrypt key
+                    # Decrypt password
                     decrypted_password = decrypt_aes(
                         password_from_db, valid_key["encoded_key"]
                     )

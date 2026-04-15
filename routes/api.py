@@ -309,22 +309,6 @@ def listUserKey(key_id):
         return api_response("error", 500, str(err), [], {}), 500
 
 
-# Delete key
-@api_route.route("/user/key/<key_id>/delete", methods=["DELETE"])
-@logged_in_only_api
-def deleteKey(key_id):
-    try:
-        status, result = keys.delete_user_key(key_id)
-
-        if status == "success":
-            return api_response("success", 200, result, [], {})
-        else:
-            return api_response("error", 500, result, [], {}), 500
-
-    except Exception as err:
-        return api_response("error", 500, str(err), [], {}), 500
-
-
 # Create new encryption key
 @api_route.route("/user/key/create", methods=["POST"])
 @logged_in_only_api
@@ -340,6 +324,49 @@ def createEncryptionKey():
 
         # Insert into db
         status, result = keys.create_user_key(keyName, theKey, user_id, session_key)
+
+        if status == "success":
+            return api_response("success", 200, result, [], {})
+        else:
+            return api_response("error", 500, result, [], {}), 500
+
+    except Exception as err:
+        return api_response("error", 500, str(err), [], {}), 500
+
+
+# Edit encryption key
+@api_route.route("/user/key/<key_id>/edit", methods=["PUT"])
+@logged_in_only_api
+def editEncryptionKey(key_id):
+    try:
+        # Data
+        data = request.json
+        keyName = str(data.get("edit_key_name"))
+        theKey = str(data.get("edit_the_key"))
+
+        user_id = session["user_id"]
+        session_key = session["key"]
+
+        # Insert into db
+        status, result = keys.edit_user_key(
+            key_id, keyName, theKey, user_id, session_key
+        )
+
+        if status == "success":
+            return api_response("success", 200, result, [], {})
+        else:
+            return api_response("error", 500, result, [], {}), 500
+
+    except Exception as err:
+        return api_response("error", 500, str(err), [], {}), 500
+
+
+# Delete key
+@api_route.route("/user/key/<key_id>/delete", methods=["DELETE"])
+@logged_in_only_api
+def deleteKey(key_id):
+    try:
+        status, result = keys.delete_user_key(key_id)
 
         if status == "success":
             return api_response("success", 200, result, [], {})

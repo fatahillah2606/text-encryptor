@@ -33,6 +33,7 @@
                 <!-- Search bar -->
                 <search
                     class="w-full h-12 overflow-hidden rounded-full bg-md-surface-variant mb-5 relative"
+                    id="search-bar"
                 >
                     <form action="" class="flex items-center">
                         <md-icon class="text-md-on-surface w-12 h-12 shrink-0">
@@ -135,7 +136,13 @@
     <div slot="headline">Key info</div>
 
     <!-- Modal content -->
-    <form slot="content" id="edit_key" name="edit_key" method="post">
+    <form
+        slot="content"
+        id="edit_key"
+        name="edit_key"
+        method="post"
+        data-key-id=""
+    >
         <div class="grid grid-cols-2 gap-4">
             <md-filled-text-field
                 label="Key name"
@@ -151,8 +158,8 @@
             <md-filled-text-field
                 label="Key"
                 value=""
-                name="edit_key"
-                id="edit_key"
+                name="edit_the_key"
+                id="edit_the_key"
                 class="col-span-2"
                 type="text"
                 required
@@ -162,7 +169,9 @@
             <div class="col-span-2">
                 <md-outlined-button
                     type="button"
-                    onclick="generateKey('#edit_key')"
+                    name="generate_key"
+                    id="generate_key"
+                    onclick="generateKey('#edit_the_key')"
                     disabled
                 >
                     Generate
@@ -173,10 +182,6 @@
 
     <!-- Modal option -->
     <div slot="actions" id="modal_option" class="">
-        <md-text-button type="button" onclick="closeEditKeyModal()">
-            Cancel
-        </md-text-button>
-        <div class="flex-1"></div>
         <md-text-button
             form="edit_key"
             type="button"
@@ -184,6 +189,10 @@
             id="delete_key"
         >
             Delete
+        </md-text-button>
+        <div class="flex-1"></div>
+        <md-text-button type="button" onclick="closeEditKeyModal()">
+            Close
         </md-text-button>
         <md-text-button type="button" onclick="enableEditing()">
             Edit
@@ -239,7 +248,7 @@
 <script>
     // Define variable
     // API
-    const createNewKeyApi = "/api/user/create/key";
+    const createNewKeyApi = "/api/user/key/create";
 
     // New key modal
     const newKeyModal = document.getElementById("new-key-modal");
@@ -297,57 +306,68 @@
     });
 
     // Show/Close edit key modal
-    async function openEditKeyModal() {
+    async function openEditKeyModal(uri) {
+        // Set keyId with API url
+        editKeyForm.dataset.keyId = uri;
+
         await editKeyModal.show();
     }
 
     async function closeEditKeyModal() {
+        // Reset keyId
+        editKeyForm.dataset.keyId = "";
+
         await editKeyModal.close();
         editKeyForm.reset();
     }
 
     // Get key info
-    async function getKeyInfo(uri) {
-        try {
-            // Send request
-            const result = await sendRequest(uri, {}, "GET");
-            const data = result.data;
+    async function getKeyInfo() {
+        // Get key id api
+        const keyId = editKeyForm.dataset.keyId;
 
-            // Set the form values
-            editKeyForm.edit_key_name.value = data.key_name;
-            editKeyForm.edit_key.value = data.encryption_key;
-        } catch (error) {
-            showAlert("An error occured", error);
-            console.error(error);
+        if (keyId && keyId.trim() !== "") {
+            try {
+                // Send request
+                const result = await sendRequest(keyId, {}, "GET");
+                const data = result.data;
+
+                // Set the form values
+                editKeyForm.edit_key_name.value = data.key_name;
+                editKeyForm.edit_the_key.value = data.encryption_key;
+            } catch (error) {
+                showAlert("An error occured", error);
+                console.error(error);
+            }
+        } else {
+            console.warn("Warning: 'data-key-id' is empty!");
         }
     }
 
     // Open existing account
     async function openExistingKey(uri) {
         // Set the action button
-        editKeyForm.reset_info.setAttribute("onclick", `getKeyInfo("${uri}")`);
-        editKeyForm.cancle_editing.setAttribute(
-            "onclick",
-            `disableEditing("${uri}")`,
-        );
-        editKeyForm.delete_key.setAttribute("onclick", `deleteKey("${uri}")`);
-
-        getKeyInfo(uri);
+        editKeyForm.reset_info.onclick = getKeyInfo;
+        editKeyForm.cancle_editing.onclick = disableEditing;
+        editKeyForm.delete_key.onclick = deleteKey;
 
         // Show the modal
-        openEditKeyModal();
+        openEditKeyModal(uri);
+        getKeyInfo();
     }
 
     // Set to readonly
     function setToReadonly() {
         editKeyForm.edit_key_name.setAttribute("readonly", "");
-        editKeyForm.edit_key.setAttribute("readonly", "");
+        editKeyForm.edit_the_key.setAttribute("readonly", "");
+        editKeyForm.generate_key.disabled = true;
     }
 
     // Set to writeable
     function setToWriteable() {
         editKeyForm.edit_key_name.removeAttribute("readonly");
-        editKeyForm.edit_key.removeAttribute("readonly");
+        editKeyForm.edit_the_key.removeAttribute("readonly");
+        editKeyForm.generate_key.disabled = false;
     }
 
     // Enable editing
@@ -360,9 +380,9 @@
     }
 
     // Disable editing
-    function disableEditing(uri) {
+    function disableEditing() {
         // Reset the info
-        getKeyInfo(uri);
+        getKeyInfo();
 
         editModalHeadline.textContent = "Key info";
         setToReadonly();
@@ -380,31 +400,78 @@
         editModalAction.classList.add("hidden");
     });
 
-    // Delete
-    async function deleteKey(uri) {
-        // Wait for the response
-        const choise = await confirmDialog(
-            "confirm-delete",
-            "Delete Key?",
-            "This will delete the password associated with this key.",
-        );
+    // Save key changes
+    async function editKey(theForm) {
+        // Get password id api
+        const keyId = editKeyForm.dataset.keyId;
 
-        if (choise === "delete") {
+        if (keyId && keyId.trim() !== "") {
             try {
+                let formData = new FormData(theForm);
+                formData = Object.fromEntries(formData.entries());
+
                 // Send request
-                const result = await sendRequest(`${uri}/delete`, {}, "DELETE");
+                const result = await sendRequest(
+                    `${keyId}/edit`,
+                    formData,
+                    "PUT",
+                );
 
-                if (result.code === 200) {
-                    closeEditKeyModal();
-                    showToast(result.message);
+                // Reinit keys
+                loadKeys();
 
-                    // Reinit keys
-                    loadKeys();
-                }
+                showToast(result.message);
+                disableEditing();
             } catch (error) {
-                showAlert("Failed to delete", error);
+                showAlert("Failed to add", error);
                 console.error(error);
             }
+        } else {
+            console.warn("Warning: 'data-key-id' is empty!");
+        }
+    }
+
+    editKeyForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        editKey(editKeyForm);
+    });
+
+    // Delete key
+    async function deleteKey() {
+        // Get key id api
+        const keyId = editKeyForm.dataset.keyId;
+
+        if (keyId && keyId.trim() !== "") {
+            // Wait for the response
+            const choise = await confirmDialog(
+                "confirm-delete",
+                "Delete Key?",
+                "This will delete the password associated with this key.",
+            );
+
+            if (choise === "delete") {
+                try {
+                    // Send request
+                    const result = await sendRequest(
+                        `${keyId}/delete`,
+                        {},
+                        "DELETE",
+                    );
+
+                    if (result.code === 200) {
+                        closeEditKeyModal();
+                        showToast(result.message);
+
+                        // Reinit keys
+                        loadKeys();
+                    }
+                } catch (error) {
+                    showAlert("Failed to delete", error);
+                    console.error(error);
+                }
+            }
+        } else {
+            console.warn("Warning: 'data-key-id' is empty!");
         }
     }
 
