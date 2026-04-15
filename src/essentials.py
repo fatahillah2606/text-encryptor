@@ -21,7 +21,7 @@ def bcryptCheck(text, hashedText):
 # Create login session
 def createLoginSession(user_id, name, username, key):
     session.permanent = True
-    session["expired"] = (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat()
+    session["expired"] = (datetime.now(timezone.utc) + timedelta(minutes=5)).isoformat()
 
     session["user_id"] = user_id
     session["name"] = name

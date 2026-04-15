@@ -326,7 +326,7 @@ def deleteKey(key_id):
 
 
 # Create new encryption key
-@api_route.route("/user/create/key", methods=["POST"])
+@api_route.route("/user/key/create", methods=["POST"])
 @logged_in_only_api
 def createEncryptionKey():
     try:
@@ -389,24 +389,8 @@ def listUserPassword(password_id):
         return api_response("error", 500, str(err), [], {}), 500
 
 
-# Delete password
-@api_route.route("/user/password/<password_id>/delete", methods=["DELETE"])
-@logged_in_only_api
-def deletePassword(password_id):
-    try:
-        status, result = passwords.delete_user_password(password_id)
-
-        if status == "success":
-            return api_response("success", 200, result, [], {})
-        else:
-            return api_response("error", 500, result, [], {}), 500
-
-    except Exception as err:
-        return api_response("error", 500, str(err), [], {}), 500
-
-
 # Create new password
-@api_route.route("/user/create/password", methods=["POST"])
+@api_route.route("/user/password/create", methods=["POST"])
 @logged_in_only_api
 def createPassword():
     try:
@@ -424,6 +408,57 @@ def createPassword():
         status, result = passwords.create_user_password(
             serviceName, username, password, selectedKeyId, user_id, session_key
         )
+
+        if status == "success":
+            return api_response("success", 200, result, [], {})
+        else:
+            return api_response("error", 500, result, [], {}), 500
+
+    except Exception as err:
+        return api_response("error", 500, str(err), [], {}), 500
+
+
+# Edit password
+@api_route.route("/user/password/<password_id>/edit", methods=["PUT"])
+@logged_in_only_api
+def editPassword(password_id):
+    try:
+        # Data
+        data = request.json
+        serviceName = str(data.get("edit_service_name"))
+        username = str(data.get("edit_username"))
+        password = str(data.get("edit_password"))
+        selectedKeyId = int(data.get("edit_selected_key"))
+
+        user_id = session["user_id"]
+        session_key = session["key"]
+
+        # Insert into db
+        status, result = passwords.edit_user_password(
+            serviceName,
+            username,
+            password,
+            selectedKeyId,
+            user_id,
+            session_key,
+            password_id,
+        )
+
+        if status == "success":
+            return api_response("success", 200, result, [], {})
+        else:
+            return api_response("error", 500, result, [], {}), 500
+
+    except Exception as err:
+        return api_response("error", 500, str(err), [], {}), 500
+
+
+# Delete password
+@api_route.route("/user/password/<password_id>/delete", methods=["DELETE"])
+@logged_in_only_api
+def deletePassword(password_id):
+    try:
+        status, result = passwords.delete_user_password(password_id)
 
         if status == "success":
             return api_response("success", 200, result, [], {})

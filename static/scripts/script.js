@@ -262,3 +262,52 @@ async function confirmDialog(dialogId, headline, content) {
         });
     });
 }
+
+// Search
+const searchBar = document.getElementById("search-bar");
+
+if (searchBar) {
+    const searchField = searchBar.querySelector("input");
+
+    searchField.addEventListener("keyup", () => {
+        const searchValue = searchField.value.toLowerCase();
+
+        const dataRow = document.querySelectorAll("#data_list > div");
+
+        dataRow.forEach((data) => {
+            let match = false;
+
+            const h2Title = data.querySelectorAll("h2");
+            const pBody = data.querySelectorAll("p");
+
+            // For h2 elm
+            if (h2Title.length !== 0) {
+                h2Title.forEach((element) => {
+                    if (
+                        element.textContent.toLowerCase().includes(searchValue)
+                    ) {
+                        match = true;
+                    }
+                });
+            }
+
+            // For p elm
+            if (pBody.length !== 0) {
+                pBody.forEach((element) => {
+                    if (
+                        element.textContent.toLowerCase().includes(searchValue)
+                    ) {
+                        match = true;
+                    }
+                });
+            }
+
+            // If match
+            if (match) {
+                data.classList.remove("hidden");
+            } else {
+                data.classList.add("hidden");
+            }
+        });
+    });
+}

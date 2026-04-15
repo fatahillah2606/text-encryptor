@@ -1,6 +1,7 @@
 import binascii
 import os
 import sqlite3
+from webbrowser import Error
 
 from src.encryptor import decrypt_aes, encrypt_aes, get_valid_key
 from src.essentials import bcryptCheck, bcryptHashing
@@ -393,6 +394,50 @@ class PasswordManager:
                 conn.commit()
 
                 return "success", f"Successfully added password: {serviceName}"
+
+        except sqlite3.Error as err:
+            return "error", f"Database error: {str(err)}"
+
+    # Edit password
+    def edit_user_password(
+        self,
+        serviceName,
+        username,
+        password,
+        selectedKeyId,
+        user_id,
+        session_key,
+        password_id,
+    ):
+        query = "UPDATE passwords SET key_id = ?, service_name = ?, username_account = ?, encrypted_password = ?, iv = ? WHERE password_id = ?"
+
+        try:
+            # Encrypt the password with selected key
+            selected_key = self.keys.get_user_key(selectedKeyId, user_id, session_key)
+            valid_selected_key = get_valid_key(selected_key["encryption_key"])
+            iv, encrypted_password = encrypt_aes(
+                password, valid_selected_key["encoded_key"]
+            )
+
+            # Insert into db
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute("PRAGMA foreign_keys = ON;")
+                cursor.execute(
+                    query,
+                    (
+                        selectedKeyId,
+                        serviceName,
+                        username,
+                        encrypted_password,
+                        iv,
+                        password_id,
+                    ),
+                )
+
+                conn.commit()
+
+                return "success", f"Successfully edited password: {serviceName}"
 
         except sqlite3.Error as err:
             return "error", f"Database error: {str(err)}"
