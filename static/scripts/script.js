@@ -129,18 +129,6 @@ function copyTextIconBtn(field, copyIconBtn, event) {
 }
 
 // Show password
-function showPassword(elmClicked, elmPassword) {
-    const passwordField = document.getElementById(elmPassword);
-
-    if (passwordField.type == "password") {
-        passwordField.type = "text";
-        elmClicked.textContent = "visibility_off";
-    } else {
-        passwordField.type = "password";
-        elmClicked.textContent = "visibility";
-    }
-}
-
 function showPasswordCheckBox(elmCheckBox, elmPasswords) {
     // Get all password elm
     const passwordField = elmPasswords.map((id) => document.getElementById(id));

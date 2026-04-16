@@ -251,7 +251,7 @@ def whoAmI():
 
 
 # Check username availablity
-@api_route.route("/auth/username/available", methods=["POST"])
+@api_route.route("/account/username/available", methods=["POST"])
 def checkAvailablity():
     try:
         # Data
@@ -259,14 +259,111 @@ def checkAvailablity():
         username = str(data.get("username"))
 
         # Check into database
-        status, result = user.getUser(username)
+        status, result = user.checkUsername(username)
 
         if status == "success":
-            return api_response("error", 409, "Username already in use!", [], {}), 409
-
-        elif status == "failed":
             return api_response("success", 200, "Username available!", [], {})
+        elif status == "failed":
+            return api_response("error", 409, "Username already in use!", [], {}), 409
+        else:
+            return api_response("error", 500, result, [], {}), 500
 
+    except Exception as err:
+        return api_response("error", 500, str(err), [], {}), 500
+
+
+# Account update
+@api_route.route("/account/update", methods=["PATCH"])
+def updateProfile():
+    try:
+        # data
+        data = request.json
+        user_id = session["user_id"]
+
+        updates = {}
+        if "name" in data:
+            updates["name"] = str(data.get("name"))
+
+        if "username" in data:
+            username = str(data.get("username"))
+
+            # Check the availablity first
+            status, result = user.checkUsername(username)
+            if status == "success":
+                updates["username"] = username
+            elif status == "failed":
+                return api_response(
+                    "error", 409, "Username already in use!", [], {}
+                ), 409
+
+        # If no data provided
+        if not updates:
+            return api_response("error", 400, "No data provided", [], {}), 400
+
+        # Save changes
+        status, result = user.updateProfile(user_id, updates)
+
+        if status == "success":
+            # Update the session
+            if "name" in data:
+                session["name"] = str(data.get("name"))
+
+            if "username" in data:
+                session["username"] = str(data.get("username"))
+
+            # Return success response
+            return api_response("success", 200, "Account updated", [], {})
+        elif status == "failed":
+            return api_response("failed", 400, "No data provided", [], {})
+        else:
+            return api_response("error", 500, result, [], {}), 500
+
+    except Exception as err:
+        return api_response("error", 500, str(err), [], {}), 500
+
+
+# Change account password
+@api_route.route("/account/change-password", methods=["PUT"])
+@logged_in_only_api
+def updateUserPassword():
+    try:
+        # data
+        data = request.json
+        new_password = str(data.get("password"))
+        user_id = session["user_id"]
+        current_password = session["key"]
+
+        # Proceed to change the password
+        status, result = user.updateProfilePassword(
+            new_password, user_id, current_password
+        )
+
+        if status == "success":
+            session["key"] = str(data.get("password"))
+            return api_response("success", 200, result, [], {})
+        else:
+            return api_response("error", 500, result, [], {}), 500
+
+    except Exception as err:
+        return api_response("error", 500, str(err), [], {}), 500
+
+
+# Account delete
+@api_route.route("/account/delete", methods=["DELETE"])
+@logged_in_only_api
+def deleteUserAccount():
+    try:
+        user_id = session["user_id"]
+
+        # Proceed with deletion
+        status, result = user.deleteProfile(user_id)
+
+        if status == "success":
+            # Clear the session
+            session.clear()
+
+            # Return success response
+            return api_response("success", 200, "Account updated", [], {})
         else:
             return api_response("error", 500, result, [], {}), 500
 

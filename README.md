@@ -48,7 +48,7 @@ python run.py
 ### Start Tailwindcss cli (optional)
 
 ```bash
-npx @tailwindcss/cli -i ./static/styles/input.css -o ./static/styles/output.css --watch
+npx @tailwindcss/cli -i ./static/styles/tailwindcss/import-tailwind.css -o ./static/styles/tailwindcss/tailwind.css --watch
 ```
 
 Open your browser and navigate to http://127.0.0.1:5000/

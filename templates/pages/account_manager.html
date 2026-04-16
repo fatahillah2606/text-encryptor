@@ -37,6 +37,15 @@
                     >
                         <div
                             class="relative py-2.5 px-5 bg-md-surface-container rounded-md flex items-center gap-5 cursor-pointer"
+                            onclick="
+                                formDialog(
+                                    'name',
+                                    'Change your name',
+                                    'Your name',
+                                    'text',
+                                    '{{ name }}'
+                                )
+                            "
                         >
                             <md-icon class="text-md-on-surface"
                                 >assignment_ind</md-icon
@@ -49,6 +58,7 @@
                                 </h2>
                                 <p
                                     class="md-typescale-body-medium text-md-secondary m-0"
+                                    id="your-name"
                                 >
                                     {{ name }}
                                 </p>
@@ -58,6 +68,15 @@
 
                         <div
                             class="relative py-2.5 px-5 bg-md-surface-container rounded-md flex items-center gap-5 cursor-pointer"
+                            onclick="
+                                formDialog(
+                                    'username',
+                                    'Change your username',
+                                    'Username',
+                                    'text',
+                                    '{{ username }}'
+                                )
+                            "
                         >
                             <md-icon class="text-md-on-surface">person</md-icon>
                             <div>
@@ -68,6 +87,7 @@
                                 </h2>
                                 <p
                                     class="md-typescale-body-medium text-md-secondary m-0"
+                                    id="username"
                                 >
                                     {{ username }}
                                 </p>
@@ -77,6 +97,15 @@
 
                         <div
                             class="relative py-2.5 px-5 bg-md-surface-container rounded-md flex items-center gap-5 cursor-pointer"
+                            onclick="
+                                formDialog(
+                                    'password',
+                                    'Change your password',
+                                    'Password',
+                                    'password',
+                                    '',
+                                )
+                            "
                         >
                             <md-icon class="text-md-on-surface"
                                 >password</md-icon
@@ -104,6 +133,7 @@
                     >
                         <div
                             class="relative py-2.5 px-5 bg-md-surface-container rounded-md flex items-center gap-5 cursor-pointer"
+                            onclick="deleteAccount()"
                         >
                             <md-icon class="text-md-on-surface"
                                 >delete_forever</md-icon
@@ -133,9 +163,211 @@
 {% endblock %}
 
 <!-- Modals -->
-{% block modals %} {% endblock %}
+{% block modals %}
+<!-- Modal for edit account -->
+<md-dialog id="edit-account-modal">
+    <div slot="headline">Headline</div>
+
+    <!-- Modal content -->
+    <form
+        slot="content"
+        id="edit_account_form"
+        name="edit_account_form"
+        method="post"
+    >
+        <div class="grid grid-cols-2 gap-4">
+            <md-filled-text-field
+                label="Field name"
+                value=""
+                name="edit_account"
+                id="edit_account"
+                class="col-span-2"
+                type="text"
+                required
+            >
+            </md-filled-text-field>
+
+            <div
+                class="hidden col-span-2 flex items-center justify-start gap-4 my-2.5"
+                onclick="showPw('show_password', ['edit_account'])"
+                id="show_password_container"
+            >
+                <md-checkbox
+                    id="show_password"
+                    touch-target="wrapper"
+                    class="m-0"
+                    disabled
+                ></md-checkbox>
+                <label
+                    for="show_password"
+                    class="md-typescale-body-medium text-md-on-surface m-0"
+                    >Show password</label
+                >
+            </div>
+        </div>
+    </form>
+
+    <!-- Modal action -->
+    <div slot="actions">
+        <md-text-button form="edit_account_form" type="reset">
+            Cancel
+        </md-text-button>
+        <md-text-button form="edit_account_form" type="submit">
+            Save
+        </md-text-button>
+    </div>
+</md-dialog>
+
+<!-- Confirm delete dialog -->
+<md-dialog id="confirm-delete">
+    <div slot="headline"></div>
+    <md-icon slot="icon">warning</md-icon>
+    <form id="form" slot="content" method="dialog">
+        You cannot undo this action.
+    </form>
+    <div slot="actions">
+        <md-text-button form="form" value="delete">Delete</md-text-button>
+        <md-filled-tonal-button form="form" value="cancel" autofocus>
+            Cancel
+        </md-filled-tonal-button>
+    </div>
+</md-dialog>
+{% endblock %}
 
 <!-- Script -->
 {% block script %}
-<script></script>
+<script>
+    const yourname = document.getElementById("your-name");
+    const username = document.getElementById("username");
+
+    let userdata;
+
+    // API
+    const whoami = "/api/auth/whoami";
+    const accountDeletionAPI = "/api/account/delete";
+
+    // Dialog
+    const dialogElm = document.getElementById("edit-account-modal");
+    const dialogForm = document.getElementById("edit_account_form");
+
+    const showPasswordContainer = document.getElementById(
+        "show_password_container",
+    );
+
+    // Form dialog
+    async function formDialog(name, headline, label, type, value) {
+        dialogElm.querySelector('[slot="headline"]').innerText = headline;
+
+        // Set the form field
+        dialogForm.edit_account.name = name;
+        dialogForm.edit_account.label = label;
+        dialogForm.edit_account.type = type;
+        dialogForm.edit_account.value = value;
+
+        // For password
+        if (name === "password") {
+            showPasswordContainer.classList.remove("hidden");
+            dialogForm.show_password.disabled = false;
+        } else {
+            showPasswordContainer.classList.add("hidden");
+            dialogForm.show_password.disabled = true;
+        }
+
+        // Show the dialog
+        await dialogElm.show();
+    }
+
+    async function closeDialog() {
+        dialogForm.reset();
+        await dialogElm.close();
+    }
+
+    // Dialog action button
+    dialogForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        changeBio(dialogForm);
+    });
+    dialogElm.onreset = closeDialog;
+
+    // Change bio
+    async function changeBio(theForm) {
+        try {
+            let formData = new FormData(theForm);
+
+            // Set the route based on what name field is.
+            let accountUpdateAPI = "/api/account/update";
+            let requestMethod = "PATCH";
+            if (theForm.edit_account.name === "password") {
+                accountUpdateAPI = "/api/account/change-password";
+                requestMethod = "PUT";
+            }
+
+            formData = Object.fromEntries(formData.entries());
+
+            // Send request
+            const result = await sendRequest(
+                accountUpdateAPI,
+                formData,
+                requestMethod,
+            );
+
+            if (result.code === 200) {
+                // Reload user data
+                const reload = await loadUserData();
+                if (reload) {
+                    yourname.textContent = userdata.name;
+                    username.textContent = userdata.username;
+                }
+
+                closeDialog();
+                showToast(result.message);
+            }
+        } catch (error) {
+            showAlert("An error occured", error);
+            console.error(error);
+        }
+    }
+
+    // Delete account
+    async function deleteAccount() {
+        const dialogId = "confirm-delete";
+        const headline = "Delete account";
+        const content =
+            "If you delete your account, all keys and passwords you stored will be deleted. Please proceed with caution.";
+
+        const choise = await confirmDialog(dialogId, headline, content);
+
+        if (choise === "delete") {
+            // Proceed with account deletion
+            try {
+                const result = await sendRequest(
+                    accountDeletionAPI,
+                    {},
+                    "DELETE",
+                );
+                if (result.code === 200) {
+                    // Logout the user
+                    logout();
+                }
+            } catch (error) {
+                showAlert("An error occured", error);
+                console.error(error);
+            }
+        }
+    }
+
+    // Load userdata
+    async function loadUserData() {
+        const result = await sendRequest(whoami, {}, "GET");
+
+        userdata = {
+            name: result.data.name,
+            username: result.data.username,
+        };
+
+        return true;
+    }
+
+    loadUserData();
+</script>
 {% endblock %}
