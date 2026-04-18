@@ -55,7 +55,7 @@
                             >
                                 <md-filled-text-field
                                     type="textarea"
-                                    label="Enter the text you want to Decrypt"
+                                    placeholder="Enter the text you want to Decrypt"
                                     rows="3"
                                     class="resize-y"
                                     name="encrypted_text"
@@ -96,7 +96,7 @@
                         <div class="p-5 bg-md-surface-container rounded-md">
                             <md-filled-text-field
                                 type="textarea"
-                                label="Decrypted text will shown here"
+                                placeholder="Decrypted text will shown here"
                                 rows="3"
                                 class="w-full resize-y"
                                 id="result"
@@ -127,20 +127,25 @@
         let encryptionKey = sessionStorage.getItem("encryption_key");
         encryptionKey = JSON.parse(encryptionKey);
 
-        let formData = new FormData(decryptionForm);
-        formData.append("key", encryptionKey.key);
-        formData = Object.fromEntries(formData.entries());
+        if (encryptionKey) {
+            let formData = new FormData(decryptionForm);
+            formData.append("key", encryptionKey.key);
+            formData = Object.fromEntries(formData.entries());
 
-        // send request
-        try {
-            const result = await sendRequest(decrypt_api, formData, "POST");
+            // send request
+            try {
+                const result = await sendRequest(decrypt_api, formData, "POST");
 
-            resultField.value = result.data.decrypted_text;
+                resultField.value = result.data.decrypted_text;
 
-            showToast(result.message);
-        } catch (error) {
-            showAlert("Decryption failed", error);
-            console.error(error);
+                showToast(result.message);
+            } catch (error) {
+                showAlert("Decryption failed", error);
+                console.error(error);
+            }
+        } else {
+            // Trigger encryption key modal
+            checkEncryptionKey();
         }
     }
 

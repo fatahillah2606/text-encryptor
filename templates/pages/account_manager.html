@@ -43,7 +43,6 @@
                                     'Change your name',
                                     'Your name',
                                     'text',
-                                    '{{ name }}'
                                 )
                             "
                         >
@@ -74,7 +73,6 @@
                                     'Change your username',
                                     'Username',
                                     'text',
-                                    '{{ username }}'
                                 )
                             "
                         >
@@ -103,7 +101,6 @@
                                     'Change your password',
                                     'Password',
                                     'password',
-                                    '',
                                 )
                             "
                         >
@@ -177,7 +174,6 @@
     >
         <div class="grid grid-cols-2 gap-4">
             <md-filled-text-field
-                label="Field name"
                 value=""
                 name="edit_account"
                 id="edit_account"
@@ -212,9 +208,17 @@
         <md-text-button form="edit_account_form" type="reset">
             Cancel
         </md-text-button>
-        <md-text-button form="edit_account_form" type="submit">
+        <md-filled-button
+            form="edit_account_form"
+            type="submit"
+            id="save_changes"
+            class="relative overflow-hidden"
+        >
             Save
-        </md-text-button>
+            <div class="button-progress-indicator hidden!">
+                <md-circular-progress indeterminate></md-circular-progress>
+            </div>
+        </md-filled-button>
     </div>
 </md-dialog>
 
@@ -226,7 +230,7 @@
         You cannot undo this action.
     </form>
     <div slot="actions">
-        <md-text-button form="form" value="delete">Delete</md-text-button>
+        <md-text-button form="form" value="delete"> Delete </md-text-button>
         <md-filled-tonal-button form="form" value="cancel" autofocus>
             Cancel
         </md-filled-tonal-button>
@@ -249,26 +253,35 @@
     // Dialog
     const dialogElm = document.getElementById("edit-account-modal");
     const dialogForm = document.getElementById("edit_account_form");
+    const progressIndicator = document.querySelector(
+        ".button-progress-indicator",
+    );
 
     const showPasswordContainer = document.getElementById(
         "show_password_container",
     );
 
     // Form dialog
-    async function formDialog(name, headline, label, type, value) {
+    async function formDialog(name, headline, label, type) {
         dialogElm.querySelector('[slot="headline"]').innerText = headline;
 
         // Set the form field
         dialogForm.edit_account.name = name;
-        dialogForm.edit_account.label = label;
+        dialogForm.edit_account.placeholder = label;
         dialogForm.edit_account.type = type;
-        dialogForm.edit_account.value = value;
 
         // For password
         if (name === "password") {
+            // Set value of field
+            dialogForm.edit_account.value = "";
+
             showPasswordContainer.classList.remove("hidden");
             dialogForm.show_password.disabled = false;
         } else {
+            // Set value of field
+            dialogForm.edit_account.value =
+                name === "name" ? userdata.name : userdata.username;
+
             showPasswordContainer.classList.add("hidden");
             dialogForm.show_password.disabled = true;
         }
@@ -282,10 +295,21 @@
         await dialogElm.close();
     }
 
+    // Reset everything on dialog if closed
+    dialogElm.addEventListener("close", () => {
+        dialogForm.save_changes.disabled = true;
+        hideSupportText(dialogForm.edit_account);
+    });
+
     // Dialog action button
     dialogForm.addEventListener("submit", (event) => {
         event.preventDefault();
-        changeBio(dialogForm);
+
+        if (progressIndicator.classList.contains("hidden!")) {
+            progressIndicator.classList.remove("hidden!");
+
+            changeBio(dialogForm);
+        }
     });
     dialogElm.onreset = closeDialog;
 
@@ -314,16 +338,21 @@
             if (result.code === 200) {
                 // Reload user data
                 const reload = await loadUserData();
+
                 if (reload) {
                     yourname.textContent = userdata.name;
                     username.textContent = userdata.username;
                 }
 
+                progressIndicator.classList.add("hidden!");
+                dialogForm.save_changes.disabled = true;
+
                 closeDialog();
                 showToast(result.message);
             }
         } catch (error) {
-            showAlert("An error occured", error);
+            progressIndicator.classList.add("hidden!");
+            showSupportText(dialogForm.edit_account, error);
             console.error(error);
         }
     }
@@ -358,16 +387,32 @@
 
     // Load userdata
     async function loadUserData() {
-        const result = await sendRequest(whoami, {}, "GET");
+        try {
+            const result = await sendRequest(whoami, {}, "GET");
 
-        userdata = {
-            name: result.data.name,
-            username: result.data.username,
-        };
+            userdata = {
+                name: result.data.name,
+                username: result.data.username,
+            };
 
-        return true;
+            return true;
+        } catch (error) {
+            showAlert("An error occured", error);
+            console.error(error);
+        }
     }
 
+    // Load user data
     loadUserData();
+
+    // for enable/disable submit btn
+    document.addEventListener("DOMContentLoaded", () => {
+        const targetField = document.querySelectorAll(
+            "#edit_account_form md-filled-text-field",
+        );
+        const submitBtn = dialogForm.save_changes;
+
+        requireAllFields(targetField, submitBtn);
+    });
 </script>
 {% endblock %}

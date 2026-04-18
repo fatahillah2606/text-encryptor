@@ -98,6 +98,9 @@
   .bottom-7 {
     bottom: calc(var(--spacing) * 7);
   }
+  .bottom-24 {
+    bottom: calc(var(--spacing) * 24);
+  }
   .left-0 {
     left: calc(var(--spacing) * 0);
   }
@@ -184,6 +187,9 @@
   }
   .hidden {
     display: none;
+  }
+  .hidden\! {
+    display: none !important;
   }
   .list-item {
     display: list-item;
@@ -682,6 +688,11 @@
       @media (hover: hover) {
         text-decoration-line: underline !important;
       }
+    }
+  }
+  .sm\:bottom-7 {
+    @media (width >= 40rem) {
+      bottom: calc(var(--spacing) * 7);
     }
   }
   .sm\:left-7 {

@@ -314,7 +314,7 @@ def updateProfile():
             # Return success response
             return api_response("success", 200, "Account updated", [], {})
         elif status == "failed":
-            return api_response("failed", 400, "No data provided", [], {})
+            return api_response("failed", 400, "No data provided", [], {}), 400
         else:
             return api_response("error", 500, result, [], {}), 500
 
@@ -400,7 +400,7 @@ def listUserKey(key_id):
         if userKeys:
             return api_response("success", 200, "Keys available", userKeys, {})
         else:
-            return api_response("error", 404, "Keys unavailable", [], {})
+            return api_response("error", 404, "Keys unavailable", [], {}), 404
 
     except Exception as err:
         return api_response("error", 500, str(err), [], {}), 500
@@ -507,7 +507,7 @@ def listUserPassword(password_id):
         if userPassword:
             return api_response("success", 200, "Password available", userPassword, {})
         else:
-            return api_response("error", 404, "Password unavailable", [], {})
+            return api_response("error", 404, "Password unavailable", [], {}), 404
 
     except Exception as err:
         return api_response("error", 500, str(err), [], {}), 500

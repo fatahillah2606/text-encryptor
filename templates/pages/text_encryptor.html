@@ -55,7 +55,7 @@
                             >
                                 <md-filled-text-field
                                     type="textarea"
-                                    label="Enter the text you want to encrypt"
+                                    placeholder="Enter the text you want to encrypt"
                                     rows="3"
                                     class="resize-y"
                                     name="unencrypted_text"
@@ -94,7 +94,7 @@
                         <div class="p-5 bg-md-surface-container rounded-md">
                             <md-filled-text-field
                                 type="textarea"
-                                label="Encrypted text will shown here"
+                                placeholder="Encrypted text will shown here"
                                 rows="3"
                                 class="w-full resize-y"
                                 id="result"
@@ -125,20 +125,25 @@
         let encryptionKey = sessionStorage.getItem("encryption_key");
         encryptionKey = JSON.parse(encryptionKey);
 
-        let formData = new FormData(encryptionForm);
-        formData.append("key", encryptionKey.key);
-        formData = Object.fromEntries(formData.entries());
+        if (encryptionKey) {
+            let formData = new FormData(encryptionForm);
+            formData.append("key", encryptionKey.key);
+            formData = Object.fromEntries(formData.entries());
 
-        // send request
-        try {
-            const result = await sendRequest(encrypt_api, formData, "POST");
+            // send request
+            try {
+                const result = await sendRequest(encrypt_api, formData, "POST");
 
-            resultField.value = result.data.encrypted_text;
+                resultField.value = result.data.encrypted_text;
 
-            showToast(result.message);
-        } catch (error) {
-            showAlert("Encryption failed", error);
-            console.error(error);
+                showToast(result.message);
+            } catch (error) {
+                showAlert("Encryption failed", error);
+                console.error(error);
+            }
+        } else {
+            // Trigger encryption key modal
+            checkEncryptionKey();
         }
     }
 

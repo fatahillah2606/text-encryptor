@@ -108,10 +108,7 @@
             >
             </md-filled-text-field>
             <div class="col-span-2">
-                <md-outlined-button
-                    type="button"
-                    onclick="generateKey('#the_key')"
-                >
+                <md-outlined-button type="button" name="generate_key">
                     Generate
                 </md-outlined-button>
             </div>
@@ -127,7 +124,18 @@
         >
             Cancel
         </md-text-button>
-        <md-text-button form="new_key" type="submit"> Add </md-text-button>
+        <md-filled-button
+            form="new_key"
+            id="add_btn"
+            name="add_btn"
+            type="submit"
+            class="relative overflow-hidden"
+        >
+            Add
+            <div class="button-progress-indicator hidden!">
+                <md-circular-progress indeterminate></md-circular-progress>
+            </div>
+        </md-filled-button>
     </div>
 </md-dialog>
 
@@ -167,13 +175,7 @@
             >
             </md-filled-text-field>
             <div class="col-span-2">
-                <md-outlined-button
-                    type="button"
-                    name="generate_key"
-                    id="generate_key"
-                    onclick="generateKey('#edit_the_key')"
-                    disabled
-                >
+                <md-outlined-button type="button" name="generate_key" disabled>
                     Generate
                 </md-outlined-button>
             </div>
@@ -218,7 +220,18 @@
         >
             Cancel
         </md-text-button>
-        <md-text-button form="edit_key" type="submit"> Save </md-text-button>
+        <md-filled-button
+            form="edit_key"
+            id="save_btn"
+            name="save_btn"
+            type="submit"
+            class="relative overflow-hidden"
+        >
+            Save
+            <div class="button-progress-indicator hidden!">
+                <md-circular-progress indeterminate></md-circular-progress>
+            </div>
+        </md-filled-button>
     </div>
 </md-dialog>
 
@@ -269,7 +282,10 @@
     // Etc
     const keyList = document.getElementById("data_list");
 
-    // Functions
+    /*
+     ** For the process of adding key
+     */
+
     // Show/Close new key modal
     async function openNewKeyModal() {
         await newKeyModal.show();
@@ -277,11 +293,24 @@
 
     async function closeNewKeyModal() {
         await newKeyModal.close();
-        newKeyModal.reset();
+        newKeyForm.reset();
+        newKeyForm.add_btn.disabled = true;
     }
+
+    // Generate key
+    newKeyForm.generate_key.addEventListener("click", async () => {
+        const result = await generateKey("#the_key");
+        if (result) {
+            newKeyForm.add_btn.disabled = false;
+        }
+    });
 
     // Add new key
     async function createNewKey(theForm) {
+        const progressIndicator = newKeyModal.querySelector(
+            ".button-progress-indicator",
+        );
+
         try {
             let formData = new FormData(theForm);
             formData = Object.fromEntries(formData.entries());
@@ -289,12 +318,18 @@
             // Send request
             const result = await sendRequest(createNewKeyApi, formData, "POST");
 
-            // Reinit the keys
-            loadKeys();
+            if (result.code === 200) {
+                // Reinit the keys
+                loadKeys();
 
-            showToast(result.message);
-            newKeyModal.close();
+                progressIndicator.classList.add("hidden!");
+                newKeyForm.add_btn.disabled = true;
+
+                showToast(result.message);
+                newKeyModal.close();
+            }
         } catch (error) {
+            progressIndicator.classList.add("hidden!");
             showAlert("Failed to add", error);
             console.error(error);
         }
@@ -302,8 +337,20 @@
 
     newKeyForm.addEventListener("submit", (event) => {
         event.preventDefault();
-        createNewKey(newKeyForm);
+
+        const progressIndicator = newKeyModal.querySelector(
+            ".button-progress-indicator",
+        );
+        if (progressIndicator.classList.contains("hidden!")) {
+            progressIndicator.classList.remove("hidden!");
+
+            createNewKey(newKeyForm);
+        }
     });
+
+    /*
+     ** For part of the key editing process
+     */
 
     // Show/Close edit key modal
     async function openEditKeyModal(uri) {
@@ -319,7 +366,16 @@
 
         await editKeyModal.close();
         editKeyForm.reset();
+        editKeyForm.save_btn.disabled = true;
     }
+
+    // Generate key
+    editKeyForm.generate_key.addEventListener("click", async () => {
+        const result = await generateKey("#edit_the_key");
+        if (result) {
+            editKeyForm.save_btn.disabled = false;
+        }
+    });
 
     // Get key info
     async function getKeyInfo() {
@@ -335,6 +391,8 @@
                 // Set the form values
                 editKeyForm.edit_key_name.value = data.key_name;
                 editKeyForm.edit_the_key.value = data.encryption_key;
+
+                editKeyForm.save_btn.disabled = true;
             } catch (error) {
                 showAlert("An error occured", error);
                 console.error(error);
@@ -361,6 +419,7 @@
         editKeyForm.edit_key_name.setAttribute("readonly", "");
         editKeyForm.edit_the_key.setAttribute("readonly", "");
         editKeyForm.generate_key.disabled = true;
+        editKeyForm.save_btn.disabled = true;
     }
 
     // Set to writeable
@@ -405,6 +464,10 @@
         // Get password id api
         const keyId = editKeyForm.dataset.keyId;
 
+        const progressIndicator = editKeyModal.querySelector(
+            ".button-progress-indicator",
+        );
+
         if (keyId && keyId.trim() !== "") {
             try {
                 let formData = new FormData(theForm);
@@ -417,12 +480,19 @@
                     "PUT",
                 );
 
-                // Reinit keys
-                loadKeys();
+                if (result.code === 200) {
+                    // Reinit keys
+                    loadKeys();
 
-                showToast(result.message);
-                disableEditing();
+                    progressIndicator.classList.add("hidden!");
+                    editKeyForm.save_btn.disabled = true;
+
+                    showToast(result.message);
+                    disableEditing();
+                }
             } catch (error) {
+                progressIndicator.classList.add("hidden!");
+
                 showAlert("Failed to add", error);
                 console.error(error);
             }
@@ -433,7 +503,14 @@
 
     editKeyForm.addEventListener("submit", (event) => {
         event.preventDefault();
-        editKey(editKeyForm);
+        const progressIndicator = editKeyModal.querySelector(
+            ".button-progress-indicator",
+        );
+
+        if (progressIndicator.classList.contains("hidden!")) {
+            progressIndicator.classList.remove("hidden!");
+            editKey(editKeyForm);
+        }
     });
 
     // Delete key
@@ -535,5 +612,22 @@
 
     // Load all key
     loadKeys();
+
+    // for enable/disable submit btn
+    document.addEventListener("DOMContentLoaded", () => {
+        // For add account/password
+        const newKeyFields = newKeyModal.querySelectorAll(
+            "md-filled-text-field",
+        );
+        const newKeyBtn = newKeyForm.add_btn;
+        requireAllFields(newKeyFields, newKeyBtn);
+
+        // For edit account/password
+        const editKeyFields = editKeyModal.querySelectorAll(
+            "md-filled-text-field",
+        );
+        const editKeyBtn = editKeyForm.save_btn;
+        requireAllFields(editKeyFields, editKeyBtn);
+    });
 </script>
 {% endblock %}
