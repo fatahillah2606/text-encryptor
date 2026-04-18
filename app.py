@@ -3,7 +3,7 @@ import secrets
 from datetime import datetime, timezone
 
 from dotenv import load_dotenv
-from flask import Flask, redirect, render_template, session, url_for
+from flask import Flask, redirect, session, url_for
 from flask.sansio.app import timedelta
 
 from routes.api import api_route
@@ -30,7 +30,7 @@ def check_and_setup_db():
 
 app = Flask(__name__)
 app.secret_key = SESSION_KEY
-app.permanent_session_lifetime = timedelta(hours=1)
+app.permanent_session_lifetime = timedelta(minutes=5)
 
 
 app.register_blueprint(pages_route, url_prefix="/pages/")
@@ -56,11 +56,6 @@ def check_session():
 @app.route("/")
 def home():
     return redirect(url_for("pages.dashboard"))
-
-
-@app.route("/experiment")
-def experiment():
-    return render_template("experiment.html")
 
 
 if __name__ == "__main__":

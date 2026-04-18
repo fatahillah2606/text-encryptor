@@ -251,7 +251,7 @@ def whoAmI():
 
 
 # Check username availablity
-@api_route.route("/auth/username/available", methods=["POST"])
+@api_route.route("/account/username/available", methods=["POST"])
 def checkAvailablity():
     try:
         # Data
@@ -259,14 +259,111 @@ def checkAvailablity():
         username = str(data.get("username"))
 
         # Check into database
-        status, result = user.getUser(username)
+        status, result = user.checkUsername(username)
 
         if status == "success":
-            return api_response("error", 409, "Username already in use!", [], {}), 409
-
-        elif status == "failed":
             return api_response("success", 200, "Username available!", [], {})
+        elif status == "failed":
+            return api_response("error", 409, "Username already in use!", [], {}), 409
+        else:
+            return api_response("error", 500, result, [], {}), 500
 
+    except Exception as err:
+        return api_response("error", 500, str(err), [], {}), 500
+
+
+# Account update
+@api_route.route("/account/update", methods=["PATCH"])
+def updateProfile():
+    try:
+        # data
+        data = request.json
+        user_id = session["user_id"]
+
+        updates = {}
+        if "name" in data:
+            updates["name"] = str(data.get("name"))
+
+        if "username" in data:
+            username = str(data.get("username"))
+
+            # Check the availablity first
+            status, result = user.checkUsername(username)
+            if status == "success":
+                updates["username"] = username
+            elif status == "failed":
+                return api_response(
+                    "error", 409, "Username already in use!", [], {}
+                ), 409
+
+        # If no data provided
+        if not updates:
+            return api_response("error", 400, "No data provided", [], {}), 400
+
+        # Save changes
+        status, result = user.updateProfile(user_id, updates)
+
+        if status == "success":
+            # Update the session
+            if "name" in data:
+                session["name"] = str(data.get("name"))
+
+            if "username" in data:
+                session["username"] = str(data.get("username"))
+
+            # Return success response
+            return api_response("success", 200, "Account updated", [], {})
+        elif status == "failed":
+            return api_response("failed", 400, "No data provided", [], {}), 400
+        else:
+            return api_response("error", 500, result, [], {}), 500
+
+    except Exception as err:
+        return api_response("error", 500, str(err), [], {}), 500
+
+
+# Change account password
+@api_route.route("/account/change-password", methods=["PUT"])
+@logged_in_only_api
+def updateUserPassword():
+    try:
+        # data
+        data = request.json
+        new_password = str(data.get("password"))
+        user_id = session["user_id"]
+        current_password = session["key"]
+
+        # Proceed to change the password
+        status, result = user.updateProfilePassword(
+            new_password, user_id, current_password
+        )
+
+        if status == "success":
+            session["key"] = str(data.get("password"))
+            return api_response("success", 200, result, [], {})
+        else:
+            return api_response("error", 500, result, [], {}), 500
+
+    except Exception as err:
+        return api_response("error", 500, str(err), [], {}), 500
+
+
+# Account delete
+@api_route.route("/account/delete", methods=["DELETE"])
+@logged_in_only_api
+def deleteUserAccount():
+    try:
+        user_id = session["user_id"]
+
+        # Proceed with deletion
+        status, result = user.deleteProfile(user_id)
+
+        if status == "success":
+            # Clear the session
+            session.clear()
+
+            # Return success response
+            return api_response("success", 200, "Account updated", [], {})
         else:
             return api_response("error", 500, result, [], {}), 500
 
@@ -303,30 +400,14 @@ def listUserKey(key_id):
         if userKeys:
             return api_response("success", 200, "Keys available", userKeys, {})
         else:
-            return api_response("error", 404, "Keys unavailable", [], {})
-
-    except Exception as err:
-        return api_response("error", 500, str(err), [], {}), 500
-
-
-# Delete key
-@api_route.route("/user/key/<key_id>/delete", methods=["DELETE"])
-@logged_in_only_api
-def deleteKey(key_id):
-    try:
-        status, result = keys.delete_user_key(key_id)
-
-        if status == "success":
-            return api_response("success", 200, result, [], {})
-        else:
-            return api_response("error", 500, result, [], {}), 500
+            return api_response("error", 404, "Keys unavailable", [], {}), 404
 
     except Exception as err:
         return api_response("error", 500, str(err), [], {}), 500
 
 
 # Create new encryption key
-@api_route.route("/user/create/key", methods=["POST"])
+@api_route.route("/user/key/create", methods=["POST"])
 @logged_in_only_api
 def createEncryptionKey():
     try:
@@ -340,6 +421,49 @@ def createEncryptionKey():
 
         # Insert into db
         status, result = keys.create_user_key(keyName, theKey, user_id, session_key)
+
+        if status == "success":
+            return api_response("success", 200, result, [], {})
+        else:
+            return api_response("error", 500, result, [], {}), 500
+
+    except Exception as err:
+        return api_response("error", 500, str(err), [], {}), 500
+
+
+# Edit encryption key
+@api_route.route("/user/key/<key_id>/edit", methods=["PUT"])
+@logged_in_only_api
+def editEncryptionKey(key_id):
+    try:
+        # Data
+        data = request.json
+        keyName = str(data.get("edit_key_name"))
+        theKey = str(data.get("edit_the_key"))
+
+        user_id = session["user_id"]
+        session_key = session["key"]
+
+        # Insert into db
+        status, result = keys.edit_user_key(
+            key_id, keyName, theKey, user_id, session_key
+        )
+
+        if status == "success":
+            return api_response("success", 200, result, [], {})
+        else:
+            return api_response("error", 500, result, [], {}), 500
+
+    except Exception as err:
+        return api_response("error", 500, str(err), [], {}), 500
+
+
+# Delete key
+@api_route.route("/user/key/<key_id>/delete", methods=["DELETE"])
+@logged_in_only_api
+def deleteKey(key_id):
+    try:
+        status, result = keys.delete_user_key(key_id)
 
         if status == "success":
             return api_response("success", 200, result, [], {})
@@ -383,30 +507,14 @@ def listUserPassword(password_id):
         if userPassword:
             return api_response("success", 200, "Password available", userPassword, {})
         else:
-            return api_response("error", 404, "Password unavailable", [], {})
-
-    except Exception as err:
-        return api_response("error", 500, str(err), [], {}), 500
-
-
-# Delete password
-@api_route.route("/user/password/<password_id>/delete", methods=["DELETE"])
-@logged_in_only_api
-def deletePassword(password_id):
-    try:
-        status, result = passwords.delete_user_password(password_id)
-
-        if status == "success":
-            return api_response("success", 200, result, [], {})
-        else:
-            return api_response("error", 500, result, [], {}), 500
+            return api_response("error", 404, "Password unavailable", [], {}), 404
 
     except Exception as err:
         return api_response("error", 500, str(err), [], {}), 500
 
 
 # Create new password
-@api_route.route("/user/create/password", methods=["POST"])
+@api_route.route("/user/password/create", methods=["POST"])
 @logged_in_only_api
 def createPassword():
     try:
@@ -424,6 +532,57 @@ def createPassword():
         status, result = passwords.create_user_password(
             serviceName, username, password, selectedKeyId, user_id, session_key
         )
+
+        if status == "success":
+            return api_response("success", 200, result, [], {})
+        else:
+            return api_response("error", 500, result, [], {}), 500
+
+    except Exception as err:
+        return api_response("error", 500, str(err), [], {}), 500
+
+
+# Edit password
+@api_route.route("/user/password/<password_id>/edit", methods=["PUT"])
+@logged_in_only_api
+def editPassword(password_id):
+    try:
+        # Data
+        data = request.json
+        serviceName = str(data.get("edit_service_name"))
+        username = str(data.get("edit_username"))
+        password = str(data.get("edit_password"))
+        selectedKeyId = int(data.get("edit_selected_key"))
+
+        user_id = session["user_id"]
+        session_key = session["key"]
+
+        # Insert into db
+        status, result = passwords.edit_user_password(
+            serviceName,
+            username,
+            password,
+            selectedKeyId,
+            user_id,
+            session_key,
+            password_id,
+        )
+
+        if status == "success":
+            return api_response("success", 200, result, [], {})
+        else:
+            return api_response("error", 500, result, [], {}), 500
+
+    except Exception as err:
+        return api_response("error", 500, str(err), [], {}), 500
+
+
+# Delete password
+@api_route.route("/user/password/<password_id>/delete", methods=["DELETE"])
+@logged_in_only_api
+def deletePassword(password_id):
+    try:
+        status, result = passwords.delete_user_password(password_id)
 
         if status == "success":
             return api_response("success", 200, result, [], {})

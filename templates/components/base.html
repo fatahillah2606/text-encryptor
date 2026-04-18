@@ -112,7 +112,7 @@
                 <md-text-button onclick="closeKeyModal()">
                     Cancel
                 </md-text-button>
-                <md-text-button
+                <md-filled-button
                     type="submit"
                     form="key-selector"
                     id="set_key"
@@ -120,7 +120,7 @@
                     disabled
                 >
                     Confirm
-                </md-text-button>
+                </md-filled-button>
             </div>
         </md-dialog>
 
@@ -157,6 +157,8 @@
             async function closeKeyModal() {
                 await keySelectorModal.close();
                 keySelectorForm.set_key.disabled = true;
+
+                optionKey ? checkEncryptionKey() : "";
             }
 
             // Set value of keySelector option
@@ -187,10 +189,14 @@
                         if (optionKey.value == "manual") {
                             keySelectorForm.custom_key.value =
                                 encryptionKey.key;
+
+                            keySelectorForm.generate_key.disabled = false;
                             keySelectorForm.custom_key.disabled = false;
                         } else {
                             keySelectorForm.custom_key.value =
                                 encryptionKey.key;
+
+                            keySelectorForm.generate_key.disabled = true;
                             keySelectorForm.custom_key.disabled = true;
                         }
                     } else {
@@ -232,6 +238,7 @@
             // Set encryption key
             async function changeActiveKey(keyValue, keyName) {
                 if (keyValue == "manual") {
+                    keySelectorForm.generate_key.disabled = false;
                     manualKeyForm.classList.remove("hidden");
                 } else {
                     keyData = {
@@ -260,15 +267,18 @@
                         const value = selectedOption.value;
 
                         if (value !== "manual") {
+                            keySelectorForm.generate_key.disabled = true;
                             keySelectorForm.custom_key.value = value;
                         } else {
+                            keySelectorForm.generate_key.disabled = false;
                             keySelectorForm.custom_key.value = "";
                         }
                     }
 
                     // Check the custom key field
                     if (optionKey.value == "manual") {
-                        // Enable custom key field
+                        // Enable custom key field and generate key button
+                        keySelectorForm.generate_key.disabled = false;
                         keySelectorForm.custom_key.disabled = false;
 
                         // Enable/disable submit key
@@ -297,9 +307,12 @@
             });
 
             // Generate key btn
-            keySelectorForm.generate_key.addEventListener("click", () => {
-                generateKey("#custom_key");
-                keySelectorForm.set_key.disabled = false;
+            keySelectorForm.generate_key.addEventListener("click", async () => {
+                const keyGenerated = await generateKey("#custom_key");
+
+                if (keyGenerated) {
+                    keySelectorForm.set_key.disabled = false;
+                }
             });
 
             // On submit

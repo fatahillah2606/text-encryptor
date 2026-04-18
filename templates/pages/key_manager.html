@@ -33,6 +33,7 @@
                 <!-- Search bar -->
                 <search
                     class="w-full h-12 overflow-hidden rounded-full bg-md-surface-variant mb-5 relative"
+                    id="search-bar"
                 >
                     <form action="" class="flex items-center">
                         <md-icon class="text-md-on-surface w-12 h-12 shrink-0">
@@ -51,7 +52,7 @@
                 <div class="flex flex-col gap-8">
                     <div
                         class="rounded-2xl overflow-hidden flex flex-col gap-1"
-                        id="key_list"
+                        id="data_list"
                     >
                         {% for i in range(10) %}
                         <div
@@ -107,10 +108,7 @@
             >
             </md-filled-text-field>
             <div class="col-span-2">
-                <md-outlined-button
-                    type="button"
-                    onclick="generateKey('#the_key')"
-                >
+                <md-outlined-button type="button" name="generate_key">
                     Generate
                 </md-outlined-button>
             </div>
@@ -126,7 +124,18 @@
         >
             Cancel
         </md-text-button>
-        <md-text-button form="new_key" type="submit"> Add </md-text-button>
+        <md-filled-button
+            form="new_key"
+            id="add_btn"
+            name="add_btn"
+            type="submit"
+            class="relative overflow-hidden"
+        >
+            Add
+            <div class="button-progress-indicator hidden!">
+                <md-circular-progress indeterminate></md-circular-progress>
+            </div>
+        </md-filled-button>
     </div>
 </md-dialog>
 
@@ -135,7 +144,13 @@
     <div slot="headline">Key info</div>
 
     <!-- Modal content -->
-    <form slot="content" id="edit_key" name="edit_key" method="post">
+    <form
+        slot="content"
+        id="edit_key"
+        name="edit_key"
+        method="post"
+        data-key-id=""
+    >
         <div class="grid grid-cols-2 gap-4">
             <md-filled-text-field
                 label="Key name"
@@ -151,8 +166,8 @@
             <md-filled-text-field
                 label="Key"
                 value=""
-                name="edit_key"
-                id="edit_key"
+                name="edit_the_key"
+                id="edit_the_key"
                 class="col-span-2"
                 type="text"
                 required
@@ -160,11 +175,7 @@
             >
             </md-filled-text-field>
             <div class="col-span-2">
-                <md-outlined-button
-                    type="button"
-                    onclick="generateKey('#edit_key')"
-                    disabled
-                >
+                <md-outlined-button type="button" name="generate_key" disabled>
                     Generate
                 </md-outlined-button>
             </div>
@@ -173,10 +184,6 @@
 
     <!-- Modal option -->
     <div slot="actions" id="modal_option" class="">
-        <md-text-button type="button" onclick="closeEditKeyModal()">
-            Cancel
-        </md-text-button>
-        <div class="flex-1"></div>
         <md-text-button
             form="edit_key"
             type="button"
@@ -184,6 +191,10 @@
             id="delete_key"
         >
             Delete
+        </md-text-button>
+        <div class="flex-1"></div>
+        <md-text-button type="button" onclick="closeEditKeyModal()">
+            Close
         </md-text-button>
         <md-text-button type="button" onclick="enableEditing()">
             Edit
@@ -209,14 +220,25 @@
         >
             Cancel
         </md-text-button>
-        <md-text-button form="edit_key" type="submit"> Save </md-text-button>
+        <md-filled-button
+            form="edit_key"
+            id="save_btn"
+            name="save_btn"
+            type="submit"
+            class="relative overflow-hidden"
+        >
+            Save
+            <div class="button-progress-indicator hidden!">
+                <md-circular-progress indeterminate></md-circular-progress>
+            </div>
+        </md-filled-button>
     </div>
 </md-dialog>
 
 <!-- Confirm delete dialog -->
 <md-dialog id="confirm-delete">
     <div slot="headline">Dialog headline</div>
-    <md-icon slot="icon">delete_outline</md-icon>
+    <md-icon slot="icon">delete_forever</md-icon>
     <form id="form" slot="content" method="dialog">Dialog content.</form>
     <div slot="actions">
         <md-text-button form="form" value="delete">Delete</md-text-button>
@@ -239,7 +261,7 @@
 <script>
     // Define variable
     // API
-    const createNewKeyApi = "/api/user/create/key";
+    const createNewKeyApi = "/api/user/key/create";
 
     // New key modal
     const newKeyModal = document.getElementById("new-key-modal");
@@ -258,9 +280,12 @@
     const confirmDeleteDialog = document.getElementById("confirm-delete");
 
     // Etc
-    const keyList = document.getElementById("key_list");
+    const keyList = document.getElementById("data_list");
 
-    // Functions
+    /*
+     ** For the process of adding key
+     */
+
     // Show/Close new key modal
     async function openNewKeyModal() {
         await newKeyModal.show();
@@ -268,11 +293,24 @@
 
     async function closeNewKeyModal() {
         await newKeyModal.close();
-        newKeyModal.reset();
+        newKeyForm.reset();
+        newKeyForm.add_btn.disabled = true;
     }
+
+    // Generate key
+    newKeyForm.generate_key.addEventListener("click", async () => {
+        const result = await generateKey("#the_key");
+        if (result) {
+            newKeyForm.add_btn.disabled = false;
+        }
+    });
 
     // Add new key
     async function createNewKey(theForm) {
+        const progressIndicator = newKeyModal.querySelector(
+            ".button-progress-indicator",
+        );
+
         try {
             let formData = new FormData(theForm);
             formData = Object.fromEntries(formData.entries());
@@ -280,12 +318,18 @@
             // Send request
             const result = await sendRequest(createNewKeyApi, formData, "POST");
 
-            // Reinit the keys
-            loadKeys();
+            if (result.code === 200) {
+                // Reinit the keys
+                loadKeys();
 
-            showToast(result.message);
-            newKeyModal.close();
+                progressIndicator.classList.add("hidden!");
+                newKeyForm.add_btn.disabled = true;
+
+                showToast(result.message);
+                newKeyModal.close();
+            }
         } catch (error) {
+            progressIndicator.classList.add("hidden!");
             showAlert("Failed to add", error);
             console.error(error);
         }
@@ -293,61 +337,96 @@
 
     newKeyForm.addEventListener("submit", (event) => {
         event.preventDefault();
-        createNewKey(newKeyForm);
+
+        const progressIndicator = newKeyModal.querySelector(
+            ".button-progress-indicator",
+        );
+        if (progressIndicator.classList.contains("hidden!")) {
+            progressIndicator.classList.remove("hidden!");
+
+            createNewKey(newKeyForm);
+        }
     });
 
+    /*
+     ** For part of the key editing process
+     */
+
     // Show/Close edit key modal
-    async function openEditKeyModal() {
+    async function openEditKeyModal(uri) {
+        // Set keyId with API url
+        editKeyForm.dataset.keyId = uri;
+
         await editKeyModal.show();
     }
 
     async function closeEditKeyModal() {
+        // Reset keyId
+        editKeyForm.dataset.keyId = "";
+
         await editKeyModal.close();
         editKeyForm.reset();
+        editKeyForm.save_btn.disabled = true;
     }
 
-    // Get key info
-    async function getKeyInfo(uri) {
-        try {
-            // Send request
-            const result = await sendRequest(uri, {}, "GET");
-            const data = result.data;
+    // Generate key
+    editKeyForm.generate_key.addEventListener("click", async () => {
+        const result = await generateKey("#edit_the_key");
+        if (result) {
+            editKeyForm.save_btn.disabled = false;
+        }
+    });
 
-            // Set the form values
-            editKeyForm.edit_key_name.value = data.key_name;
-            editKeyForm.edit_key.value = data.encryption_key;
-        } catch (error) {
-            showAlert("An error occured", error);
-            console.error(error);
+    // Get key info
+    async function getKeyInfo() {
+        // Get key id api
+        const keyId = editKeyForm.dataset.keyId;
+
+        if (keyId && keyId.trim() !== "") {
+            try {
+                // Send request
+                const result = await sendRequest(keyId, {}, "GET");
+                const data = result.data;
+
+                // Set the form values
+                editKeyForm.edit_key_name.value = data.key_name;
+                editKeyForm.edit_the_key.value = data.encryption_key;
+
+                editKeyForm.save_btn.disabled = true;
+            } catch (error) {
+                showAlert("An error occured", error);
+                console.error(error);
+            }
+        } else {
+            console.warn("Warning: 'data-key-id' is empty!");
         }
     }
 
     // Open existing account
     async function openExistingKey(uri) {
         // Set the action button
-        editKeyForm.reset_info.setAttribute("onclick", `getKeyInfo("${uri}")`);
-        editKeyForm.cancle_editing.setAttribute(
-            "onclick",
-            `disableEditing("${uri}")`,
-        );
-        editKeyForm.delete_key.setAttribute("onclick", `deleteKey("${uri}")`);
-
-        getKeyInfo(uri);
+        editKeyForm.reset_info.onclick = getKeyInfo;
+        editKeyForm.cancle_editing.onclick = disableEditing;
+        editKeyForm.delete_key.onclick = deleteKey;
 
         // Show the modal
-        openEditKeyModal();
+        openEditKeyModal(uri);
+        getKeyInfo();
     }
 
     // Set to readonly
     function setToReadonly() {
         editKeyForm.edit_key_name.setAttribute("readonly", "");
-        editKeyForm.edit_key.setAttribute("readonly", "");
+        editKeyForm.edit_the_key.setAttribute("readonly", "");
+        editKeyForm.generate_key.disabled = true;
+        editKeyForm.save_btn.disabled = true;
     }
 
     // Set to writeable
     function setToWriteable() {
         editKeyForm.edit_key_name.removeAttribute("readonly");
-        editKeyForm.edit_key.removeAttribute("readonly");
+        editKeyForm.edit_the_key.removeAttribute("readonly");
+        editKeyForm.generate_key.disabled = false;
     }
 
     // Enable editing
@@ -360,9 +439,9 @@
     }
 
     // Disable editing
-    function disableEditing(uri) {
+    function disableEditing() {
         // Reset the info
-        getKeyInfo(uri);
+        getKeyInfo();
 
         editModalHeadline.textContent = "Key info";
         setToReadonly();
@@ -380,31 +459,96 @@
         editModalAction.classList.add("hidden");
     });
 
-    // Delete
-    async function deleteKey(uri) {
-        // Wait for the response
-        const choise = await confirmDialog(
-            "confirm-delete",
-            "Delete Key?",
-            "This will delete the password associated with this key.",
+    // Save key changes
+    async function editKey(theForm) {
+        // Get password id api
+        const keyId = editKeyForm.dataset.keyId;
+
+        const progressIndicator = editKeyModal.querySelector(
+            ".button-progress-indicator",
         );
 
-        if (choise === "delete") {
+        if (keyId && keyId.trim() !== "") {
             try {
+                let formData = new FormData(theForm);
+                formData = Object.fromEntries(formData.entries());
+
                 // Send request
-                const result = await sendRequest(`${uri}/delete`, {}, "DELETE");
+                const result = await sendRequest(
+                    `${keyId}/edit`,
+                    formData,
+                    "PUT",
+                );
 
                 if (result.code === 200) {
-                    closeEditKeyModal();
-                    showToast(result.message);
-
                     // Reinit keys
                     loadKeys();
+
+                    progressIndicator.classList.add("hidden!");
+                    editKeyForm.save_btn.disabled = true;
+
+                    showToast(result.message);
+                    disableEditing();
                 }
             } catch (error) {
-                showAlert("Failed to delete", error);
+                progressIndicator.classList.add("hidden!");
+
+                showAlert("Failed to add", error);
                 console.error(error);
             }
+        } else {
+            console.warn("Warning: 'data-key-id' is empty!");
+        }
+    }
+
+    editKeyForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const progressIndicator = editKeyModal.querySelector(
+            ".button-progress-indicator",
+        );
+
+        if (progressIndicator.classList.contains("hidden!")) {
+            progressIndicator.classList.remove("hidden!");
+            editKey(editKeyForm);
+        }
+    });
+
+    // Delete key
+    async function deleteKey() {
+        // Get key id api
+        const keyId = editKeyForm.dataset.keyId;
+
+        if (keyId && keyId.trim() !== "") {
+            // Wait for the response
+            const choise = await confirmDialog(
+                "confirm-delete",
+                "Delete Key?",
+                "This will delete the password associated with this key.",
+            );
+
+            if (choise === "delete") {
+                try {
+                    // Send request
+                    const result = await sendRequest(
+                        `${keyId}/delete`,
+                        {},
+                        "DELETE",
+                    );
+
+                    if (result.code === 200) {
+                        closeEditKeyModal();
+                        showToast(result.message);
+
+                        // Reinit keys
+                        loadKeys();
+                    }
+                } catch (error) {
+                    showAlert("Failed to delete", error);
+                    console.error(error);
+                }
+            }
+        } else {
+            console.warn("Warning: 'data-key-id' is empty!");
         }
     }
 
@@ -468,5 +612,22 @@
 
     // Load all key
     loadKeys();
+
+    // for enable/disable submit btn
+    document.addEventListener("DOMContentLoaded", () => {
+        // For add account/password
+        const newKeyFields = newKeyModal.querySelectorAll(
+            "md-filled-text-field",
+        );
+        const newKeyBtn = newKeyForm.add_btn;
+        requireAllFields(newKeyFields, newKeyBtn);
+
+        // For edit account/password
+        const editKeyFields = editKeyModal.querySelectorAll(
+            "md-filled-text-field",
+        );
+        const editKeyBtn = editKeyForm.save_btn;
+        requireAllFields(editKeyFields, editKeyBtn);
+    });
 </script>
 {% endblock %}

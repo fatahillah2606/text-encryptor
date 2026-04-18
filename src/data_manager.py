@@ -37,9 +37,9 @@ class UserManager:
         except sqlite3.Error as err:
             return f"Database error: {str(err)}"
 
-    # Get user
-    def getUser(self, username):
-        query = "SELECT name, username FROM users WHERE username = ?"
+    # Check user availablity
+    def checkUsername(self, username):
+        query = "SELECT username FROM users WHERE username = ?"
 
         try:
             with sqlite3.connect(self.db_path) as conn:
@@ -49,15 +49,11 @@ class UserManager:
                 cursor.execute(query, (username,))
 
                 data = cursor.fetchone()
-                result = {}
 
                 if data:
-                    result = {"name": data["name"], "username": data["username"]}
-
-                    return "success", result
-
+                    return "failed", "Username already in use!"
                 else:
-                    return "failed", "User not found!"
+                    return "success", "Username available!"
 
         except sqlite3.Error as err:
             return "error", f"Database error: {str(err)}"
@@ -111,6 +107,121 @@ class UserManager:
                 # If username not found
                 else:
                     return "fail", "Username not found!"
+
+        except sqlite3.Error as err:
+            return "error", f"Database error: {str(err)}"
+
+    # Update profile
+    def updateProfile(self, user_id, updates):
+        try:
+            if not updates:
+                return "failed", "No data provided."
+
+            # Make a dynamic query
+            set_clause = ", ".join([f"{column} = ?" for column in updates.keys()])
+            values = list(updates.values())
+            values.append(user_id)
+            query = f"UPDATE users SET {set_clause} WHERE user_id = ?"
+
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute("PRAGMA foreign_keys = ON;")
+                cursor.execute(query, values)
+
+                conn.commit()
+
+            return "success", "Profile successfully updated."
+
+        except sqlite3.Error as err:
+            return "error", f"Database error: {str(err)}"
+
+    # update password
+    def updateProfilePassword(self, new_password, userId, currentPassword):
+        try:
+            # Get all keys made by user
+            keyList = []
+
+            with sqlite3.connect(self.db_path) as conn:
+                query = "SELECT * FROM keys WHERE user_id = ?"
+
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                cursor.execute("PRAGMA foreign_keys = ON;")
+
+                cursor.execute(query, (userId,))
+                rows = cursor.fetchall()
+
+                if rows:
+                    for row in rows:
+                        keyFromDb = binascii.hexlify(
+                            row["iv"] + row["encrypted_key"]
+                        ).decode()
+                        keyFromDb = binascii.unhexlify(keyFromDb)
+
+                        # get valid key
+                        validKey = get_valid_key(currentPassword)
+
+                        # Decrypt the key
+                        decryptedKey = decrypt_aes(keyFromDb, validKey["encoded_key"])
+
+                        keyList.append({"key_id": row["key_id"], "key": decryptedKey})
+
+            # Proceed to change the password
+            with sqlite3.connect(self.db_path) as conn:
+                query = "UPDATE users SET password_hash = ? WHERE user_id = ?"
+
+                hashedPw = bcryptHashing(new_password)
+
+                # Save to database
+                cursor = conn.cursor()
+                cursor.execute("PRAGMA foreign_keys = ON;")
+                cursor.execute(query, (hashedPw, userId))
+                conn.commit()
+
+            # Re-encrypt the keys
+            if keyList:
+                for eachKey in keyList:
+                    with sqlite3.connect(self.db_path) as conn:
+                        query = "UPDATE keys SET encrypted_key = ?, iv = ? WHERE key_id = ? AND user_id = ?"
+
+                        master_key = get_valid_key(new_password)
+                        iv, encrypted_key = encrypt_aes(
+                            eachKey["key"], master_key["encoded_key"]
+                        )
+
+                        cursor = conn.cursor()
+                        cursor.execute("PRAGMA foreign_keys = ON;")
+                        cursor.execute(
+                            query, (encrypted_key, iv, eachKey["key_id"], userId)
+                        )
+
+                        conn.commit()
+
+            return "success", "Password changed successfully"
+
+        except sqlite3.Error as err:
+            return "error", f"Database error: {str(err)}"
+
+    # Delete profile
+    def deleteProfile(self, user_id):
+        try:
+            query = "DELETE FROM users WHERE user_id = ?"
+
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute("PRAGMA foreign_keys = ON;")
+
+                cursor.execute(query, (user_id,))
+
+                # It's already deleted?
+                if cursor.rowcount == 0:
+                    return (
+                        "success",
+                        "The profile is not available or may have been deleted previously.",
+                    )
+
+                conn.commit()
+                return "success", "Profile successfully deleted."
 
         except sqlite3.Error as err:
             return "error", f"Database error: {str(err)}"
@@ -232,6 +343,98 @@ class KeyManager:
         except sqlite3.Error as err:
             return "error", f"Database error: {str(err)}"
 
+    # Edit key
+    def edit_user_key(self, key_id, keyName, theKey, user_id, session_key):
+        try:
+            # Get the current key first
+            currentKey = self.get_user_key(key_id, user_id, session_key)
+
+            # Get all user passwords releted to the key
+            passwordList = []
+
+            with sqlite3.connect(self.db_path) as conn:
+                query = "SELECT * FROM passwords WHERE key_id = ? AND user_id = ?"
+
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                cursor.execute("PRAGMA foreign_keys = ON;")
+
+                cursor.execute(query, (key_id, user_id))
+                rows = cursor.fetchall()
+
+                if rows:
+                    for row in rows:
+                        # Combine iv + encrypted_key and unhexlify
+                        password_from_db = binascii.hexlify(
+                            row["iv"] + row["encrypted_password"]
+                        ).decode()
+                        password_from_db = binascii.unhexlify(password_from_db)
+
+                        # Make it valid
+                        valid_key = get_valid_key(currentKey["encryption_key"])
+
+                        # Decrypt password
+                        decrypted_password = decrypt_aes(
+                            password_from_db, valid_key["encoded_key"]
+                        )
+
+                        passwordList.append(
+                            {
+                                "password_id": row["password_id"],
+                                "password": decrypted_password,
+                            }
+                        )
+
+            # Now change the key
+            newKey = ""
+
+            with sqlite3.connect(self.db_path) as conn:
+                query = "UPDATE keys SET key_name = ?, encrypted_key = ?, iv = ? WHERE key_id = ?"
+
+                master_key = get_valid_key(session_key)
+                iv, encrypted_key = encrypt_aes(theKey, master_key["encoded_key"])
+
+                # Save to newKey
+                newKey = binascii.hexlify(iv + encrypted_key).decode()
+                newKey = binascii.unhexlify(newKey)
+
+                # Save new key to database
+                cursor = conn.cursor()
+                cursor.execute("PRAGMA foreign_keys = ON;")
+                cursor.execute(query, (keyName, encrypted_key, iv, key_id))
+
+                conn.commit()
+
+            # Re-encrypt related password
+            if passwordList:
+                for eachPassword in passwordList:
+                    with sqlite3.connect(self.db_path) as conn:
+                        query = "UPDATE passwords SET encrypted_password = ?, iv = ? WHERE password_id = ?"
+
+                        # Decrypt the key first
+                        master_key = get_valid_key(session_key)
+                        decrypted_key = decrypt_aes(newKey, master_key["encoded_key"])
+
+                        # Encrypt the password
+                        validate_key = get_valid_key(decrypted_key)
+                        iv, encrypted_password = encrypt_aes(
+                            eachPassword["password"], validate_key["encoded_key"]
+                        )
+
+                        # Insert the re-encrypted password
+                        cursor = conn.cursor()
+                        cursor.execute("PRAGMA foreign_keys = ON;")
+                        cursor.execute(
+                            query, (encrypted_password, iv, eachPassword["password_id"])
+                        )
+
+                        conn.commit()
+
+            return "success", f"Successfully edited key: {keyName}"
+
+        except sqlite3.Error as err:
+            return "error", f"Database error: {str(err)}"
+
     # Delete key
     def delete_user_key(self, key_id):
         query = "DELETE FROM keys WHERE key_id = ?"
@@ -341,7 +544,7 @@ class PasswordManager:
                     )
                     valid_key = get_valid_key(passwordKey["encryption_key"])
 
-                    # Decrypt key
+                    # Decrypt password
                     decrypted_password = decrypt_aes(
                         password_from_db, valid_key["encoded_key"]
                     )
@@ -393,6 +596,50 @@ class PasswordManager:
                 conn.commit()
 
                 return "success", f"Successfully added password: {serviceName}"
+
+        except sqlite3.Error as err:
+            return "error", f"Database error: {str(err)}"
+
+    # Edit password
+    def edit_user_password(
+        self,
+        serviceName,
+        username,
+        password,
+        selectedKeyId,
+        user_id,
+        session_key,
+        password_id,
+    ):
+        query = "UPDATE passwords SET key_id = ?, service_name = ?, username_account = ?, encrypted_password = ?, iv = ? WHERE password_id = ?"
+
+        try:
+            # Encrypt the password with selected key
+            selected_key = self.keys.get_user_key(selectedKeyId, user_id, session_key)
+            valid_selected_key = get_valid_key(selected_key["encryption_key"])
+            iv, encrypted_password = encrypt_aes(
+                password, valid_selected_key["encoded_key"]
+            )
+
+            # Insert into db
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute("PRAGMA foreign_keys = ON;")
+                cursor.execute(
+                    query,
+                    (
+                        selectedKeyId,
+                        serviceName,
+                        username,
+                        encrypted_password,
+                        iv,
+                        password_id,
+                    ),
+                )
+
+                conn.commit()
+
+                return "success", f"Successfully edited password: {serviceName}"
 
         except sqlite3.Error as err:
             return "error", f"Database error: {str(err)}"

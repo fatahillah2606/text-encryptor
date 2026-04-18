@@ -1,25 +1,3 @@
-// Account info
-const accountInfoElm = document.getElementById("account-info");
-
-function toggleAccountInfo() {
-    if (accountInfoElm.classList.contains("hidden")) {
-        accountInfoElm.classList.remove("hidden");
-    } else {
-        accountInfoElm.classList.add("hidden");
-    }
-}
-
-// App menu
-const appMenuElm = document.getElementById("app-menu");
-
-function toggleAppMenu() {
-    if (appMenuElm.classList.contains("hidden")) {
-        appMenuElm.classList.remove("hidden");
-    } else {
-        appMenuElm.classList.add("hidden");
-    }
-}
-
 // Move page
 function movePage(uri) {
     location.href = uri;
@@ -30,8 +8,16 @@ let autoDismis;
 function showToast(message) {
     clearTimeout(autoDismis);
     const toast = document.querySelector("#toast-default");
+    const fab = document.querySelector("md-fab");
 
     if (toast) {
+        // Check if a FAB exists and is visible
+        if (fab) {
+            toast.classList.add("bottom-24");
+        } else {
+            toast.classList.remove("bottom-24");
+        }
+
         const toastMessage = toast.querySelector("#toast-message");
 
         toastMessage.textContent = message;
@@ -40,6 +26,16 @@ function showToast(message) {
         autoDismis = setTimeout(() => {
             dismisToast();
         }, 5000);
+    } else {
+        console.error("Toast element not found in this page!");
+    }
+}
+
+function dismisToast() {
+    const toast = document.querySelector("#toast-default");
+
+    if (toast) {
+        toast.classList.add("hidden");
     } else {
         console.error("Toast element not found in this page!");
     }
@@ -56,16 +52,6 @@ async function showAlert(headline, content) {
         await dialog.show();
     } else {
         console.error("Alert dialog not found in this page!");
-    }
-}
-
-function dismisToast() {
-    const toast = document.querySelector("#toast-default");
-
-    if (toast) {
-        toast.classList.add("hidden");
-    } else {
-        console.error("Toast element not found in this page!");
     }
 }
 
@@ -129,18 +115,6 @@ function copyTextIconBtn(field, copyIconBtn, event) {
 }
 
 // Show password
-function showPassword(elmClicked, elmPassword) {
-    const passwordField = document.getElementById(elmPassword);
-
-    if (passwordField.type == "password") {
-        passwordField.type = "text";
-        elmClicked.textContent = "visibility_off";
-    } else {
-        passwordField.type = "password";
-        elmClicked.textContent = "visibility";
-    }
-}
-
 function showPasswordCheckBox(elmCheckBox, elmPasswords) {
     // Get all password elm
     const passwordField = elmPasswords.map((id) => document.getElementById(id));
@@ -227,6 +201,8 @@ async function generateKey(elmId) {
         const result = await sendRequest(key_api_uri, data, "POST");
 
         elm.value = result.data.key;
+
+        return true;
     } catch (error) {
         showAlert("An error occured", error);
         console.error(error);
@@ -260,5 +236,71 @@ async function confirmDialog(dialogId, headline, content) {
         dialog.addEventListener("closed", () => resolve(dialog.returnValue), {
             once: true,
         });
+    });
+}
+
+// Search
+const searchBar = document.getElementById("search-bar");
+
+if (searchBar) {
+    const searchField = searchBar.querySelector("input");
+
+    searchField.addEventListener("keyup", () => {
+        const searchValue = searchField.value.toLowerCase();
+
+        const dataRow = document.querySelectorAll("#data_list > div");
+
+        dataRow.forEach((data) => {
+            let match = false;
+
+            const h2Title = data.querySelectorAll("h2");
+            const pBody = data.querySelectorAll("p");
+
+            // For h2 elm
+            if (h2Title.length !== 0) {
+                h2Title.forEach((element) => {
+                    if (
+                        element.textContent.toLowerCase().includes(searchValue)
+                    ) {
+                        match = true;
+                    }
+                });
+            }
+
+            // For p elm
+            if (pBody.length !== 0) {
+                pBody.forEach((element) => {
+                    if (
+                        element.textContent.toLowerCase().includes(searchValue)
+                    ) {
+                        match = true;
+                    }
+                });
+            }
+
+            // If match
+            if (match) {
+                data.classList.remove("hidden");
+            } else {
+                data.classList.add("hidden");
+            }
+        });
+    });
+}
+
+// Enable submit button only if all field is not empty
+function requireAllFields(fields, submitBtn) {
+    submitBtn.disabled = true;
+
+    const validate = () => {
+        fields.forEach((field) => {
+            field.value.trim() !== ""
+                ? (submitBtn.disabled = false)
+                : (submitBtn.disabled = true);
+        });
+    };
+
+    fields.forEach((field) => {
+        field.addEventListener("input", validate);
     });
 }
