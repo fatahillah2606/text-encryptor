@@ -116,40 +116,104 @@
                                 <p
                                     class="md-typescale-body-medium text-md-secondary m-0"
                                 >
-                                    The password remains accessible in the
-                                    current session to function as a master
-                                    encryption key for stored user data.
+                                    Acts as your master encryption key for this
+                                    session.
                                 </p>
                             </div>
                             <md-ripple></md-ripple>
                         </div>
                     </div>
 
-                    <div
-                        class="rounded-2xl overflow-hidden flex flex-col gap-1"
-                    >
-                        <div
-                            class="relative py-2.5 px-5 bg-md-surface-container rounded-md flex items-center gap-5 cursor-pointer"
-                            onclick="deleteAccount()"
+                    <!-- Data Management -->
+                    <div>
+                        <h2
+                            class="md-typescale-body-large text-md-on-surface font-bold! mt-0"
                         >
-                            <md-icon class="text-md-on-surface"
-                                >delete_forever</md-icon
+                            Data Management
+                        </h2>
+                        <div
+                            class="rounded-2xl overflow-hidden flex flex-col gap-1"
+                        >
+                            <div
+                                class="relative py-2.5 px-5 bg-md-surface-container rounded-md flex items-center gap-5 cursor-pointer"
                             >
-                            <div>
-                                <h2
-                                    class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
+                                <md-icon class="text-md-on-surface"
+                                    >download</md-icon
                                 >
-                                    Delete your account
-                                </h2>
-                                <p
-                                    class="md-typescale-body-medium text-md-secondary m-0"
-                                >
-                                    If you delete your account, all keys and
-                                    passwords you stored will be deleted. Please
-                                    proceed with caution.
-                                </p>
+                                <div>
+                                    <h2
+                                        class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
+                                    >
+                                        Import
+                                    </h2>
+                                    <p
+                                        class="md-typescale-body-medium text-md-secondary m-0"
+                                        id="your-name"
+                                    >
+                                        Restore your encrypted database or
+                                        settings from a local backup file.
+                                    </p>
+                                </div>
+                                <md-ripple></md-ripple>
                             </div>
-                            <md-ripple></md-ripple>
+
+                            <div
+                                class="relative py-2.5 px-5 bg-md-surface-container rounded-md flex items-center gap-5 cursor-pointer"
+                            >
+                                <md-icon class="text-md-on-surface"
+                                    >upload</md-icon
+                                >
+                                <div>
+                                    <h2
+                                        class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
+                                    >
+                                        Export
+                                    </h2>
+                                    <p
+                                        class="md-typescale-body-medium text-md-secondary m-0"
+                                        id="username"
+                                    >
+                                        Create an encrypted backup of your
+                                        accounts and keys to save externally.
+                                    </p>
+                                </div>
+                                <md-ripple></md-ripple>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Account Termination -->
+                    <div>
+                        <h2
+                            class="md-typescale-body-large text-md-on-surface font-bold! mt-0"
+                        >
+                            Account Termination
+                        </h2>
+                        <div
+                            class="rounded-2xl overflow-hidden flex flex-col gap-1"
+                        >
+                            <div
+                                class="relative py-2.5 px-5 bg-md-surface-container rounded-md flex items-center gap-5 cursor-pointer"
+                                onclick="deleteAccount()"
+                            >
+                                <md-icon class="text-md-on-surface"
+                                    >delete_forever</md-icon
+                                >
+                                <div>
+                                    <h2
+                                        class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
+                                    >
+                                        Delete your account
+                                    </h2>
+                                    <p
+                                        class="md-typescale-body-medium text-md-secondary m-0"
+                                    >
+                                        Permanently wipe all local data and
+                                        master keys. This cannot be undone.
+                                    </p>
+                                </div>
+                                <md-ripple></md-ripple>
+                            </div>
                         </div>
                     </div>
                 </div>

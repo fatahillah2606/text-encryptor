@@ -12,8 +12,8 @@ from src.init_db import create_database
 
 load_dotenv()
 
-SESSION_KEY = secrets.token_hex()
-# SESSION_KEY = os.getenv("SESSION_KEY")  # for development, to prevent logged out when restarting
+# SESSION_KEY = secrets.token_hex()
+SESSION_KEY = os.getenv("SESSION_KEY")  # for development, to prevent logged out when restarting
 
 # Check db
 db_path = os.path.join("db", "vault_manager.db")
@@ -50,7 +50,7 @@ def check_session():
             session.clear()
             redirect(url_for("pages.login"))
 
-        session["expired"] = (current_time + timedelta(hours=1)).isoformat()
+        session["expired"] = (current_time + timedelta(minutes=5)).isoformat()
 
 
 @app.route("/")
@@ -60,4 +60,4 @@ def home():
 
 if __name__ == "__main__":
     check_and_setup_db()
-    app.run(host="0.0.0.0", debug=True)
+    app.run(debug=True)

@@ -152,6 +152,9 @@
   .ms-3 {
     margin-inline-start: calc(var(--spacing) * 3);
   }
+  .mt-0 {
+    margin-top: calc(var(--spacing) * 0);
+  }
   .mt-2\.5 {
     margin-top: calc(var(--spacing) * 2.5);
   }
