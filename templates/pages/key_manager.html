@@ -326,12 +326,11 @@
                 newKeyForm.add_btn.disabled = true;
 
                 showToast(result.message);
-                newKeyModal.close();
+                closeNewKeyModal();
             }
         } catch (error) {
             progressIndicator.classList.add("hidden!");
-            showAlert("Failed to add", error);
-            console.error(error);
+            showAlert("Failed to add key", error.message);
         }
     }
 
@@ -394,8 +393,7 @@
 
                 editKeyForm.save_btn.disabled = true;
             } catch (error) {
-                showAlert("An error occured", error);
-                console.error(error);
+                showAlert("Failed to retrieve key information", error.message);
             }
         } else {
             console.warn("Warning: 'data-key-id' is empty!");
@@ -493,8 +491,7 @@
             } catch (error) {
                 progressIndicator.classList.add("hidden!");
 
-                showAlert("Failed to add", error);
-                console.error(error);
+                showAlert("Unable to edit key", error.message);
             }
         } else {
             console.warn("Warning: 'data-key-id' is empty!");
@@ -543,8 +540,7 @@
                         loadKeys();
                     }
                 } catch (error) {
-                    showAlert("Failed to delete", error);
-                    console.error(error);
+                    showAlert("Unable to delete key", error.message);
                 }
             }
         } else {
@@ -605,8 +601,7 @@
                 `;
             }
         } catch (error) {
-            showAlert("An error occured", error);
-            console.error(error);
+            showAlert("Unable to load key list", error.message);
         }
     }
 

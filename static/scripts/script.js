@@ -79,7 +79,6 @@ function copyText(field, copyBtn) {
         })
         .catch((err) => {
             showAlert("Clipboard write failed.", err);
-            console.error("Clipboard write failed.", err);
         });
 }
 
@@ -110,7 +109,6 @@ function copyTextIconBtn(field, copyIconBtn, event) {
         })
         .catch((err) => {
             showAlert("Clipboard write failed.", err);
-            console.error("Clipboard write failed.", err);
         });
 }
 
@@ -187,8 +185,7 @@ async function setEncryptionKey(theKey) {
 
         saveKeyToSession(keyData);
     } catch (error) {
-        showAlert("An error occured", error);
-        console.error(error);
+        showAlert("Failed to set encryption key", error.message);
     }
 }
 
@@ -204,8 +201,7 @@ async function generateKey(elmId) {
 
         return true;
     } catch (error) {
-        showAlert("An error occured", error);
-        console.error(error);
+        showAlert("Failed to generate encryption key", error.message);
     }
 }
 
@@ -303,4 +299,36 @@ function requireAllFields(fields, submitBtn) {
     fields.forEach((field) => {
         field.addEventListener("input", validate);
     });
+}
+
+// Timestamp
+function timeStamp() {
+    const now = new Date();
+
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+
+    const hours = String(now.getHours()).padStart(2, "0");
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+    const seconds = String(now.getSeconds()).padStart(2, "0");
+
+    const timestamp = `${year}-${month}-${day} ${hours}-${minutes}-${seconds}`;
+    return timestamp;
+}
+
+// Tempoary object url
+function tempoaryUrl(blob, nameFile, fileType) {
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    const fileName = `${nameFile} ${timeStamp()}.${fileType}`;
+
+    link.setAttribute("href", url);
+    link.setAttribute("download", fileName);
+    link.style.visibility = "hidden";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 }

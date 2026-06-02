@@ -12,16 +12,16 @@
     <!-- For logged-in only user -->
     {% if 'username' in session %}
     <!-- Account manager -->
-    {{ sidebar_item('Account Manager', 'account_circle',
+    {{ sidebar_item('Account', 'account_circle',
     url_for('pages.account_manager'), active_page, 'account_manager') }}
 
     <!-- Key Manager -->
-    {{ sidebar_item('Key Manager', 'key', url_for('pages.key_manager'),
-    active_page, 'key_manager') }}
+    {{ sidebar_item('Keys', 'key', url_for('pages.key_manager'), active_page,
+    'key_manager') }}
 
     <!-- Password Manager -->
-    {{ sidebar_item('Password Manager', 'password',
-    url_for('pages.password_manager'), active_page, 'password_manager') }}
+    {{ sidebar_item('Passwords', 'password', url_for('pages.password_manager'),
+    active_page, 'password_manager') }}
     <md-divider class="mb-2.5 md:hidden"></md-divider>
     <!-- End if -->
     {% endif %}

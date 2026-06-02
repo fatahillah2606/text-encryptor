@@ -138,8 +138,7 @@
 
                 showToast(result.message);
             } catch (error) {
-                showAlert("Encryption failed", error);
-                console.error(error);
+                showAlert("Unable to encrypt", error.message);
             }
         } else {
             // Trigger encryption key modal

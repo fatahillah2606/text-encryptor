@@ -12,23 +12,12 @@ function sendRequest(apiURI, data = null, methodType = "GET") {
     }
 
     // Send request
-    return new Promise((resolve, reject) => {
-        fetch(apiURI, requestInit)
-            .then(async (response) => {
-                const data = await response.json();
+    return fetch(apiURI, requestInit).then(async (response) => {
+        const data = await response.json();
 
-                if (!response.ok) {
-                    throw new Error(
-                        data.message || `Failed to fetch API: ${apiURI}`,
-                    );
-                }
-                return data;
-            })
-            .then((data) => {
-                resolve(data);
-            })
-            .catch((error) => {
-                reject(error);
-            });
+        if (!response.ok) {
+            return Promise.reject(data);
+        }
+        return data;
     });
 }

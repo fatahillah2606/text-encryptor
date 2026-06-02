@@ -46,9 +46,9 @@
                                 )
                             "
                         >
-                            <md-icon class="text-md-on-surface"
-                                >assignment_ind</md-icon
-                            >
+                            <md-icon class="text-md-on-surface">
+                                assignment_ind
+                            </md-icon>
                             <div>
                                 <h2
                                     class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
@@ -104,9 +104,9 @@
                                 )
                             "
                         >
-                            <md-icon class="text-md-on-surface"
-                                >password</md-icon
-                            >
+                            <md-icon class="text-md-on-surface">
+                                password
+                            </md-icon>
                             <div>
                                 <h2
                                     class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
@@ -136,10 +136,11 @@
                         >
                             <div
                                 class="relative py-2.5 px-5 bg-md-surface-container rounded-md flex items-center gap-5 cursor-pointer"
+                                onclick="openImportMenu()"
                             >
-                                <md-icon class="text-md-on-surface"
-                                    >download</md-icon
-                                >
+                                <md-icon class="text-md-on-surface">
+                                    download
+                                </md-icon>
                                 <div>
                                     <h2
                                         class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
@@ -159,10 +160,11 @@
 
                             <div
                                 class="relative py-2.5 px-5 bg-md-surface-container rounded-md flex items-center gap-5 cursor-pointer"
+                                onclick="openExportMenu()"
                             >
-                                <md-icon class="text-md-on-surface"
-                                    >upload</md-icon
-                                >
+                                <md-icon class="text-md-on-surface">
+                                    upload
+                                </md-icon>
                                 <div>
                                     <h2
                                         class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
@@ -196,9 +198,9 @@
                                 class="relative py-2.5 px-5 bg-md-surface-container rounded-md flex items-center gap-5 cursor-pointer"
                                 onclick="deleteAccount()"
                             >
-                                <md-icon class="text-md-on-surface"
-                                    >delete_forever</md-icon
-                                >
+                                <md-icon class="text-md-on-surface">
+                                    delete_forever
+                                </md-icon>
                                 <div>
                                     <h2
                                         class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
@@ -261,8 +263,9 @@
                 <label
                     for="show_password"
                     class="md-typescale-body-medium text-md-on-surface m-0"
-                    >Show password</label
                 >
+                    Show password
+                </label>
             </div>
         </div>
     </form>
@@ -279,6 +282,355 @@
             class="relative overflow-hidden"
         >
             Save
+            <div class="button-progress-indicator hidden!">
+                <md-circular-progress indeterminate></md-circular-progress>
+            </div>
+        </md-filled-button>
+    </div>
+</md-dialog>
+
+<!-- Import dialog -->
+<md-dialog id="import-dialog">
+    <div slot="headline">
+        <div class="flex flex-col gap-1">
+            <span>Import Data</span>
+            <span class="md-typescale-body-medium">
+                Restore your database from an application backup or load
+                passwords from a browser spreadsheet.
+            </span>
+        </div>
+    </div>
+
+    <form slot="content" id="import_form" name="import_form" method="post">
+        <div class="grid grid-cols-2 gap-4">
+            <div class="upload-container col-span-2">
+                <div
+                    class="md-typescale-body-small font-semibold! uppercase! tracking-wider!"
+                >
+                    Select Target Format
+                </div>
+                <div class="drop-zone" id="drop-zone">
+                    <md-icon>upload_file</md-icon>
+                    <p>Drag and drop your file here</p>
+                    <span>or</span>
+                    <md-filled-button type="button" id="browse-btn">
+                        Choose File
+                    </md-filled-button>
+                    <input
+                        type="file"
+                        id="file_input"
+                        accept=".json,.csv"
+                        style="display: none"
+                    />
+                </div>
+
+                <div id="file-info" class="file-info" style="display: none">
+                    <div class="file-details">
+                        <md-icon>insert_drive_file</md-icon>
+                        <span id="file-name">filename.json</span>
+                    </div>
+                    <md-icon-button
+                        type="button"
+                        id="clear-file-btn"
+                        aria-label="Clear selected file"
+                    >
+                        <md-icon>close</md-icon>
+                    </md-icon-button>
+                </div>
+            </div>
+
+            <div class="col-span-2 hidden">
+                <div
+                    class="md-typescale-body-small font-semibold! uppercase! tracking-wider!"
+                >
+                    Security Verification
+                </div>
+                <md-filled-text-field
+                    class="w-full mt-3"
+                    name="file_password"
+                    id="file_password"
+                    label="Encryption Password"
+                    type="password"
+                    supporting-text="Enter the master decryption key that was used to secure this backup bundle."
+                    disabled
+                >
+                </md-filled-text-field>
+                <div
+                    class="col-span-2 flex items-center justify-start gap-4 my-2.5"
+                    onclick="showPw('import_show_password', ['file_password'])"
+                >
+                    <md-checkbox
+                        id="import_show_password"
+                        touch-target="wrapper"
+                        class="m-0"
+                    ></md-checkbox>
+                    <label
+                        for="import_show_password"
+                        class="md-typescale-body-medium text-md-on-surface m-0"
+                        >Show password</label
+                    >
+                </div>
+            </div>
+
+            <div class="col-span-2 hidden">
+                <div
+                    class="md-typescale-body-small font-semibold! uppercase! tracking-wider!"
+                >
+                    Encryption Key
+                </div>
+
+                <!-- If keys available -->
+                {% if user_keys %}
+                <md-filled-select
+                    class="w-full mt-3"
+                    label="Key to encrypt"
+                    name="select_key"
+                    id="select_key"
+                    disabled
+                >
+                    <!-- Loop the keys -->
+                    {% for key in user_keys %}
+                    <md-select-option value="{{ key['key_id'] }}">
+                        <div slot="headline">{{ key['key_name'] }}</div>
+                    </md-select-option>
+                    {% endfor %}
+                </md-filled-select>
+
+                <!-- If no keys available -->
+                {% else %}
+                <md-filled-select
+                    class="w-full mt-3"
+                    label="Key to encrypt"
+                    name="select_key"
+                    id="select_key"
+                    error
+                    error-text="The encryption key is not available. Please create it first in the 'keys' menu on the navigation menu."
+                    disabled
+                >
+                    <md-select-option value="" selected>
+                        <div slot="headline">Encryption key not available.</div>
+                    </md-select-option>
+                </md-filled-select>
+                {% endif %}
+            </div>
+
+            <!-- Live Status Manifest Banner -->
+            <div
+                id="import-manifest-banner"
+                class="p-4 rounded-xl bg-md-on-primary flex gap-3 items-start col-span-2"
+            >
+                <span class="material-symbols-rounded text-md-secondary mt-0.5">
+                    inventory_2
+                </span>
+                <div class="flex flex-col gap-0.5">
+                    <span
+                        class="text-xs font-semibold text-md-secondary uppercase tracking-wide"
+                        id="import-manifest-heading"
+                    >
+                        Awaiting File Selection
+                    </span>
+                    <span
+                        id="import-manifest-desc"
+                        class="text-xs text-md-secondary leading-relaxed"
+                    >
+                        Please select a valid archive. Native backups (.json)
+                        will restore both your keys and passwords, while
+                        standard spreadsheets (.csv) will append browser
+                        passwords.
+                    </span>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <div slot="actions">
+        <md-text-button
+            form="import_form"
+            value="cancel"
+            type="reset"
+            onclick="closeImportMenu()"
+        >
+            Cancel
+        </md-text-button>
+        <md-filled-button
+            form="import_form"
+            type="submit"
+            id="submit_import_btn"
+            class="relative overflow-hidden"
+            disabled
+        >
+            Import
+            <div class="button-progress-indicator hidden!">
+                <md-circular-progress indeterminate></md-circular-progress>
+            </div>
+        </md-filled-button>
+    </div>
+</md-dialog>
+
+<!-- Export dialog -->
+<md-dialog id="export-dialog">
+    <div slot="headline">
+        <div class="flex flex-col gap-1">
+            <span>Export Data</span>
+            <span class="md-typescale-body-medium">
+                Configure how your data will be packed and saved.
+            </span>
+        </div>
+    </div>
+
+    <form
+        slot="content"
+        id="export_form"
+        name="export_form"
+        method="post"
+        class="flex flex-col gap-6 pt-4"
+    >
+        <!-- Step 1: Destination / Format Selection -->
+        <div class="flex flex-col gap-2">
+            <div
+                class="md-typescale-body-small font-semibold! uppercase! tracking-wider!"
+            >
+                1. Select Target Format
+            </div>
+
+            <md-list class="rounded-xl overflow-hidden">
+                <!-- JSON Option -->
+                <md-list-item type="button" id="option-json" selected>
+                    <span slot="headline">Full Application Backup (.json)</span>
+                    <span slot="supporting-text"
+                        >Exports both Keys and Passwords. Highly secure, ideal
+                        for importing back into this Text Encryptor app.</span
+                    >
+                    <md-radio
+                        slot="start"
+                        name="export_format"
+                        value="json"
+                        checked
+                    ></md-radio>
+                </md-list-item>
+
+                <md-divider></md-divider>
+
+                <!-- CSV Option (Compatibility Mode) -->
+                <md-list-item type="button" id="option-csv">
+                    <span slot="headline"
+                        >Browser Compatibility Mode (.csv)</span
+                    >
+                    <span slot="supporting-text"
+                        >Exports passwords only. Unencrypted standard format
+                        compatible with Excel, Chrome, or external
+                        managers.</span
+                    >
+                    <md-radio
+                        slot="start"
+                        name="export_format"
+                        value="csv"
+                    ></md-radio>
+                </md-list-item>
+            </md-list>
+        </div>
+
+        <!-- Step 2: Security Configuration -->
+        <div
+            id="security-section"
+            class="flex flex-col gap-3 transition-opacity duration-200"
+        >
+            <div
+                class="md-typescale-body-small font-semibold! uppercase! tracking-wider!"
+            >
+                2. Security Settings
+            </div>
+
+            <div class="p-4 rounded-xl flex flex-col gap-4">
+                <label
+                    class="flex items-center justify-between gap-4 cursor-pointer"
+                >
+                    <div class="flex flex-col gap-0.5">
+                        <span class="font-medium!">Encrypt File Structure</span>
+                        <span class="md-typescale-body-small"
+                            >Protects your backup file with a master decryption
+                            key.</span
+                        >
+                    </div>
+                    <md-switch id="crypto-switch" icons></md-switch>
+                </label>
+
+                <!-- Password input block -->
+                <div
+                    id="password-block"
+                    class="hidden transition-all duration-200"
+                >
+                    <md-filled-text-field
+                        id="export_password"
+                        name="export_password"
+                        label="Encryption Password"
+                        type="password"
+                        supporting-text="Do not forget this key. The backup cannot be recovered without it."
+                        error-text="Password is required when encryption is enabled"
+                        class="w-full"
+                    >
+                    </md-filled-text-field>
+                    <div
+                        class="col-span-2 flex items-center justify-start gap-4 my-2.5"
+                        onclick="
+                            showPw('export_show_password', ['export_password'])
+                        "
+                    >
+                        <md-checkbox
+                            id="export_show_password"
+                            touch-target="wrapper"
+                            class="m-0"
+                        ></md-checkbox>
+                        <label
+                            for="export_show_password"
+                            class="md-typescale-body-medium text-md-on-surface m-0"
+                            >Show password</label
+                        >
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Status Manifest Banner -->
+        <div
+            id="export-manifest-banner"
+            class="p-4 rounded-xl bg-md-on-primary flex gap-3 items-start"
+        >
+            <span class="material-symbols-rounded text-md-secondary mt-0.5">
+                inventory_2
+            </span>
+            <div class="flex flex-col gap-0.5">
+                <span
+                    class="text-xs font-semibold text-md-secondary uppercase tracking-wide"
+                    >Export Manifest Preview</span
+                >
+                <span
+                    id="export-manifest-desc"
+                    class="text-xs text-md-secondary leading-relaxed"
+                >
+                    Ready to package data into an unencrypted archive folder
+                    structure.
+                </span>
+            </div>
+        </div>
+    </form>
+
+    <div slot="actions">
+        <md-text-button
+            form="export_form"
+            value="cancel"
+            type="reset"
+            onclick="closeExportMenu()"
+        >
+            Cancel
+        </md-text-button>
+        <md-filled-button
+            form="export_form"
+            type="submit"
+            id="submit_export_btn"
+            class="relative overflow-hidden"
+        >
+            Export
             <div class="button-progress-indicator hidden!">
                 <md-circular-progress indeterminate></md-circular-progress>
             </div>
@@ -416,10 +768,417 @@
             }
         } catch (error) {
             progressIndicator.classList.add("hidden!");
-            showSupportText(dialogForm.edit_account, error);
-            console.error(error);
+            showSupportText(dialogForm.edit_account, error.message);
         }
     }
+
+    // Import option
+    const browseBtn = document.getElementById("browse-btn");
+    const fileInput = document.getElementById("file_input");
+    const dropZone = document.getElementById("drop-zone");
+    const fileInfo = document.getElementById("file-info");
+    const fileNameSpan = document.getElementById("file-name");
+    const clearFileBtn = document.getElementById("clear-file-btn");
+    const importBtn = document.getElementById("submit_import_btn");
+    const importBtnIndicator = importBtn.querySelector(
+        ".button-progress-indicator",
+    );
+    const importManifestHead = document.getElementById(
+        "import-manifest-heading",
+    );
+    const importManifestDesc = document.getElementById("import-manifest-desc");
+
+    const importDialog = document.getElementById("import-dialog");
+    const importForm = document.getElementById("import_form");
+
+    // Trigger the dialog
+    async function openImportMenu() {
+        await importDialog.show();
+    }
+    async function closeImportMenu() {
+        await importDialog.close();
+
+        importForm.reset();
+        importForm.file_password.setAttribute("type", "password");
+        resetFileState();
+    }
+
+    // Field visibility
+    function showPwField() {
+        importForm.file_password.setAttribute("required", true);
+        importForm.file_password.disabled = false;
+        importForm.file_password.parentElement.classList.remove("hidden");
+    }
+    function hidePwField() {
+        importForm.file_password.removeAttribute("required");
+        importForm.file_password.disabled = true;
+        importForm.file_password.parentElement.classList.add("hidden");
+    }
+
+    function showKeySelector() {
+        importForm.select_key.setAttribute("required", true);
+        importForm.select_key.disabled = false;
+        importForm.select_key.parentElement.classList.remove("hidden");
+    }
+    function hideKeySelector() {
+        importForm.select_key.removeAttribute("required");
+        importForm.select_key.disabled = true;
+        importForm.select_key.parentElement.classList.add("hidden");
+    }
+
+    // Show file card, hide drop zone
+    function showFileState(file) {
+        if (!file) return;
+
+        // Read the file
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+            const fileContent = e.target.result.trim();
+            const extension = file.name.split(".").pop().toLowerCase();
+            let isEncrypted = false;
+
+            if (extension === "json") {
+                // Import manifest status
+                importManifestHead.textContent = "Valid Native Backup Detected";
+                importManifestDesc.textContent =
+                    "Ready to parse application structural archive. This will merge existing keys and entries safely with the backup data.";
+
+                // Hide key selector if visible
+                hideKeySelector();
+
+                // Check the file
+                try {
+                    const parseData = JSON.parse(fileContent);
+                    const encryptStatus = parseData.metadata.encrypted;
+
+                    if (encryptStatus) {
+                        showPwField();
+                    } else {
+                        hidePwField();
+                    }
+                } catch (err) {
+                    resetFileState();
+                    showAlert(
+                        "Unable to read metadata",
+                        "The file you selected is corrupt or unsupported. Make sure the file you selected is not corrupted and comes from the Text Encryptor app.",
+                    );
+                }
+            } else {
+                // Import manifest status
+                importManifestHead.textContent =
+                    "Compatibility Spreadsheet Detected";
+                importManifestDesc.textContent =
+                    "Ready to parse a plaintext password manifest. This will append external records to your current data ledger.";
+
+                showKeySelector();
+            }
+        };
+
+        reader.readAsText(file);
+
+        // Display the file name
+        fileNameSpan.textContent = file.name;
+        dropZone.style.display = "none";
+        fileInfo.style.display = "flex";
+        importBtn.disabled = false;
+    }
+
+    // Reset back to upload drop zone state
+    function resetFileState() {
+        fileInput.value = ""; // Clear file buffer
+        fileInfo.style.display = "none";
+        dropZone.style.display = "flex";
+
+        importManifestHead.textContent = "Awaiting File Selection";
+        importManifestDesc.textContent =
+            "Please select a valid archive. Native backups (.json) will restore both your keys and passwords, while standard spreadsheets (.csv) will append browser passwords.";
+
+        hidePwField();
+        hideKeySelector();
+
+        hideSupportText(importForm.file_password);
+
+        importBtn.disabled = true;
+    }
+
+    // Native trigger
+    browseBtn.addEventListener("click", () => fileInput.click());
+
+    fileInput.addEventListener("change", (e) => {
+        if (e.target.files.length > 0) {
+            showFileState(e.target.files[0]);
+        }
+    });
+
+    // Clear selection click event
+    clearFileBtn.addEventListener("click", resetFileState);
+
+    // Drag-and-drop handles
+    dropZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropZone.classList.add("drag-over");
+    });
+
+    dropZone.addEventListener("dragleave", () => {
+        dropZone.classList.remove("drag-over");
+    });
+
+    dropZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropZone.classList.remove("drag-over");
+
+        if (e.dataTransfer.files.length > 0) {
+            const droppedFile = e.dataTransfer.files[0];
+            const extension = droppedFile.name.split(".").pop().toLowerCase();
+
+            if (extension === "json" || extension === "csv") {
+                fileInput.files = e.dataTransfer.files;
+                showFileState(droppedFile);
+            } else {
+                showAlert(
+                    "Unsupported file format",
+                    "The selected file could not be recognized. Please upload a valid backup file with a .json or .csv extension.",
+                );
+            }
+        }
+    });
+
+    // Trigger Import
+    async function importData(theForm) {
+        const theFile = theForm.file_input.files[0];
+        const importAPI = "/api/account/import";
+
+        const formData = new FormData(theForm);
+        const payload = Object.fromEntries(formData.entries());
+        const readerFile = new FileReader();
+
+        // List of supported file type
+        let itsCsvFile =
+            theFile.name.endsWith(".csv") && theFile.type === "text/csv";
+
+        let itsJsonFile =
+            theFile.name.endsWith(".json") &&
+            theFile.type === "application/json";
+
+        // Check file type, then proceed to import
+        readerFile.onload = (e) => {
+            if (itsCsvFile) {
+                // If it was .csv
+                const csvContent = e.target.result;
+                payload.data_sheet = csvContent;
+                payload.type_file = "csv";
+
+                sendRequest(importAPI, payload, "POST")
+                    .then((response) => {
+                        showToast(response.message);
+
+                        importBtnIndicator.classList.add("hidden!");
+                        closeImportMenu();
+                    })
+                    .catch((error) => {
+                        showAlert("Unable to import data", error.message);
+
+                        importBtnIndicator.classList.add("hidden!");
+                    });
+            } else if (itsJsonFile) {
+                // If it was .json
+                try {
+                    const jsonObject = JSON.parse(e.target.result);
+                    payload.json_data = jsonObject;
+                    payload.type_file = "json";
+
+                    sendRequest(importAPI, payload, "POST")
+                        .then((response) => {
+                            showToast(response.message);
+
+                            importBtnIndicator.classList.add("hidden!");
+                            closeImportMenu();
+                        })
+                        .catch((error) => {
+                            if (error.code === 403) {
+                                showSupportText(
+                                    importForm.file_password,
+                                    error.message,
+                                );
+                            } else {
+                                showAlert(
+                                    "Unable to import data",
+                                    error.message,
+                                );
+                            }
+
+                            importBtnIndicator.classList.add("hidden!");
+                        });
+                } catch (err) {
+                    showAlert(
+                        "Unable to import data",
+                        `The selected file is corrupted or unsupported. Ensure the file is not corrupted and comes from Text Encryptor. \nError: ${err}`,
+                    );
+
+                    importBtnIndicator.classList.add("hidden!");
+                }
+            } else {
+                // if none of them
+                showAlert(
+                    "Unsupported file format",
+                    "The selected file could not be recognized. Please upload a valid backup file with a .json or .csv extension.",
+                );
+                importBtnIndicator.classList.add("hidden!");
+            }
+        };
+
+        readerFile.readAsText(theFile);
+    }
+
+    // Import action button
+    importForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        if (importBtnIndicator.classList.contains("hidden!")) {
+            importBtnIndicator.classList.remove("hidden!");
+
+            hideSupportText(importForm.file_password);
+            importData(importForm);
+        }
+    });
+
+    // Export option
+    const radioJson = document.getElementById("option-json");
+    const radioCsv = document.getElementById("option-csv");
+    const cryptoSwitch = document.getElementById("crypto-switch");
+    const securitySection = document.getElementById("security-section");
+    const passwordBlock = document.getElementById("password-block");
+    const exportPassword = document.getElementById("export_password");
+    const exportManifestDesc = document.getElementById("export-manifest-desc");
+    const exportBtn = document.getElementById("submit_export_btn");
+    const exportBtnIndicator = exportBtn.querySelector(
+        ".button-progress-indicator",
+    );
+
+    const exportDialog = document.getElementById("export-dialog");
+    const exportForm = document.getElementById("export_form");
+
+    // Trigger dialog
+    async function openExportMenu() {
+        await exportDialog.show();
+    }
+    async function closeExportMenu() {
+        await exportDialog.close();
+
+        exportForm.reset();
+        exportForm.export_password.setAttribute("type", "password");
+        syncDialogState();
+    }
+
+    // Sync dialog state
+    function syncDialogState() {
+        const isCsvSelected = radioCsv.querySelector("md-radio").checked;
+        const isEncryptionEnabled = cryptoSwitch.selected;
+
+        if (isCsvSelected) {
+            // Enforce validation rule: CSV files cannot be application-encrypted
+            cryptoSwitch.selected = false;
+            cryptoSwitch.disabled = true;
+            securitySection.classList.add("opacity-40", "pointer-events-none");
+            passwordBlock.classList.add("hidden");
+            exportPassword.required = false;
+
+            // Update Context Manifest
+            exportManifestDesc.innerHTML =
+                "Generating <strong>unencrypted .csv spreadsheet</strong>. Contains <span class='underline font-medium'>passwords only</span>. Ready for local browser import pipelines.";
+        } else {
+            // For json exporting
+            cryptoSwitch.disabled = false;
+            securitySection.classList.remove(
+                "opacity-40",
+                "pointer-events-none",
+            );
+
+            if (isEncryptionEnabled) {
+                passwordBlock.classList.remove("hidden");
+                exportPassword.required = true;
+                exportManifestDesc.innerHTML =
+                    "Generating <strong>secure encrypted .json bundle</strong>. Contains <span class='underline font-medium'>keys and passwords</span> protected via your chosen encryption passphrase.";
+            } else {
+                passwordBlock.classList.add("hidden");
+                exportPassword.value = "";
+                exportPassword.required = false;
+                exportManifestDesc.innerHTML =
+                    "Generating <strong>plaintext .json backup</strong>. Contains <span class='underline font-medium'>keys and passwords</span> without secondary protection. Store safely.";
+            }
+        }
+    }
+
+    // Listener for "Target format" radio button
+    radioJson.addEventListener("click", () => {
+        radioJson.querySelector("md-radio").checked = true;
+        syncDialogState();
+    });
+
+    radioCsv.addEventListener("click", () => {
+        radioCsv.querySelector("md-radio").checked = true;
+        syncDialogState();
+    });
+
+    cryptoSwitch.addEventListener("change", syncDialogState);
+
+    // Run initialization hook when components populate
+    syncDialogState();
+
+    // Trigger Export
+    async function exportData(theForm) {
+        const exportAPI = "/api/account/export";
+
+        let formData = new FormData(theForm);
+        formData = Object.fromEntries(formData.entries());
+
+        sendRequest(exportAPI, formData, "POST")
+            .then((response) => {
+                const dataSheet = response.data;
+
+                if (dataSheet.file_type === "csv") {
+                    // For csv
+                    const blob = new Blob(["\ufeff", dataSheet.data_sheet], {
+                        type: "text/csv;charset=utf-8;",
+                    });
+
+                    tempoaryUrl(blob, "Text Encryptor - Passwords", "csv");
+                } else if (dataSheet.file_type === "json") {
+                    // For json
+                    const blob = new Blob([dataSheet.json_file], {
+                        type: "application/json;charset=utf-8;",
+                    });
+
+                    tempoaryUrl(
+                        blob,
+                        "Text Encryptor - Keys & Passwords",
+                        "json",
+                    );
+                } else {
+                    // If none of them
+                    console.error(`Unknown file type! \nerror: ${dataSheet}`);
+                }
+
+                showToast(response.message);
+                exportBtnIndicator.classList.add("hidden!");
+            })
+            .catch((error) => {
+                exportBtnIndicator.classList.add("hidden!");
+                showAlert("Unable to export data", error.message);
+            });
+    }
+
+    // Export action button
+    exportForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        if (exportBtnIndicator.classList.contains("hidden!")) {
+            exportBtnIndicator.classList.remove("hidden!");
+
+            exportData(exportForm);
+        }
+    });
 
     // Delete account
     async function deleteAccount() {
@@ -443,8 +1202,7 @@
                     logout();
                 }
             } catch (error) {
-                showAlert("An error occured", error);
-                console.error(error);
+                showAlert("Unable to delete account", error.message);
             }
         }
     }
@@ -461,8 +1219,7 @@
 
             return true;
         } catch (error) {
-            showAlert("An error occured", error);
-            console.error(error);
+            showAlert("Failed to load account data", error.message);
         }
     }
 

@@ -48,7 +48,7 @@ def generate_password(passLenth):
         return password
 
     except ValueError:
-        return "Password length must be a number!"
+        return "The password length value must be numeric."
 
     except Exception as error:
         return error

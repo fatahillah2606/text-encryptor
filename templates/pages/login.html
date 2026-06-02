@@ -244,8 +244,7 @@
                 } catch (error) {
                     progressBar.classList.add("hidden");
 
-                    showSupportText(theField, error);
-                    console.error(error);
+                    showSupportText(theField, error.message);
                 }
             }
 

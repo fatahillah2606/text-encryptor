@@ -1,7 +1,13 @@
+import os
 import subprocess
 import sys
-import os
+import time
+import urllib.request
+import webbrowser
+from threading import Thread
 
+
+# Install the requirements
 def install_requirements():
     req_file = "requirements.txt"
 
@@ -9,7 +15,9 @@ def install_requirements():
         print(f"[*] Found {req_file}. Checking dependencies...")
         try:
             # use -m pip to ensure it uses the correct Python environment
-            subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", req_file])
+            subprocess.check_call(
+                [sys.executable, "-m", "pip", "install", "-r", req_file]
+            )
             print("[+] Dependencies are up to date.")
         except Exception as e:
             print(f"[-] Failed to install requirements: {e}")
@@ -17,12 +25,46 @@ def install_requirements():
     else:
         print(f"[!] {req_file} not found. Skipping installation.")
 
+
+# Wait for the Flask is ready
+def wait_for_flask(url, timeout=15):
+    start_time = time.time()
+
+    while time.time() - start_time < timeout:
+        try:
+            # Try to connect to the Flask server
+            # Using a short timeout for the request itself so it doesn't hang
+            urllib.request.urlopen(url, timeout=1)
+
+            # If successful, open the browser and exit the thread
+            webbrowser.open(url)
+            return
+        except Exception:
+            # Connection failed (server not ready yet). Wait a moment and try again.
+            time.sleep(0.2)
+
+    print("[-] Timeout reached. Could not detect Flask server.")
+
+
+# Start the program
 def start_app():
     print("[*] Launching Text Encryptor...")
+    target_url = "http://127.0.0.1:5000"
     try:
-        subprocess.run([sys.executable, "app.py"])
+        # Start Flask as a background process without intercepting its stdout/stderr
+        process = subprocess.Popen([sys.executable, "app.py"])
+
+        # Start the polling thread
+        poll_thread = Thread(target=wait_for_flask, args=(target_url,), daemon=True)
+        poll_thread.start()
+
+        # Keep run.py alive while Flask runs
+        process.wait()
     except KeyboardInterrupt:
         print("\n[!] Operation cancelled by user. Goodbye.")
+        if "process" in locals():
+            process.terminate()
+
 
 if __name__ == "__main__":
     install_requirements()
