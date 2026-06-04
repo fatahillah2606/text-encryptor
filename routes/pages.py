@@ -139,18 +139,6 @@ def password_manager():
     )
 
 
-@pages_route.route("/password_generator")
-def password_generator():
-    return render_template(
-        "pages/password_generator.html", active_page="password_generator"
-    )
-
-
-@pages_route.route("/text_encryptor")
-def text_encryptor():
-    return render_template("pages/text_encryptor.html", active_page="text_encryptor")
-
-
-@pages_route.route("/text_decryptor")
-def text_decryptor():
-    return render_template("pages/text_decryptor.html", active_page="text_decryptor")
+@pages_route.route("/tools")
+def encryption_tools():
+    return render_template("pages/tools.html", active_page="tools")

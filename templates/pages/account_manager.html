@@ -12,17 +12,11 @@
         class="bg-md-background w-full h-full md:rounded-4xl overflow-auto p-5"
     >
         <div class="flex justify-center">
-            <div class="w-full max-w-2xl animate-showup">
+            <div class="w-full max-w-2xl animate-showup mb-25 md:mb-0">
                 <!-- Heading -->
                 <div
                     class="flex items-center justify-start gap-2.5 bg-md-background z-10"
                 >
-                    <md-icon-button
-                        class="md:hidden"
-                        onclick="movePage('/pages/dashboard')"
-                    >
-                        <md-icon>arrow_back</md-icon>
-                    </md-icon-button>
                     <h1
                         class="md-typescale-headline-small text-md-on-surface font-bold!"
                     >
@@ -118,6 +112,29 @@
                                 >
                                     Acts as your master encryption key for this
                                     session.
+                                </p>
+                            </div>
+                            <md-ripple></md-ripple>
+                        </div>
+
+                        <div
+                            class="relative py-2.5 px-5 bg-md-surface-container rounded-md flex items-center gap-5 cursor-pointer"
+                            onclick="logout()"
+                        >
+                            <md-icon class="text-md-on-surface">
+                                logout
+                            </md-icon>
+                            <div>
+                                <h2
+                                    class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
+                                >
+                                    Log out
+                                </h2>
+                                <p
+                                    class="md-typescale-body-medium text-md-secondary m-0"
+                                >
+                                    End your current session and securely lock
+                                    your data.
                                 </p>
                             </div>
                             <md-ripple></md-ripple>

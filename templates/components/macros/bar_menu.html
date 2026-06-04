@@ -1,0 +1,17 @@
+{% macro bar_items(label, icon, url, current, target) %}
+<a
+    href="{{ url }}"
+    class="bar-menu shrink-0 group{% if current == target %} active {% else %} {% endif %} relative flex flex-col items-center w-auto gap-1 min-h-15 overflow-hidden"
+>
+    <md-icon
+        class="relative group-hover:bg-md-outline-variant group-[.active]:hover:bg-md-on-primary text-md-on-surface! group-[.active]:text-md-secondary! group-[.active]:bg-md-on-primary w-14 h-8 rounded-full"
+    >
+        {{ icon }}
+    </md-icon>
+    <span
+        class="md-typescale-label-medium text-md-on-surface group-[.active]:text-md-secondary block text-center group-[.active]:font-bold!"
+    >
+        {{ label }}
+    </span>
+</a>
+{% endmacro %}
