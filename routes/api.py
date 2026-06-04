@@ -520,7 +520,7 @@ def importData():
 
                 # If unprotected
                 else:
-                    userData = jsonData.get("vault")
+                    userData = jsonData.get("data")
                     importer.import_into_db(
                         userData, session["user_id"], session["key"]
                     )
@@ -559,7 +559,7 @@ def importData():
 
 
 # Export data
-exporter = DataExporter(version="2.2.5")
+exporter = DataExporter()
 
 
 @api_route.route("/account/export", methods=["POST"])

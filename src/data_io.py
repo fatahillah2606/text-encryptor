@@ -15,6 +15,7 @@ from src.data_manager import UserManager
 # Importer
 class DataImporter:
     def __init__(self):
+        self._ITERATIONS = 600000
         self.usermgr = UserManager()
 
     # Derive key from user password
@@ -29,24 +30,21 @@ class DataImporter:
 
     # Decrypt the data
     def decrypt_data(self, json_data, password: str) -> list:
-        metadata = json_data["metadata"]
-        payload = json_data["payload"]
+        payload = base64.b64decode(json_data["data"])
 
         # Extract KDF parameters from metadata
-        kdf_info = metadata["kdf_info"]
-        iterations = kdf_info["iterations"]
-        salt = base64.b64decode(kdf_info["salt"])
+        iterations = self._ITERATIONS
+        salt = payload[-24:-8]
 
         # Regenerate the cryptographic key using the provided password
         stretched_key = self._derive_key(password, salt, iterations)
 
         # Extract cryptographic components from payload
-        nonce = base64.b64decode(payload["nonce"])
-        combined_payload = base64.b64decode(payload["ciphertext"])
+        nonce = payload[54:66]
 
-        # Split the 16-byte authentication tag from the end of the ciphertext
-        ciphertext = combined_payload[:-16]
-        tag = combined_payload[-16:]
+        # Split authentication tag from the end of the ciphertext
+        ciphertext = payload[94:-41]
+        tag = payload[32:48]
 
         # Initialize the cipher and decrypt
         cipher = AES.new(stretched_key, AES.MODE_GCM, nonce=nonce)
@@ -146,8 +144,9 @@ class DataImporter:
 
 # Exporter
 class DataExporter:
-    def __init__(self, version: str = "2.2.5"):
+    def __init__(self, version: str = "2.3.0"):
         self.version = version
+        self._ITERATIONS = 600000
 
     # For generating header/metadata
     def _generate_metadata(self, is_encrypted: bool, salt: bytes = None) -> dict:
@@ -156,14 +155,7 @@ class DataExporter:
             "exported_at": datetime.now(timezone.utc).isoformat(),
             "export_type": "secure_json",
             "encrypted": is_encrypted,
-            "crypto_algorithm": "AES-256-GCM" if is_encrypted else "None",
         }
-        if is_encrypted and salt:
-            metadata["kdf_info"] = {
-                "algorithm": "PBKDF2-HMAC-SHA256",
-                "iterations": 600000,
-                "salt": base64.b64encode(salt).decode("utf-8"),
-            }
         return metadata
 
     # Derives a secure 256-bit key from user password
@@ -209,7 +201,7 @@ class DataExporter:
         # Serialize data
         output = {
             "metadata": self._generate_metadata(is_encrypted=False),
-            "vault": {"keys": keys, "passwords": passwords},
+            "data": {"keys": keys, "passwords": passwords},
         }
 
         return json.dumps(output, indent=4)
@@ -243,6 +235,15 @@ class DataExporter:
                 }
             )
 
+        # Generate random byte
+        hoshino = os.urandom(32)
+        nonomi = os.urandom(6)
+        shiroko = os.urandom(12)
+        kuroko = os.urandom(16)
+        serika = os.urandom(12)
+        ayane = os.urandom(5)
+        sensei = os.urandom(8)
+
         # Generate random salt
         salt = os.urandom(16)
 
@@ -262,14 +263,23 @@ class DataExporter:
         ciphertext, tag = cipher.encrypt_and_digest(plaintext_vault)
 
         # Build final payload.
-        combined_payload = ciphertext + tag
+        combined_payload = (
+            hoshino
+            + tag
+            + nonomi
+            + nonce
+            + shiroko
+            + kuroko
+            + ciphertext
+            + serika
+            + ayane
+            + salt
+            + sensei
+        )
 
         output = {
             "metadata": self._generate_metadata(is_encrypted=True, salt=salt),
-            "payload": {
-                "nonce": base64.b64encode(nonce).decode("utf-8"),
-                "ciphertext": base64.b64encode(combined_payload).decode("utf-8"),
-            },
+            "data": base64.b64encode(combined_payload).decode("utf-8"),
         }
         return json.dumps(output, indent=4)
 
