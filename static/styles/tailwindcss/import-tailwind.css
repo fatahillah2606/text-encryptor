@@ -40,17 +40,4 @@
             opacity: 1;
         }
     }
-
-    /* Show toast */
-    --animate-showtoast: showtoast 0.3s ease;
-    @keyframes showtoast {
-        from {
-            transform: translateY(20px);
-            opacity: 0;
-        }
-        to {
-            transform: translateY(0px);
-            opacity: 1;
-        }
-    }
 }

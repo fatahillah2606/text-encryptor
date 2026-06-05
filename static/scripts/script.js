@@ -110,7 +110,13 @@ function showToast(message) {
         const toastMessage = toast.querySelector("#toast-message");
 
         toastMessage.textContent = message;
+
+        // Animate showup
         toast.classList.remove("hidden");
+        setTimeout(() => {
+            toast.classList.remove("translate-y-5");
+            toast.classList.remove("opacity-0");
+        }, 50);
 
         autoDismis = setTimeout(() => {
             dismisToast();
@@ -124,7 +130,12 @@ function dismisToast() {
     const toast = document.querySelector("#toast-default");
 
     if (toast) {
-        toast.classList.add("hidden");
+        // Animate dismis
+        toast.classList.add("translate-y-5");
+        toast.classList.add("opacity-0");
+        setTimeout(() => {
+            toast.classList.add("hidden");
+        }, 300);
     } else {
         console.error("Toast element not found in this page!");
     }

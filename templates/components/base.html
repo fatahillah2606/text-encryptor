@@ -23,7 +23,7 @@
         {% include 'components/appbar.html' %}
 
         <main
-            class="relative grid md:grid-cols-[96px_1fr] h-full transition-all ease"
+            class="relative grid md:grid-cols-[96px_1fr] h-full transition-all ease-out"
         >
             <!-- Navigation rail -->
             {% include 'components/navrail.html' %}
@@ -132,7 +132,7 @@
         {% block modals %}{% endblock %}
 
         <!-- FABs -->
-        <div class="fixed bottom-25 right-7 md:hidden">
+        <div class="fixed bottom-22 right-4 md:hidden">
             {% block fabs %}{% endblock %}
         </div>
 

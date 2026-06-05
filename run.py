@@ -33,10 +33,9 @@ def wait_for_flask(url, timeout=15):
     while time.time() - start_time < timeout:
         try:
             # Try to connect to the Flask server
-            # Using a short timeout for the request itself so it doesn't hang
             urllib.request.urlopen(url, timeout=1)
 
-            # If successful, open the browser and exit the thread
+            # If successful, open the browser
             webbrowser.open(url)
             return
         except Exception:
@@ -51,7 +50,7 @@ def start_app():
     print("[*] Launching Text Encryptor...")
     target_url = "http://127.0.0.1:5000"
     try:
-        # Start Flask as a background process without intercepting its stdout/stderr
+        # Start Flask as a background process
         process = subprocess.Popen([sys.executable, "app.py"])
 
         # Start the polling thread
