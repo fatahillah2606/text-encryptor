@@ -3,6 +3,7 @@ from functools import wraps
 
 from flask import Blueprint, jsonify, request, session
 
+from src.data_io import DataExporter, DataImporter
 from src.data_manager import KeyManager, PasswordManager, UserManager
 from src.encryptor import decrypt_aes, encrypt_aes, generate_password, get_valid_key
 from src.essentials import createLoginSession
@@ -25,7 +26,13 @@ def logged_in_only_api(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if "username" not in session:
-            return api_response("error", 403, str("Access denied."), [], {}), 403
+            return api_response(
+                "error",
+                403,
+                str("Your session has expired. Please log in again."),
+                [],
+                {},
+            ), 403
 
         return f(*args, **kwargs)
 
@@ -56,7 +63,13 @@ def encryption_key():
             )
 
         except Exception as err:
-            return api_response("error", 500, str(err), [], {}), 500
+            return api_response(
+                "error",
+                500,
+                f"An error occurred on the server. \nError message:{str(err)}",
+                [],
+                {},
+            ), 500
 
     else:
         if "encoded_key" in session or "key" in session:
@@ -65,7 +78,11 @@ def encryption_key():
             )
         else:
             return api_response(
-                "error", 404, "No encryption key available", [], {}
+                "error",
+                404,
+                "The encryption key is not available. Please create one in the keys menu in the navigation menu.",
+                [],
+                {},
             ), 404
 
 
@@ -80,7 +97,11 @@ def encrypt_text():
         # Check if the key is available to prevent get_valid_key auto generated key
         if not key or key == "":
             return api_response(
-                "error", 400, "The encryption key is not provided.", [], {}
+                "error",
+                400,
+                "The encryption key is not available. Please create one in the keys menu in the navigation menu.",
+                [],
+                {},
             ), 400
 
         valid_key = get_valid_key(key)
@@ -97,7 +118,13 @@ def encrypt_text():
         )
 
     except Exception as err:
-        return api_response("error", 500, str(err), [], {}), 500
+        return api_response(
+            "error",
+            500,
+            f"An error occurred on the server. \nError message:{str(err)}",
+            [],
+            {},
+        ), 500
 
 
 # Decrypt text
@@ -111,7 +138,11 @@ def decrypt_text():
         # Check if the key is available to prevent get_valid_key auto generated key
         if not key or key == "":
             return api_response(
-                "error", 400, "The encryption key is not provided.", [], {}
+                "error",
+                400,
+                "The encryption key is not available. Please create one in the keys menu in the navigation menu.",
+                [],
+                {},
             ), 400
 
         valid_key = get_valid_key(key)
@@ -127,8 +158,14 @@ def decrypt_text():
             {},
         )
 
-    except Exception as err:
-        return api_response("error", 500, str(err), [], {}), 500
+    except Exception:
+        return api_response(
+            "error",
+            500,
+            "The text is corrupted, incomplete, or the wrong key was used. Check your key, and ensure you copied the entire encrypted text block.",
+            [],
+            {},
+        ), 500
 
 
 # Password generator
@@ -143,12 +180,18 @@ def password_generator():
         # Check if the key is available to prevent get_valid_key auto generated key
         if not key or key == "":
             return api_response(
-                "error", 400, "The encryption key is not provided.", [], {}
+                "error",
+                400,
+                "The encryption key is not available. Please create one in the keys menu in the navigation menu.",
+                [],
+                {},
             ), 400
 
         # Check if password length is 0 or bellow
         if length <= 0:
-            raise ValueError("Password length must be at least 1 character long!")
+            raise ValueError(
+                "The character length you entered is less than 1. At least 1 or more characters long to generate a password."
+            )
 
         password = generate_password(length)
         valid_key = get_valid_key(key)
@@ -160,13 +203,21 @@ def password_generator():
 
         data = {"password": password, "encrypted_password": encrypted}
 
-        return api_response("success", 200, "Password successfully created", data, {})
+        return api_response(
+            "success", 200, "Password successfully generated.", data, {}
+        )
 
     except ValueError as err:
         return api_response("error", 400, str(err), [], {}), 400
 
     except Exception as err:
-        return api_response("error", 500, str(err), [], {}), 500
+        return api_response(
+            "error",
+            500,
+            f"An error occurred on the server. \nError message:{str(err)}",
+            [],
+            {},
+        ), 500
 
 
 #
@@ -201,10 +252,18 @@ def register():
             return api_response("success", 200, "Successfully registered", [], {})
 
         else:
-            return api_response("error", 400, "Password does not match!", [], {}), 400
+            return api_response(
+                "error", 400, "Passwords do not match. Please try again.", [], {}
+            ), 400
 
     except Exception as err:
-        return api_response("error", 500, str(err), [], {}), 500
+        return api_response(
+            "error",
+            500,
+            f"An error occurred on the server. \nError message:{str(err)}",
+            [],
+            {},
+        ), 500
 
 
 # Login
@@ -233,7 +292,13 @@ def login():
             return api_response("error", 500, result, [], {}), 500
 
     except Exception as err:
-        return api_response("error", 500, str(err), [], {}), 500
+        return api_response(
+            "error",
+            500,
+            f"An error occurred on the server. \nError message:{str(err)}",
+            [],
+            {},
+        ), 500
 
 
 # Who am I?
@@ -264,12 +329,24 @@ def checkAvailablity():
         if status == "success":
             return api_response("success", 200, "Username available!", [], {})
         elif status == "failed":
-            return api_response("error", 409, "Username already in use!", [], {}), 409
+            return api_response(
+                "error",
+                409,
+                "Username is already in use. Please try another one.",
+                [],
+                {},
+            ), 409
         else:
             return api_response("error", 500, result, [], {}), 500
 
     except Exception as err:
-        return api_response("error", 500, str(err), [], {}), 500
+        return api_response(
+            "error",
+            500,
+            f"An error occurred on the server. \nError message:{str(err)}",
+            [],
+            {},
+        ), 500
 
 
 # Account update
@@ -293,12 +370,22 @@ def updateProfile():
                 updates["username"] = username
             elif status == "failed":
                 return api_response(
-                    "error", 409, "Username already in use!", [], {}
+                    "error",
+                    409,
+                    "Username is already in use. Please try another one.",
+                    [],
+                    {},
                 ), 409
 
         # If no data provided
         if not updates:
-            return api_response("error", 400, "No data provided", [], {}), 400
+            return api_response(
+                "error",
+                400,
+                "No data was sent to the server. Please ensure you have filled in the required fields.",
+                [],
+                {},
+            ), 400
 
         # Save changes
         status, result = user.updateProfile(user_id, updates)
@@ -314,12 +401,24 @@ def updateProfile():
             # Return success response
             return api_response("success", 200, "Account updated", [], {})
         elif status == "failed":
-            return api_response("failed", 400, "No data provided", [], {}), 400
+            return api_response(
+                "failed",
+                400,
+                "No data was sent to the server. Please ensure you have filled in the required fields.",
+                [],
+                {},
+            ), 400
         else:
             return api_response("error", 500, result, [], {}), 500
 
     except Exception as err:
-        return api_response("error", 500, str(err), [], {}), 500
+        return api_response(
+            "error",
+            500,
+            f"An error occurred on the server. \nError message:{str(err)}",
+            [],
+            {},
+        ), 500
 
 
 # Change account password
@@ -345,7 +444,202 @@ def updateUserPassword():
             return api_response("error", 500, result, [], {}), 500
 
     except Exception as err:
-        return api_response("error", 500, str(err), [], {}), 500
+        return api_response(
+            "error",
+            500,
+            f"An error occurred on the server. \nError message:{str(err)}",
+            [],
+            {},
+        ), 500
+
+
+# Import data
+importer = DataImporter()
+
+
+@api_route.route("/account/import", methods=["POST"])
+@logged_in_only_api
+def importData():
+    try:
+        # Data
+        data = request.json
+        typeFile = str(data.get("type_file"))
+
+        # If CSV
+        if typeFile == "csv":
+            csvSheet = data.get("data_sheet")
+            selectedKey = int(data.get("select_key"))
+
+            status, result = importer.process_csv(csvSheet)
+
+            if status == "success":
+                # Import into database
+                for eachPw in result:
+                    try:
+                        user.import_accounts(
+                            eachPw, selectedKey, session["user_id"], session["key"]
+                        )
+                    except Exception as err:
+                        return api_response(
+                            "error",
+                            500,
+                            f"An error occurred on the server. \nError message:{str(err)}",
+                            [],
+                            {},
+                        ), 500
+
+            else:
+                return api_response("error", 400, result, [], {}), 400
+
+        # If JSON
+        elif typeFile == "json":
+            try:
+                jsonData = data.get("json_data")
+                metadata = jsonData.get("metadata")
+                encrypted = metadata.get("encrypted")
+
+                # Check If password protected
+                if encrypted:
+                    filePassword = str(data.get("file_password"))
+
+                    # Fix form handler issue on client-side
+                    if not filePassword:
+                        return api_response(
+                            "Error", 403, "Encryption password required", [], {}
+                        ), 403
+
+                    # Decrypt data
+                    status, result = importer.decrypt_data(jsonData, filePassword)
+                    if status != "success":
+                        return api_response("Error", 403, result, [], {}), 403
+                    else:
+                        # Import into db
+                        importer.import_into_db(
+                            result, session["user_id"], session["key"]
+                        )
+
+                # If unprotected
+                else:
+                    userData = jsonData.get("data")
+                    importer.import_into_db(
+                        userData, session["user_id"], session["key"]
+                    )
+
+            # If unable to read the json file
+            except Exception:
+                return api_response(
+                    "error",
+                    400,
+                    "The selected file is corrupted or unsupported. Ensure the file is not corrupted and comes from Text Encryptor.",
+                    [],
+                    {},
+                ), 400
+
+        # If file type is other than CSV and JSON
+        else:
+            return api_response(
+                "error",
+                400,
+                "The selected file could not be recognized. Please upload a valid backup file with a .json or .csv extension.",
+                [],
+                {},
+            ), 400
+
+        # return process successful
+        return api_response("success", 200, "Successfully imported data", [], {})
+
+    except Exception as err:
+        return api_response(
+            "error",
+            500,
+            f"An error occurred on the server. \nError message:{str(err)}",
+            [],
+            {},
+        ), 500
+
+
+# Export data
+exporter = DataExporter()
+
+
+@api_route.route("/account/export", methods=["POST"])
+@logged_in_only_api
+def exportData():
+    try:
+        # Data
+        data = request.json
+        exportFormat = str(data.get("export_format"))
+        exportPassword = str(data.get("export_password"))
+
+        # Get all user keys and password
+        allUserKey = user.user_saved_keys(session["user_id"], session["key"])
+        allUserPw = user.user_saved_accounts(session["user_id"], session["key"])
+
+        # Export file into json format
+        if exportFormat == "json":
+            userData = {"keys": allUserKey, "passwords": allUserPw}
+
+            if exportPassword:
+                result = {
+                    "file_type": "json",
+                    "json_file": exporter.export_encrypted(userData, exportPassword),
+                }
+
+                return api_response(
+                    "success", 200, "Successfully exported data", result, {}
+                )
+
+            else:
+                result = {
+                    "file_type": "json",
+                    "json_file": exporter.export_unencrypted(userData),
+                }
+
+                return api_response(
+                    "success", 200, "Successfully exported data", result, {}
+                )
+
+        # Export file into csv format
+        elif exportFormat == "csv":
+            dataSheet = []
+
+            # Serialize data for support Excel and Browser
+            for pw in allUserPw:
+                service_url = pw["url"] if pw["url"] else "https://example.com/"
+                service_notes = pw["note"] if pw["note"] else ""
+
+                dataSheet.append(
+                    {
+                        "name": pw["name"],
+                        "url": service_url,
+                        "username": pw["username"],
+                        "password": pw["password"],
+                        "note": service_notes,
+                    }
+                )
+
+            result = exporter.export_csv(dataSheet)
+            return api_response(
+                "success", 200, "Successfully exported data", result, {}
+            )
+
+        else:
+            return api_response(
+                "error",
+                400,
+                "File format not supported. Only .json and .csv are supported.",
+                [],
+                {},
+            ), 400
+
+    except Exception as err:
+        return api_response(
+            "error",
+            500,
+            f"An error occurred on the server. \nError message:{str(err)}",
+            [],
+            {},
+        ), 500
 
 
 # Account delete
@@ -368,7 +662,13 @@ def deleteUserAccount():
             return api_response("error", 500, result, [], {}), 500
 
     except Exception as err:
-        return api_response("error", 500, str(err), [], {}), 500
+        return api_response(
+            "error",
+            500,
+            f"An error occurred on the server. \nError message:{str(err)}",
+            [],
+            {},
+        ), 500
 
 
 #
@@ -387,7 +687,13 @@ def listUserKeys():
         return api_response("success", 200, "Keys available", userKeys, {})
 
     except Exception as err:
-        return api_response("error", 500, str(err), [], {}), 500
+        return api_response(
+            "error",
+            500,
+            f"An error occurred on the server. \nError message:{str(err)}",
+            [],
+            {},
+        ), 500
 
 
 # Get some user key
@@ -400,10 +706,22 @@ def listUserKey(key_id):
         if userKeys:
             return api_response("success", 200, "Keys available", userKeys, {})
         else:
-            return api_response("error", 404, "Keys unavailable", [], {}), 404
+            return api_response(
+                "error",
+                404,
+                "The encryption key may have been deleted. Please refresh the page and try again.",
+                [],
+                {},
+            ), 404
 
     except Exception as err:
-        return api_response("error", 500, str(err), [], {}), 500
+        return api_response(
+            "error",
+            500,
+            f"An error occurred on the server. \nError message:{str(err)}",
+            [],
+            {},
+        ), 500
 
 
 # Create new encryption key
@@ -428,7 +746,13 @@ def createEncryptionKey():
             return api_response("error", 500, result, [], {}), 500
 
     except Exception as err:
-        return api_response("error", 500, str(err), [], {}), 500
+        return api_response(
+            "error",
+            500,
+            f"An error occurred on the server. \nError message:{str(err)}",
+            [],
+            {},
+        ), 500
 
 
 # Edit encryption key
@@ -455,7 +779,13 @@ def editEncryptionKey(key_id):
             return api_response("error", 500, result, [], {}), 500
 
     except Exception as err:
-        return api_response("error", 500, str(err), [], {}), 500
+        return api_response(
+            "error",
+            500,
+            f"An error occurred on the server. \nError message:{str(err)}",
+            [],
+            {},
+        ), 500
 
 
 # Delete key
@@ -471,7 +801,13 @@ def deleteKey(key_id):
             return api_response("error", 500, result, [], {}), 500
 
     except Exception as err:
-        return api_response("error", 500, str(err), [], {}), 500
+        return api_response(
+            "error",
+            500,
+            f"An error occurred on the server. \nError message:{str(err)}",
+            [],
+            {},
+        ), 500
 
 
 #
@@ -492,7 +828,13 @@ def listUserPasswords():
         return api_response("success", 200, "Passwords available", userPasswords, {})
 
     except Exception as err:
-        return api_response("error", 500, str(err), [], {}), 500
+        return api_response(
+            "error",
+            500,
+            f"An error occurred on the server. \nError message:{str(err)}",
+            [],
+            {},
+        ), 500
 
 
 # Get some user password
@@ -507,10 +849,22 @@ def listUserPassword(password_id):
         if userPassword:
             return api_response("success", 200, "Password available", userPassword, {})
         else:
-            return api_response("error", 404, "Password unavailable", [], {}), 404
+            return api_response(
+                "error",
+                404,
+                "The encryption key may have been deleted. Please refresh the page and try again.",
+                [],
+                {},
+            ), 404
 
     except Exception as err:
-        return api_response("error", 500, str(err), [], {}), 500
+        return api_response(
+            "error",
+            500,
+            f"An error occurred on the server. \nError message:{str(err)}",
+            [],
+            {},
+        ), 500
 
 
 # Create new password
@@ -520,9 +874,11 @@ def createPassword():
     try:
         # Data
         data = request.json
+        serviceUrl = str(data.get("new_service_url"))
         serviceName = str(data.get("new_service_name"))
         username = str(data.get("new_username"))
         password = str(data.get("new_password"))
+        serviceNotes = str(data.get("new_service_notes"))
         selectedKeyId = int(data.get("new_selected_key"))
 
         user_id = session["user_id"]
@@ -530,7 +886,14 @@ def createPassword():
 
         # Insert into db
         status, result = passwords.create_user_password(
-            serviceName, username, password, selectedKeyId, user_id, session_key
+            serviceUrl,
+            serviceName,
+            username,
+            password,
+            serviceNotes,
+            selectedKeyId,
+            user_id,
+            session_key,
         )
 
         if status == "success":
@@ -539,7 +902,13 @@ def createPassword():
             return api_response("error", 500, result, [], {}), 500
 
     except Exception as err:
-        return api_response("error", 500, str(err), [], {}), 500
+        return api_response(
+            "error",
+            500,
+            f"An error occurred on the server. \nError message:{str(err)}",
+            [],
+            {},
+        ), 500
 
 
 # Edit password
@@ -549,9 +918,11 @@ def editPassword(password_id):
     try:
         # Data
         data = request.json
+        serviceUrl = str(data.get("edit_service_url"))
         serviceName = str(data.get("edit_service_name"))
         username = str(data.get("edit_username"))
         password = str(data.get("edit_password"))
+        serviceNotes = str(data.get("edit_service_notes"))
         selectedKeyId = int(data.get("edit_selected_key"))
 
         user_id = session["user_id"]
@@ -559,9 +930,11 @@ def editPassword(password_id):
 
         # Insert into db
         status, result = passwords.edit_user_password(
+            serviceUrl,
             serviceName,
             username,
             password,
+            serviceNotes,
             selectedKeyId,
             user_id,
             session_key,
@@ -574,7 +947,13 @@ def editPassword(password_id):
             return api_response("error", 500, result, [], {}), 500
 
     except Exception as err:
-        return api_response("error", 500, str(err), [], {}), 500
+        return api_response(
+            "error",
+            500,
+            f"An error occurred on the server. \nError message:{str(err)}",
+            [],
+            {},
+        ), 500
 
 
 # Delete password
@@ -590,4 +969,10 @@ def deletePassword(password_id):
             return api_response("error", 500, result, [], {}), 500
 
     except Exception as err:
-        return api_response("error", 500, str(err), [], {}), 500
+        return api_response(
+            "error",
+            500,
+            f"An error occurred on the server. \nError message:{str(err)}",
+            [],
+            {},
+        ), 500

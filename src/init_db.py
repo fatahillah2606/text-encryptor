@@ -45,10 +45,12 @@ def create_database():
                 password_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER NOT NULL,
                 key_id INTEGER NOT NULL,
+                service_url TEXT NULL,
                 service_name VARCHAR(50) NOT NULL,
                 username_account VARCHAR(100) NOT NULL,
                 encrypted_password BLOB NOT NULL,
                 iv BLOB NOT NULL,
+                service_notes TEXT NULL,
                 FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
                 FOREIGN KEY (key_id) REFERENCES keys(key_id) ON DELETE CASCADE
             )
@@ -62,3 +64,32 @@ def create_database():
     finally:
         if conn:
             conn.close()
+
+
+# Update the database
+def update_database():
+    db_path = "db/vault_manager.db"
+    if not os.path.exists(db_path):
+        return  # Cancle operation if database doesn't exist
+
+    try:
+        with sqlite3.connect(db_path) as conn:
+            cursor = conn.cursor()
+
+            # Get existing column in 'passwords' table
+            cursor.execute("PRAGMA table_info(passwords);")
+            existing_columns = [column[1] for column in cursor.fetchall()]
+
+            # List of new field
+            new_columns = {"service_url": "TEXT", "service_notes": "TEXT"}
+
+            for col_name, col_type in new_columns.items():
+                if col_name not in existing_columns:
+                    print(f"Updating database: adding {col_name} column...")
+                    cursor.execute(
+                        f"ALTER TABLE passwords ADD COLUMN {col_name} {col_type}"
+                    )
+
+            conn.commit()
+    except sqlite3.Error as e:
+        print(f"Failed updating schema: {e}")

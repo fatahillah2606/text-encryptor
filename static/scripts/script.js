@@ -1,3 +1,92 @@
+// Toggle menu
+const navrail = document.getElementById("navrail");
+if (navrail) {
+    const railMenuList = navrail.querySelectorAll("a");
+    const railfab = navrail.querySelector("md-fab");
+
+    const menuBtn = document.getElementById("menu-btn");
+    const menuIcon = menuBtn.querySelector("md-icon");
+    const mainCont = document.querySelector("main");
+
+    // Extend menu
+    function extendMenu() {
+        mainCont.classList.remove("md:grid-cols-[96px_1fr]");
+        mainCont.classList.add("md:grid-cols-[220px_1fr]");
+
+        menuIcon.textContent = "menu_open";
+
+        // Extend the menu list
+        navrail.classList.add("extend");
+
+        railMenuList.forEach((menu) => {
+            // Remove
+            menu.classList.remove("flex-col");
+            menu.classList.remove("gap-1");
+            menu.classList.remove("w-20");
+
+            // Add
+            menu.classList.add("gap-0");
+            menu.classList.add("rounded-full");
+            menu.classList.add("hover:bg-md-outline-variant");
+            menu.classList.add("w-fit");
+            menu.classList.add("pr-5");
+            menu.classList.add("ml-3");
+        });
+
+        if (railfab) {
+            railfab.setAttribute("label", "Add");
+        }
+    }
+
+    // Shrink menu
+    function shrinkMenu() {
+        mainCont.classList.add("md:grid-cols-[96px_1fr]");
+        mainCont.classList.remove("md:grid-cols-[220px_1fr]");
+
+        menuIcon.textContent = "menu";
+
+        // Shrink the menu list
+        navrail.classList.remove("extend");
+
+        railMenuList.forEach((menu) => {
+            // Remove
+            menu.classList.remove("rounded-full");
+            menu.classList.remove("hover:bg-md-outline-variant");
+            menu.classList.remove("gap-0");
+            menu.classList.remove("w-fit");
+            menu.classList.remove("pr-5");
+            menu.classList.remove("ml-3");
+
+            // Add
+            menu.classList.add("flex-col");
+            menu.classList.add("gap-1");
+            menu.classList.add("w-20");
+        });
+
+        if (railfab) {
+            railfab.removeAttribute("label");
+        }
+    }
+
+    // Menu btn listener
+    menuBtn.addEventListener("click", () => {
+        if (mainCont.classList.contains("md:grid-cols-[96px_1fr]")) {
+            extendMenu();
+        } else {
+            shrinkMenu();
+        }
+    });
+}
+
+// Profile menu
+const userProfile = document.body.querySelector("#user-profile");
+const profileMenu = document.body.querySelector("#profile-menu");
+if (userProfile) {
+    userProfile.addEventListener("click", () => {
+        profileMenu.open = !profileMenu.open;
+    });
+}
+
 // Move page
 function movePage(uri) {
     location.href = uri;
@@ -13,15 +102,21 @@ function showToast(message) {
     if (toast) {
         // Check if a FAB exists and is visible
         if (fab) {
-            toast.classList.add("bottom-24");
+            toast.classList.add("bottom-44");
         } else {
-            toast.classList.remove("bottom-24");
+            toast.classList.remove("bottom-44");
         }
 
         const toastMessage = toast.querySelector("#toast-message");
 
         toastMessage.textContent = message;
+
+        // Animate showup
         toast.classList.remove("hidden");
+        setTimeout(() => {
+            toast.classList.remove("translate-y-5");
+            toast.classList.remove("opacity-0");
+        }, 50);
 
         autoDismis = setTimeout(() => {
             dismisToast();
@@ -35,7 +130,12 @@ function dismisToast() {
     const toast = document.querySelector("#toast-default");
 
     if (toast) {
-        toast.classList.add("hidden");
+        // Animate dismis
+        toast.classList.add("translate-y-5");
+        toast.classList.add("opacity-0");
+        setTimeout(() => {
+            toast.classList.add("hidden");
+        }, 300);
     } else {
         console.error("Toast element not found in this page!");
     }
@@ -79,7 +179,6 @@ function copyText(field, copyBtn) {
         })
         .catch((err) => {
             showAlert("Clipboard write failed.", err);
-            console.error("Clipboard write failed.", err);
         });
 }
 
@@ -110,7 +209,6 @@ function copyTextIconBtn(field, copyIconBtn, event) {
         })
         .catch((err) => {
             showAlert("Clipboard write failed.", err);
-            console.error("Clipboard write failed.", err);
         });
 }
 
@@ -187,8 +285,7 @@ async function setEncryptionKey(theKey) {
 
         saveKeyToSession(keyData);
     } catch (error) {
-        showAlert("An error occured", error);
-        console.error(error);
+        showAlert("Failed to set encryption key", error.message);
     }
 }
 
@@ -204,8 +301,7 @@ async function generateKey(elmId) {
 
         return true;
     } catch (error) {
-        showAlert("An error occured", error);
-        console.error(error);
+        showAlert("Failed to generate encryption key", error.message);
     }
 }
 
@@ -303,4 +399,36 @@ function requireAllFields(fields, submitBtn) {
     fields.forEach((field) => {
         field.addEventListener("input", validate);
     });
+}
+
+// Timestamp
+function timeStamp() {
+    const now = new Date();
+
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+
+    const hours = String(now.getHours()).padStart(2, "0");
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+    const seconds = String(now.getSeconds()).padStart(2, "0");
+
+    const timestamp = `${year}-${month}-${day} ${hours}-${minutes}-${seconds}`;
+    return timestamp;
+}
+
+// Tempoary object url
+function tempoaryUrl(blob, nameFile, fileType) {
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    const fileName = `${nameFile} ${timeStamp()}.${fileType}`;
+
+    link.setAttribute("href", url);
+    link.setAttribute("download", fileName);
+    link.style.visibility = "hidden";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 }

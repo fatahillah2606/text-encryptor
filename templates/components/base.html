@@ -19,15 +19,20 @@
         <script src="{{ url_for('static', filename='scripts/material-web.js') }}"></script>
     </head>
     <body class="grid grid-rows-[72px_1fr] h-screen bg-md-surface-container">
-        <!-- Navbar -->
-        {% include 'components/navbar.html' %}
+        <!-- App Bars -->
+        {% include 'components/appbar.html' %}
 
-        <main class="relative grid md:grid-cols-[88px_1fr] h-full">
-            <!-- Sidebar -->
-            {% include 'components/sidebar.html' %}
+        <main
+            class="relative grid md:grid-cols-[96px_1fr] h-full transition-all ease-out"
+        >
+            <!-- Navigation rail -->
+            {% include 'components/navrail.html' %}
 
             <!-- Main Section -->
             {% block section %}{% endblock %}
+
+            <!-- Navigation bar -->
+            {% include 'components/navbar.html' %}
         </main>
 
         <!-- Modals -->
@@ -127,7 +132,9 @@
         {% block modals %}{% endblock %}
 
         <!-- FABs -->
-        <div class="fixed bottom-7 right-7">{% block fabs %}{% endblock %}</div>
+        <div class="fixed bottom-22 right-4 md:hidden">
+            {% block fabs %}{% endblock %}
+        </div>
 
         <!-- Alert Dialog -->
         {% include 'components/alert_dialog.html' %}
@@ -229,7 +236,6 @@
                         checkEncryptionKey();
                     } catch (error) {
                         openKeyModal();
-                        console.error(error);
                     }
                 }
             }
@@ -342,31 +348,6 @@
 
             // Check the encryption key
             checkEncryptionKey();
-
-            // Etc
-            // Toggle menu
-            const sidebar = document.getElementById("sidebar");
-            const menuBtn = document.getElementById("menu-btn");
-            const menuIcon = menuBtn.querySelector("md-icon");
-
-            menuBtn.addEventListener("click", () => {
-                if (sidebar.classList.contains("-translate-x-full")) {
-                    sidebar.classList.remove("-translate-x-full");
-                    menuIcon.textContent = "menu_open";
-                } else {
-                    sidebar.classList.add("-translate-x-full");
-                    menuIcon.textContent = "menu";
-                }
-            });
-
-            // Profile menu
-            const userProfile = document.body.querySelector("#user-profile");
-            const profileMenu = document.body.querySelector("#profile-menu");
-            if (userProfile) {
-                userProfile.addEventListener("click", () => {
-                    profileMenu.open = !profileMenu.open;
-                });
-            }
         </script>
         {% block script %}{% endblock %}
     </body>

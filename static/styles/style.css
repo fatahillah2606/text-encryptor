@@ -26,6 +26,37 @@
     }
 }
 
+/* Scrollbar */
+/* Target every single element in the project */
+*,
+*::before,
+*::after {
+    /* For Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: var(--md-sys-color-primary) transparent;
+}
+
+/* Webkit-specific (Chrome, Edge, Safari) applied to all elements */
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent; /* Keeping track transparent looks cleaner in dialogs */
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--md-sys-color-primary);
+    border-radius: 50vmax;
+    border: 3px solid transparent;
+    background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--md-sys-color-primary-fixed-dim);
+}
+
+/* Main content */
 * {
     box-sizing: border-box;
 }
@@ -104,11 +135,100 @@ md-filled-button .button-progress-indicator md-circular-progress {
     -moz-appearance: textfield !important;
 }
 
-.sidebar-menu:hover,
-.sidebar-menu.active {
+.rail-menu.active,
+.bar-menu.active {
     font-variation-settings: "FILL" 1;
+    background-color: transparent;
+}
+
+.extend .rail-menu.active {
+    background-color: var(--md-sys-color-on-primary);
 }
 
 .material-icon-fill {
     font-variation-settings: "FILL" 1;
+}
+
+md-tabs::part(divider) {
+    display: none;
+}
+
+/* For import option on 'Account manager' */
+.upload-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 320px;
+}
+
+.drop-zone {
+    border: 2px dashed var(--md-sys-color-outline-variant);
+    border-radius: 12px;
+    padding: 32px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background-color: var(--md-sys-color-surface-container-low);
+    transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease;
+    text-align: center;
+}
+
+.drop-zone.drag-over {
+    border-color: var(--md-sys-color-primary);
+    background-color: var(--md-sys-color-primary-container);
+}
+
+.drop-zone md-icon {
+    color: var(--md-sys-color-on-surface-variant);
+    --md-icon-size: 36px;
+}
+
+.drop-zone p {
+    color: var(--md-sys-color-on-surface);
+    margin: 0;
+    font-family: var(--md-sys-typescale-body-medium-font);
+}
+
+.drop-zone span {
+    color: var(--md-sys-color-on-surface-variant);
+    font-family: var(--md-sys-typescale-body-small-font);
+}
+
+.file-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    background-color: var(--md-sys-color-surface-container-high);
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: 12px;
+    color: var(--md-sys-color-on-surface);
+    font-family: var(--md-sys-typescale-body-medium-font);
+    min-height: 56px;
+}
+
+.file-info md-icon {
+    color: var(--md-sys-color-primary);
+}
+
+.file-details {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.file-details md-icon {
+    color: var(--md-sys-color-primary);
+}
+
+#clear-file-btn {
+    --md-icon-button-icon-color: var(--md-sys-color-on-surface-variant);
+}
+
+#key-select {
+    width: 100%;
 }

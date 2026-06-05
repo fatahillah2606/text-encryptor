@@ -1,0 +1,57 @@
+<div
+    class="w-full h-18 bg-md-background md:bg-md-surface-container flex items-center justify-between z-50 sticky top-0"
+>
+    <!-- Icon and lable -->
+    <div class="flex items-center justify-start">
+        <div class="w-24 flex items-center justify-center">
+            <md-icon
+                class="text-center w-12 h-12 rounded-xl bg-md-on-primary text-md-secondary! block md:hidden"
+            >
+                encrypted
+            </md-icon>
+
+            <md-icon-button class="cursor-pointer hidden md:flex" id="menu-btn">
+                <md-icon class="text-md-secondary!"> menu </md-icon>
+            </md-icon-button>
+        </div>
+
+        <!-- The lable -->
+        <span
+            class="md-typescale-title-large text-md-secondary hidden sm:block"
+        >
+            Text Encryptor
+        </span>
+    </div>
+
+    <!-- User profile -->
+    <div class="relative flex items-center justify-center mr-5 gap-2.5">
+        <md-icon-button onclick="openKeyModal()">
+            <md-icon>key_vertical</md-icon>
+        </md-icon-button>
+        {% if 'username' in session %}
+        <div
+            class="flex items-center justify-center bg-md-on-primary cursor-pointer rounded-full w-11 h-11 ml-1"
+            title="Account information"
+            id="user-profile"
+        >
+            <span class="text-md-secondary font-bold text-lg">
+                {{ name[0] }}
+            </span>
+        </div>
+
+        <!-- Profile menu -->
+        <md-menu id="profile-menu" anchor="user-profile">
+            <md-menu-item onclick="movePage('/pages/account_manager')">
+                <div slot="headline">Account</div>
+            </md-menu-item>
+            <md-menu-item onclick="logout()">
+                <div slot="headline">Logout</div>
+            </md-menu-item>
+        </md-menu>
+        {% else %}
+        <a href="/pages/login">
+            <md-filled-button>Login</md-filled-button>
+        </a>
+        {% endif %}
+    </div>
+</div>

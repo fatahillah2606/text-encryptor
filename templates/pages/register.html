@@ -266,8 +266,7 @@
                         // If unavailable
                         progressBar.classList.add("hidden");
 
-                        showSupportText(usernameField, error);
-                        console.error(error);
+                        showSupportText(usernameField, error.message);
                     }
                 }
             }
@@ -303,8 +302,7 @@
                 } catch (error) {
                     progressBar.classList.add("hidden");
 
-                    showAlert("An error occured", error);
-                    console.error(error);
+                    showAlert("Unable to register you", error.message);
                 }
             }
 
@@ -323,7 +321,7 @@
                     } else {
                         showSupportText(
                             retypePw,
-                            "The password does not match!",
+                            "The password does not match. Please try again.",
                         );
                     }
                 }

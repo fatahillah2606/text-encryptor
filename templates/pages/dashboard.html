@@ -11,7 +11,7 @@
     <div
         class="bg-md-background w-full h-full md:rounded-4xl overflow-auto p-5"
     >
-        <div class="flex flex-col gap-5 relative animate-showup">
+        <div class="flex flex-col gap-5 relative animate-showup mb-20 md:mb-0">
             <div
                 class="flex items-center justify-start md:justify-center md:flex-col gap-2.5 md:gap-2 my-2.5"
             >
@@ -59,26 +59,26 @@
                 ></md-assist-chip>
                 <md-assist-chip
                     label="Text Encryptor"
-                    onclick="movePage('/pages/text_encryptor')"
+                    onclick="movePage('/pages/tools#text_encryptor')"
                 ></md-assist-chip>
                 <md-assist-chip
                     label="Text Decryptor"
-                    onclick="movePage('/pages/text_decryptor')"
+                    onclick="movePage('/pages/tools#text_decryptor')"
                 ></md-assist-chip>
 
                 {% else %}
                 <!-- For guest mode -->
                 <md-assist-chip
                     label="Password Generator"
-                    onclick="movePage('/pages/password_generator')"
+                    onclick="movePage('/pages/tools#password_generator')"
                 ></md-assist-chip>
                 <md-assist-chip
                     label="Text Encryptor"
-                    onclick="movePage('/pages/text_encryptor')"
+                    onclick="movePage('/pages/tools#text_encryptor')"
                 ></md-assist-chip>
                 <md-assist-chip
                     label="Text Decryptor"
-                    onclick="movePage('/pages/text_decryptor')"
+                    onclick="movePage('/pages/tools#text_decryptor')"
                 ></md-assist-chip>
                 {% endif %}
             </md-chip-set>
@@ -155,7 +155,7 @@
                 {% endif %}
                 <div class="rounded-3xl overflow-hidden flex flex-col gap-1">
                     <a
-                        href="/pages/password_generator"
+                        href="/pages/tools#password_generator"
                         class="relative flex items-center justify-start p-3 gap-2.5 bg-md-surface-variant dark:bg-black rounded-md cursor-pointer"
                     >
                         <span
@@ -178,7 +178,7 @@
                 </div>
                 <div class="rounded-3xl overflow-hidden flex flex-col gap-1">
                     <a
-                        href="/pages/text_encryptor"
+                        href="/pages/tools#text_encryptor"
                         class="relative flex items-center justify-start p-3 gap-2.5 bg-md-surface-variant dark:bg-black rounded-md cursor-pointer"
                     >
                         <span
@@ -199,7 +199,7 @@
                         <md-ripple></md-ripple>
                     </a>
                     <a
-                        href="/pages/text_decryptor"
+                        href="/pages/tools#text_decryptor"
                         class="relative flex items-center justify-start p-3 gap-2.5 bg-md-surface-variant dark:bg-black rounded-md cursor-pointer"
                     >
                         <span

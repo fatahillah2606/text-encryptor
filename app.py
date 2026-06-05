@@ -8,7 +8,7 @@ from flask.sansio.app import timedelta
 
 from routes.api import api_route
 from routes.pages import pages_route
-from src.init_db import create_database
+from src.init_db import create_database, update_database
 
 load_dotenv()
 
@@ -26,6 +26,7 @@ def check_and_setup_db():
         create_database()
     else:
         print("Database found!")
+        update_database()
 
 
 app = Flask(__name__)
@@ -50,7 +51,7 @@ def check_session():
             session.clear()
             redirect(url_for("pages.login"))
 
-        session["expired"] = (current_time + timedelta(hours=1)).isoformat()
+        session["expired"] = (current_time + timedelta(minutes=5)).isoformat()
 
 
 @app.route("/")
@@ -60,4 +61,4 @@ def home():
 
 if __name__ == "__main__":
     check_and_setup_db()
-    app.run(host="0.0.0.0", debug=True)
+    app.run(debug=True)
