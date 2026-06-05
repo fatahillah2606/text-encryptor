@@ -10,15 +10,13 @@ if (navrail) {
 
     // Extend menu
     function extendMenu() {
-        mainCont.classList.remove("md:grid-cols-[100px_1fr]");
+        mainCont.classList.remove("md:grid-cols-[96px_1fr]");
         mainCont.classList.add("md:grid-cols-[220px_1fr]");
 
         menuIcon.textContent = "menu_open";
 
         // Extend the menu list
         navrail.classList.add("extend");
-        navrail.classList.remove("px-2.5");
-        navrail.classList.add("px-5");
 
         railMenuList.forEach((menu) => {
             // Remove
@@ -30,30 +28,34 @@ if (navrail) {
             menu.classList.add("gap-0");
             menu.classList.add("rounded-full");
             menu.classList.add("hover:bg-md-outline-variant");
-            menu.classList.add("w-full");
+            menu.classList.add("w-fit");
+            menu.classList.add("pr-5");
+            menu.classList.add("ml-3");
         });
 
-        railfab.setAttribute("label", "Add");
+        if (railfab) {
+            railfab.setAttribute("label", "Add");
+        }
     }
 
     // Shrink menu
     function shrinkMenu() {
-        mainCont.classList.add("md:grid-cols-[100px_1fr]");
+        mainCont.classList.add("md:grid-cols-[96px_1fr]");
         mainCont.classList.remove("md:grid-cols-[220px_1fr]");
 
         menuIcon.textContent = "menu";
 
         // Shrink the menu list
         navrail.classList.remove("extend");
-        navrail.classList.remove("px-5");
-        navrail.classList.add("px-2.5");
 
         railMenuList.forEach((menu) => {
             // Remove
             menu.classList.remove("rounded-full");
             menu.classList.remove("hover:bg-md-outline-variant");
             menu.classList.remove("gap-0");
-            menu.classList.remove("w-full");
+            menu.classList.remove("w-fit");
+            menu.classList.remove("pr-5");
+            menu.classList.remove("ml-3");
 
             // Add
             menu.classList.add("flex-col");
@@ -61,12 +63,14 @@ if (navrail) {
             menu.classList.add("w-20");
         });
 
-        railfab.removeAttribute("label");
+        if (railfab) {
+            railfab.removeAttribute("label");
+        }
     }
 
     // Menu btn listener
     menuBtn.addEventListener("click", () => {
-        if (mainCont.classList.contains("md:grid-cols-[100px_1fr]")) {
+        if (mainCont.classList.contains("md:grid-cols-[96px_1fr]")) {
             extendMenu();
         } else {
             shrinkMenu();

@@ -114,30 +114,53 @@ class DataImporter:
         reader = csv.DictReader(csv_file)
 
         # Target headers
-        expected_headers = {"name", "url", "username", "password", "note"}
+        chromium_based = {"name", "url", "username", "password", "note"}
+        firefox = {
+            "url",
+            "username",
+            "password",
+            "httpRealm",
+            "formActionOrigin",
+            "guid",
+            "timeCreated",
+            "timeLastUsed",
+            "timePasswordChanged",
+        }
 
         # Quick validation check on headers
-        if not reader.fieldnames or not expected_headers.issubset(
-            set(reader.fieldnames)
-        ):
+        if not reader.fieldnames:
             return (
                 "error",
-                "CSV format is not supported. Make sure the CSV file you attach contains name, url, username, password and note columns.",
+                "CSV format is not supported. Make sure the CSV file you select is from a Chromium-based browser, Firefox, or Text Encryptor.",
             )
 
         parsed_passwords = []
 
-        # Create dict/json
-        for row in reader:
-            parsed_passwords.append(
-                {
-                    "name": row.get("name", "").strip(),
-                    "url": row.get("url", "").strip(),
-                    "username": row.get("username", "").strip(),
-                    "password": row.get("password", ""),
-                    "note": row.get("note", "").strip(),
-                }
-            )
+        # For chromium based
+        if chromium_based.issubset(set(reader.fieldnames)):
+            for row in reader:
+                parsed_passwords.append(
+                    {
+                        "name": row.get("name", "").strip(),
+                        "url": row.get("url", "").strip(),
+                        "username": row.get("username", "").strip(),
+                        "password": row.get("password", ""),
+                        "note": row.get("note", "").strip(),
+                    }
+                )
+
+        # For Firefox browser
+        if firefox.issubset(set(reader.fieldnames)):
+            for row in reader:
+                parsed_passwords.append(
+                    {
+                        "name": row.get("url", "").strip(),
+                        "url": row.get("formActionOrigin", "").strip(),
+                        "username": row.get("username", "").strip(),
+                        "password": row.get("password", ""),
+                        "note": "",
+                    }
+                )
 
         return "success", parsed_passwords
 
@@ -235,7 +258,7 @@ class DataExporter:
                 }
             )
 
-        # Generate random byte
+        # Abydos Foreclosure Task Force
         hoshino = os.urandom(32)
         nonomi = os.urandom(6)
         shiroko = os.urandom(12)
@@ -262,7 +285,7 @@ class DataExporter:
         # encrypt_and_digest generates both ciphertext and the integrity tag
         ciphertext, tag = cipher.encrypt_and_digest(plaintext_vault)
 
-        # Build final payload.
+        # Protect the vault with Foreclosure Task Force team.
         combined_payload = (
             hoshino
             + tag

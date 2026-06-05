@@ -1,6 +1,6 @@
 {% from "components/macros/rail_menu.html" import rail_items %}
 <nav
-    class="bg-md-surface-container px-2.5 hidden md:flex flex-col w-full h-fit overflow-y-auto! z-20"
+    class="bg-md-surface-container hidden md:flex flex-col w-full h-[calc(100vh-72px)] overflow-y-auto! z-20 p-2"
     id="navrail"
 >
     <!-- FAB -->
@@ -8,7 +8,7 @@
     <md-fab
         variant="primary"
         aria-label="Add"
-        class="ml-3 mt-2.5"
+        class="mx-3"
         onclick="openNewKeyModal()"
     >
         <md-icon slot="icon">add</md-icon>
@@ -17,14 +17,14 @@
     <md-fab
         variant="primary"
         aria-label="Add"
-        class="ml-3 mt-2.5"
+        class="mx-3"
         onclick="openNewAccountModal()"
     >
         <md-icon slot="icon">add</md-icon>
     </md-fab>
     {% endif %}
 
-    <div class="mb-14"></div>
+    <div class="mb-12"></div>
     <!-- Dashboard -->
     {{ rail_items('Dashboard', 'dashboard', url_for('pages.dashboard'),
     active_page, 'dashboard') }}

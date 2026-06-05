@@ -151,6 +151,9 @@
   .m-0 {
     margin: calc(var(--spacing) * 0);
   }
+  .mx-3 {
+    margin-inline: calc(var(--spacing) * 3);
+  }
   .my-1 {
     margin-block: calc(var(--spacing) * 1);
   }
@@ -184,8 +187,8 @@
   .mb-1\.5 {
     margin-bottom: calc(var(--spacing) * 1.5);
   }
-  .mb-2\.5 {
-    margin-bottom: calc(var(--spacing) * 2.5);
+  .mb-3 {
+    margin-bottom: calc(var(--spacing) * 3);
   }
   .mb-5 {
     margin-bottom: calc(var(--spacing) * 5);
@@ -193,8 +196,8 @@
   .mb-8 {
     margin-bottom: calc(var(--spacing) * 8);
   }
-  .mb-14 {
-    margin-bottom: calc(var(--spacing) * 14);
+  .mb-12 {
+    margin-bottom: calc(var(--spacing) * 12);
   }
   .mb-25 {
     margin-bottom: calc(var(--spacing) * 25);
@@ -265,9 +268,6 @@
   .h-auto {
     height: auto;
   }
-  .h-fit {
-    height: fit-content;
-  }
   .h-full {
     height: 100%;
   }
@@ -313,9 +313,6 @@
   .w-24 {
     width: calc(var(--spacing) * 24);
   }
-  .w-25 {
-    width: calc(var(--spacing) * 25);
-  }
   .w-40 {
     width: calc(var(--spacing) * 40);
   }
@@ -324,6 +321,9 @@
   }
   .w-auto {
     width: auto;
+  }
+  .w-fit {
+    width: fit-content;
   }
   .w-full {
     width: 100%;
@@ -510,6 +510,9 @@
   .p-0 {
     padding: calc(var(--spacing) * 0);
   }
+  .p-2 {
+    padding: calc(var(--spacing) * 2);
+  }
   .p-2\.5 {
     padding: calc(var(--spacing) * 2.5);
   }
@@ -521,12 +524,6 @@
   }
   .p-5 {
     padding: calc(var(--spacing) * 5);
-  }
-  .px-1 {
-    padding-inline: calc(var(--spacing) * 1);
-  }
-  .px-2\.5 {
-    padding-inline: calc(var(--spacing) * 2.5);
   }
   .px-3 {
     padding-inline: calc(var(--spacing) * 3);
@@ -551,6 +548,9 @@
   }
   .pt-4 {
     padding-top: calc(var(--spacing) * 4);
+  }
+  .pr-5 {
+    padding-right: calc(var(--spacing) * 5);
   }
   .text-center {
     text-align: center;
@@ -882,9 +882,9 @@
       max-width: var(--container-5xl);
     }
   }
-  .md\:grid-cols-\[100px_1fr\] {
+  .md\:grid-cols-\[96px_1fr\] {
     @media (width >= 48rem) {
-      grid-template-columns: 100px 1fr;
+      grid-template-columns: 96px 1fr;
     }
   }
   .md\:grid-cols-\[220px_1fr\] {
