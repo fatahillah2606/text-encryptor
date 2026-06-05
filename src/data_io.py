@@ -150,7 +150,7 @@ class DataImporter:
                 )
 
         # For Firefox browser
-        if firefox.issubset(set(reader.fieldnames)):
+        elif firefox.issubset(set(reader.fieldnames)):
             for row in reader:
                 parsed_passwords.append(
                     {
@@ -161,6 +161,12 @@ class DataImporter:
                         "note": "",
                     }
                 )
+
+        else:
+            return (
+                "error",
+                "CSV format is not supported. Make sure the CSV file you select is from a Chromium-based browser, Firefox, or Text Encryptor.",
+            )
 
         return "success", parsed_passwords
 
