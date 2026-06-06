@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Login</title>
+        <title>Recovery</title>
         <!-- Local CSS -->
         <link
             rel="stylesheet"
@@ -46,39 +46,11 @@
                 <!-- Left content -->
                 <div class="w-full">
                     <h1 class="md-typescale-display-small text-md-on-surface">
-                        Login
+                        Recovery
                     </h1>
                     <p class="md-typescale-body-large text-md-on-surface">
-                        Select an account to continue.
+                        Select an account to recover.
                     </p>
-
-                    <!-- Recovery notice -->
-                    <div
-                        class="p-4 rounded-xl bg-md-tertiary-container flex gap-3 items-start mt-2.5"
-                    >
-                        <span
-                            class="material-symbols-rounded text-md-on-tertiary-container mt-0.5"
-                        >
-                            info
-                        </span>
-                        <div class="flex flex-col">
-                            <span
-                                id="export-manifest-desc"
-                                class="md-typescale-body-medium text-md-on-tertiary-container leading-relaxed"
-                            >
-                                Found an account saved in a previous version.
-                                You can restore your saved data now or do it
-                                later.
-                            </span>
-                            <div class="mt-4" style="direction: rtl">
-                                <md-filled-button
-                                    onclick="movePage('/pages/recovery')"
-                                >
-                                    Recover
-                                </md-filled-button>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Right content -->
@@ -87,7 +59,7 @@
                         id="slider"
                         class="flex w-full h-full transition-transform duration-500 ease-in-out"
                     >
-                        <!-- User list content -->
+                        <!-- Available user to recover -->
                         <div
                             id="user-list"
                             class="w-full shrink-0 h-full py-4 flex flex-col justify-between"
@@ -126,43 +98,21 @@
                                 </div>
                                 {% endfor %}
                             </div>
-                            <a
-                                href="/pages/register"
-                                class="relative flex items-center justify-start gap-2.5 py-3 px-3 md:px-6 rounded-3xl cursor-pointer"
-                            >
-                                <div
-                                    class="w-7 h-7 flex items-center justify-center"
-                                >
-                                    <span
-                                        class="material-symbols-rounded text-[28px]! text-md-primary"
-                                    >
-                                        account_circle
-                                    </span>
-                                </div>
-                                <div>
-                                    <span class="text-md-on-surface text-lg">
-                                        Create an account
-                                    </span>
-                                </div>
-                                <md-ripple></md-ripple>
-                            </a>
-
                             <p
                                 class="md-typescale-body-medium text-md-on-surface"
                             >
-                                Don’t want to log in? You can still access guest
-                                mode.
-                                <br />
+                                Make sure you remember the password of the
+                                account you want to recover.
                                 <a
-                                    href="/pages/dashboard"
+                                    href="/pages/login"
                                     class="text-md-primary no-underline font-semibold hover:underline!"
                                 >
-                                    Click here to access guest mode.
+                                    Click here to return to the login page.
                                 </a>
                             </p>
                         </div>
 
-                        <!-- Password field content -->
+                        <!-- Password field content for decryption -->
                         <div
                             id="password-field"
                             class="w-full shrink-0 h-full p-4 flex flex-col justify-between"
@@ -206,7 +156,84 @@
 
                                 <div class="mt-5 flex flex-row-reverse gap-5">
                                     <md-filled-button type="submit">
-                                        Login
+                                        Recover
+                                    </md-filled-button>
+
+                                    <md-text-button
+                                        type="button"
+                                        onclick="slidePrev()"
+                                    >
+                                        Back
+                                    </md-text-button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- If there was duplicate account username -->
+                        <div
+                            id="duplicate-handler"
+                            class="w-full shrink-0 h-full p-4 flex flex-col justify-between"
+                        >
+                            <form
+                                action=""
+                                method="post"
+                                id="duplicate_action"
+                                name="duplicate_action"
+                            >
+                                <p
+                                    class="md-typescale-body-medium text-md-on-surface"
+                                >
+                                    There's an account with the same username.
+                                    What would you like to do?
+                                </p>
+
+                                <!-- Radio button -->
+                                <div class="flex flex-col gap-4 mb-5">
+                                    <div class="flex items-center gap-4">
+                                        <md-radio
+                                            id="merge_option"
+                                            name="option"
+                                            value="merge"
+                                            checked
+                                        ></md-radio>
+                                        <label
+                                            class="text-md-on-surface md-typescale-body-medium"
+                                            for="merge_option"
+                                        >
+                                            Merge the passwords
+                                        </label>
+                                    </div>
+
+                                    <div class="flex items-center gap-4">
+                                        <md-radio
+                                            id="create_new_option"
+                                            name="option"
+                                            value="new"
+                                        ></md-radio>
+                                        <label
+                                            class="text-md-on-surface md-typescale-body-medium"
+                                            for="create_new_option"
+                                        >
+                                            Create a new username
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- New username -->
+                                <md-outlined-text-field
+                                    label="Username"
+                                    class="block w-full"
+                                    name="username"
+                                    id="username"
+                                    type="text"
+                                    required
+                                    disabled
+                                >
+                                </md-outlined-text-field>
+
+                                <div class="mt-5 flex flex-row-reverse gap-5">
+                                    <md-filled-button type="submit">
+                                        Proceed
                                     </md-filled-button>
 
                                     <md-text-button
@@ -231,23 +258,33 @@
             // Sliding animation
             const slider = document.querySelector("#slider");
             let account = null;
+            let currentIndex = 0;
 
-            function slideNext(selectedAccount) {
-                account = selectedAccount;
-                slider.style.transform = "translateX(-100%)";
+            function updatePosition() {
+                slider.style.transform = `translateX(-${currentIndex * 100}%)`;
+            }
+
+            function slideNext(selectedAccount = null) {
+                if (selectedAccount) {
+                    account = selectedAccount;
+                }
+
+                currentIndex++;
+                updatePosition();
             }
 
             function slidePrev() {
                 account = null;
-                slider.style.transform = "translateX(0)";
+                currentIndex--;
+                updatePosition();
             }
 
             // Auth
             const login_api = "/api/auth/login";
-            const loginForm = document.getElementById("login_form");
-            const theField = document.querySelector("#password");
+            const recoveryForm = document.getElementById("login_form");
+            const duplicateAction = document.getElementById("duplicate_action");
 
-            async function login(formulir) {
+            async function decryptAndRecover(formulir) {
                 // Prograss bar
                 const progressBar =
                     document.querySelector("md-linear-progress");
@@ -275,15 +312,29 @@
                 } catch (error) {
                     progressBar.classList.add("hidden");
 
-                    showSupportText(theField, error.message);
+                    showSupportText(recoveryForm.password, error.message);
                 }
             }
 
-            loginForm.addEventListener("submit", (event) => {
+            // radio listener
+            const optionRadio = duplicateAction.option;
+            optionRadio.forEach((radio) => {
+                radio.addEventListener("change", () => {
+                    if (duplicateAction.create_new_option.checked) {
+                        duplicateAction.username.disabled = false;
+                    } else {
+                        duplicateAction.username.disabled = true;
+                    }
+                });
+            });
+
+            recoveryForm.addEventListener("submit", (event) => {
                 event.preventDefault();
 
-                hideSupportText(theField);
-                login(loginForm);
+                hideSupportText(recoveryForm.password);
+                // login(loginForm);
+
+                slideNext();
             });
         </script>
     </body>

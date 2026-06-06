@@ -108,6 +108,12 @@ def register():
         return render_template("pages/register.html", notice=notice)
 
 
+@pages_route.route("/recovery")
+def recovery():
+    userList = user.getAvailableUsers()
+    return render_template("pages/recovery.html", userlist=userList)
+
+
 @pages_route.route("/logout")
 def logout():
     session.clear()

@@ -50,6 +50,34 @@
                     <p class="md-typescale-body-large text-md-on-surface">
                         Register to use the password manager feature.
                     </p>
+
+                    <!-- Recovery notice -->
+                    <div
+                        class="p-4 rounded-xl bg-md-tertiary-container flex gap-3 items-start mt-2.5"
+                    >
+                        <span
+                            class="material-symbols-rounded text-md-on-tertiary-container mt-0.5"
+                        >
+                            info
+                        </span>
+                        <div class="flex flex-col">
+                            <span
+                                id="export-manifest-desc"
+                                class="md-typescale-body-medium text-md-on-tertiary-container leading-relaxed"
+                            >
+                                Found an account saved in a previous version.
+                                You can restore your saved data now or do it
+                                later.
+                            </span>
+                            <div class="mt-4" style="direction: rtl">
+                                <md-filled-button
+                                    onclick="movePage('/pages/recovery')"
+                                >
+                                    Recover
+                                </md-filled-button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <!-- Right content -->
                 <div class="w-full relative overflow-hidden">
