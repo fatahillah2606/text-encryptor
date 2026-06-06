@@ -71,9 +71,11 @@
                                     onclick="slideNext(`{{ user['username'] }}`)"
                                 >
                                     <div
-                                        class="w-7 h-7 flex items-center justify-center bg-md-on-primary rounded-full"
+                                        class="w-7 h-7 flex items-center justify-center bg-md-secondary-container rounded-full"
                                     >
-                                        <span class="text-md-secondary">
+                                        <span
+                                            class="text-md-on-secondary-container"
+                                        >
                                             {{ user['name'][0] }}
                                         </span>
                                     </div>
@@ -192,7 +194,7 @@
             </div>
 
             <!-- Toast -->
-            {% include 'components/toast.html' %}
+            {% include 'components/snackbar.html' %}
         </section>
         <script src="{{ url_for('static', filename='scripts/script.js') }}"></script>
         <script src="{{ url_for('static', filename='scripts/api.js') }}"></script>

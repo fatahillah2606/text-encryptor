@@ -142,7 +142,7 @@ md-filled-button .button-progress-indicator md-circular-progress {
 }
 
 .extend .rail-menu.active {
-    background-color: var(--md-sys-color-on-primary);
+    background-color: var(--md-sys-color-secondary-container);
 }
 
 .material-icon-fill {
@@ -153,6 +153,9 @@ md-tabs::part(divider) {
     display: none;
 }
 
+#snackbar md-text-button {
+    --md-sys-color-primary: var(--md-sys-color-inverse-primary);
+}
 /* For import option on 'Account manager' */
 .upload-container {
     display: flex;

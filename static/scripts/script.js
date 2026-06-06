@@ -8,6 +8,14 @@ if (navrail) {
     const menuIcon = menuBtn.querySelector("md-icon");
     const mainCont = document.querySelector("main");
 
+    // For the ripple effect
+    railMenuList.forEach((menu) => {
+        const ripple = menu.querySelector("md-ripple");
+        if (ripple) {
+            ripple.attach(menu);
+        }
+    });
+
     // Extend menu
     function extendMenu() {
         mainCont.classList.remove("md:grid-cols-[96px_1fr]");
@@ -23,14 +31,15 @@ if (navrail) {
             menu.classList.remove("flex-col");
             menu.classList.remove("gap-1");
             menu.classList.remove("w-20");
+            menu.querySelector("#rail-menu-ripple").classList.remove("hidden");
 
             // Add
             menu.classList.add("gap-0");
             menu.classList.add("rounded-full");
-            menu.classList.add("hover:bg-md-outline-variant");
             menu.classList.add("w-fit");
             menu.classList.add("pr-5");
             menu.classList.add("ml-3");
+            menu.querySelector("md-ripple").classList.add("hidden");
         });
 
         if (railfab) {
@@ -51,16 +60,17 @@ if (navrail) {
         railMenuList.forEach((menu) => {
             // Remove
             menu.classList.remove("rounded-full");
-            menu.classList.remove("hover:bg-md-outline-variant");
             menu.classList.remove("gap-0");
             menu.classList.remove("w-fit");
             menu.classList.remove("pr-5");
             menu.classList.remove("ml-3");
+            menu.querySelector("md-ripple").classList.remove("hidden");
 
             // Add
             menu.classList.add("flex-col");
             menu.classList.add("gap-1");
             menu.classList.add("w-20");
+            menu.querySelector("#rail-menu-ripple").classList.add("hidden");
         });
 
         if (railfab) {
@@ -92,52 +102,67 @@ function movePage(uri) {
     location.href = uri;
 }
 
-// Toast
+// Snackbar
 let autoDismis;
-function showToast(message) {
+function showSnackbar(message, action = null) {
     clearTimeout(autoDismis);
-    const toast = document.querySelector("#toast-default");
+    const snackbar = document.querySelector("#snackbar");
     const fab = document.querySelector("md-fab");
 
-    if (toast) {
+    if (snackbar) {
         // Check if a FAB exists and is visible
         if (fab) {
-            toast.classList.add("bottom-44");
+            snackbar.classList.add("bottom-40");
         } else {
-            toast.classList.remove("bottom-44");
+            snackbar.classList.remove("bottom-40");
         }
 
-        const toastMessage = toast.querySelector("#toast-message");
+        const supportingText = snackbar.querySelector(
+            "#snackbar-supporting-text",
+        );
+        const snackbarAction = snackbar.querySelector("#snackbar-action");
 
-        toastMessage.textContent = message;
+        supportingText.textContent = message;
+
+        if (action) {
+            try {
+                snackbarAction.textContent = action.title;
+                snackbarAction.setAttribute("onclick", action.action);
+
+                snackbarAction.classList.remove("hidden");
+            } catch (error) {
+                console.error("Action must have 'title' and 'action'");
+            }
+        }
 
         // Animate showup
-        toast.classList.remove("hidden");
+        snackbar.classList.remove("hidden");
         setTimeout(() => {
-            toast.classList.remove("translate-y-5");
-            toast.classList.remove("opacity-0");
+            snackbar.classList.remove("translate-y-5");
+            snackbar.classList.remove("opacity-0");
         }, 50);
 
         autoDismis = setTimeout(() => {
-            dismisToast();
+            dismissSnackbar();
         }, 5000);
     } else {
-        console.error("Toast element not found in this page!");
+        console.error("Snackbar element not found in this page!");
     }
 }
 
-function dismisToast() {
-    const toast = document.querySelector("#toast-default");
+function dismissSnackbar() {
+    const snackbar = document.querySelector("#snackbar");
 
-    if (toast) {
+    if (snackbar) {
         // Animate dismis
-        toast.classList.add("translate-y-5");
-        toast.classList.add("opacity-0");
+        snackbar.classList.add("translate-y-5");
+        snackbar.classList.add("opacity-0");
         setTimeout(() => {
-            toast.classList.add("hidden");
+            snackbar.classList.add("hidden");
+            snackbar.querySelector("#snackbar-action").classList.add("hidden");
         }, 300);
     } else {
-        console.error("Toast element not found in this page!");
+        console.error("Snackbar element not found in this page!");
     }
 }
 
@@ -175,7 +200,7 @@ function copyText(field, copyBtn) {
                 copyBtn.disabled = false;
             }, 2000);
 
-            showToast("Text copied.");
+            showSnackbar("Text copied.");
         })
         .catch((err) => {
             showAlert("Clipboard write failed.", err);
@@ -205,7 +230,7 @@ function copyTextIconBtn(field, copyIconBtn, event) {
                 copyIcon.disabled = false;
             }, 1000);
 
-            showToast("Text copied.");
+            showSnackbar("Text copied.");
         })
         .catch((err) => {
             showAlert("Clipboard write failed.", err);
@@ -310,7 +335,7 @@ function saveKeyToSession(data) {
     keyData = { name: data.key_name, key: data.encryption_key };
     sessionStorage.setItem("encryption_key", JSON.stringify(keyData));
 
-    showToast("Encryption key has been set.");
+    showSnackbar("Encryption key has been set.");
     checkEncryptionKey();
 }
 

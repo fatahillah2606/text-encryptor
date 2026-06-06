@@ -605,7 +605,9 @@ def exportData():
 
             # Serialize data for support Excel and Browser
             for pw in allUserPw:
-                service_url = pw["url"] if pw["url"] else "https://example.com/"
+                service_url = (
+                    pw["url"] if pw["url"] else "https://from.text-encryptor.app/"
+                )
                 service_notes = pw["note"] if pw["note"] else ""
 
                 dataSheet.append(

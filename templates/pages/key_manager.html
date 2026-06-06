@@ -319,7 +319,7 @@
                 progressIndicator.classList.add("hidden!");
                 newKeyForm.add_btn.disabled = true;
 
-                showToast(result.message);
+                showSnackbar(result.message);
                 closeNewKeyModal();
             }
         } catch (error) {
@@ -479,7 +479,7 @@
                     progressIndicator.classList.add("hidden!");
                     editKeyForm.save_btn.disabled = true;
 
-                    showToast(result.message);
+                    showSnackbar(result.message);
                     disableEditing();
                 }
             } catch (error) {
@@ -528,7 +528,7 @@
 
                     if (result.code === 200) {
                         closeEditKeyModal();
-                        showToast(result.message);
+                        showSnackbar(result.message);
 
                         // Reinit keys
                         loadKeys();
@@ -579,17 +579,15 @@
             } else {
                 keyList.innerHTML = `
                     <blockquote
-                            class="flex items-start bg-md-on-primary rounded-2xl w-full m-0 p-5 gap-2.5"
+                            class="flex items-start bg-md-secondary-container rounded-2xl w-full m-0 p-5 gap-2.5"
                         >
-                            <md-icon class="text-md-secondary shrink-0">
+                            <md-icon class="text-md-on-secondary-container shrink-0">
                                 info
                             </md-icon>
                             <p
-                                class="md-typescale-body-large text-md-secondary italic! font-semibold! m-0"
+                                class="md-typescale-body-large text-md-on-secondary-container italic! font-semibold! m-0"
                             >
-                                "The way forward is locked. No key has been saved here
-                                yet. You should create a new one... It's better to be
-                                prepared before we move on."
+                                "The way forward is locked. No key has been saved here yet."
                             </p>
                         </blockquote>
                 `;

@@ -434,21 +434,23 @@
             <!-- Live Status Manifest Banner -->
             <div
                 id="import-manifest-banner"
-                class="p-4 rounded-xl bg-md-on-primary flex gap-3 items-start col-span-2"
+                class="p-4 rounded-xl bg-md-secondary-container flex gap-3 items-start col-span-2"
             >
-                <span class="material-symbols-rounded text-md-secondary mt-0.5">
+                <span
+                    class="material-symbols-rounded text-md-on-secondary-container mt-0.5"
+                >
                     inventory_2
                 </span>
                 <div class="flex flex-col gap-0.5">
                     <span
-                        class="text-xs font-semibold text-md-secondary uppercase tracking-wide"
+                        class="text-xs font-semibold text-md-on-secondary-container uppercase tracking-wide"
                         id="import-manifest-heading"
                     >
                         Awaiting File Selection
                     </span>
                     <span
                         id="import-manifest-desc"
-                        class="text-xs text-md-secondary leading-relaxed"
+                        class="text-xs text-md-on-secondary-container leading-relaxed"
                     >
                         Please select a valid archive. Native backups (.json)
                         will restore both your keys and passwords, while
@@ -547,6 +549,28 @@
             </md-list>
         </div>
 
+        <!-- Warning -->
+        <div
+            class="p-4 rounded-xl bg-md-error-container flex gap-3 items-start hidden"
+            id="csv-warning"
+        >
+            <span
+                class="material-symbols-rounded text-md-on-error-container mt-0.5"
+            >
+                warning
+            </span>
+            <div class="flex flex-col gap-0.5">
+                <span
+                    class="text-xs text-md-on-error-container leading-relaxed"
+                >
+                    If you try to export to a <b>CSV file</b>, any of your
+                    passwords that <u>don't have a url address</u> will be
+                    autofilled with
+                    <strong>https://from.text-encryptor.app/</strong>
+                </span>
+            </div>
+        </div>
+
         <!-- Step 2: Security Configuration -->
         <div
             id="security-section"
@@ -611,19 +635,21 @@
         <!-- Live Status Manifest Banner -->
         <div
             id="export-manifest-banner"
-            class="p-4 rounded-xl bg-md-on-primary flex gap-3 items-start"
+            class="p-4 rounded-xl bg-md-secondary-container flex gap-3 items-start"
         >
-            <span class="material-symbols-rounded text-md-secondary mt-0.5">
+            <span
+                class="material-symbols-rounded text-md-on-secondary-container mt-0.5"
+            >
                 inventory_2
             </span>
             <div class="flex flex-col gap-0.5">
                 <span
-                    class="text-xs font-semibold text-md-secondary uppercase tracking-wide"
+                    class="text-xs font-semibold text-md-on-secondary-container uppercase tracking-wide"
                     >Export Manifest Preview</span
                 >
                 <span
                     id="export-manifest-desc"
-                    class="text-xs text-md-secondary leading-relaxed"
+                    class="text-xs text-md-on-secondary-container leading-relaxed"
                 >
                     Ready to package data into an unencrypted archive folder
                     structure.
@@ -781,7 +807,7 @@
                 dialogForm.save_changes.disabled = true;
 
                 closeDialog();
-                showToast(result.message);
+                showSnackbar(result.message);
             }
         } catch (error) {
             progressIndicator.classList.add("hidden!");
@@ -988,7 +1014,10 @@
 
                 sendRequest(importAPI, payload, "POST")
                     .then((response) => {
-                        showToast(response.message);
+                        showSnackbar(response.message, {
+                            title: "View",
+                            action: "movePage('/pages/password_manager')",
+                        });
 
                         importBtnIndicator.classList.add("hidden!");
                         closeImportMenu();
@@ -1007,7 +1036,10 @@
 
                     sendRequest(importAPI, payload, "POST")
                         .then((response) => {
-                            showToast(response.message);
+                            showSnackbar(response.message, {
+                                title: "View",
+                                action: "movePage('/pages/password_manager')",
+                            });
 
                             importBtnIndicator.classList.add("hidden!");
                             closeImportMenu();
@@ -1064,6 +1096,7 @@
     const radioJson = document.getElementById("option-json");
     const radioCsv = document.getElementById("option-csv");
     const cryptoSwitch = document.getElementById("crypto-switch");
+    const csvWarning = document.getElementById("csv-warning");
     const securitySection = document.getElementById("security-section");
     const passwordBlock = document.getElementById("password-block");
     const exportPassword = document.getElementById("export_password");
@@ -1100,6 +1133,7 @@
             securitySection.classList.add("opacity-40", "pointer-events-none");
             passwordBlock.classList.add("hidden");
             exportPassword.required = false;
+            csvWarning.classList.remove("hidden");
 
             // Update Context Manifest
             exportManifestDesc.innerHTML =
@@ -1124,6 +1158,8 @@
                 exportManifestDesc.innerHTML =
                     "Generating <strong>plaintext .json backup</strong>. Contains <span class='underline font-medium'>keys and passwords</span> without secondary protection. Store safely.";
             }
+
+            csvWarning.classList.add("hidden");
         }
     }
 
@@ -1177,7 +1213,7 @@
                     console.error(`Unknown file type! \nerror: ${dataSheet}`);
                 }
 
-                showToast(response.message);
+                showSnackbar(response.message);
                 exportBtnIndicator.classList.add("hidden!");
             })
             .catch((error) => {

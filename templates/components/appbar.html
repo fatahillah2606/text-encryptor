@@ -5,19 +5,21 @@
     <div class="flex items-center justify-start">
         <div class="w-24 flex items-center justify-center">
             <md-icon
-                class="text-center w-12 h-12 rounded-xl bg-md-on-primary text-md-secondary! block md:hidden"
+                class="text-center w-12 h-12 rounded-xl bg-md-secondary-container text-md-on-secondary-container! block md:hidden"
             >
                 encrypted
             </md-icon>
 
             <md-icon-button class="cursor-pointer hidden md:flex" id="menu-btn">
-                <md-icon class="text-md-secondary!"> menu </md-icon>
+                <md-icon class="text-md-on-secondary-container!">
+                    menu
+                </md-icon>
             </md-icon-button>
         </div>
 
         <!-- The lable -->
         <span
-            class="md-typescale-title-large text-md-secondary hidden sm:block"
+            class="md-typescale-title-large text-md-on-secondary-container hidden sm:block"
         >
             Text Encryptor
         </span>
@@ -30,11 +32,11 @@
         </md-icon-button>
         {% if 'username' in session %}
         <div
-            class="flex items-center justify-center bg-md-on-primary cursor-pointer rounded-full w-11 h-11 ml-1"
+            class="flex items-center justify-center bg-md-secondary-container cursor-pointer rounded-full w-11 h-11 ml-1"
             title="Account information"
             id="user-profile"
         >
-            <span class="text-md-secondary font-bold text-lg">
+            <span class="text-md-on-secondary-container font-bold text-lg">
                 {{ name[0] }}
             </span>
         </div>
