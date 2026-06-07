@@ -1,21 +1,29 @@
+import hashlib
+import hmac
+import os
 from datetime import datetime, timedelta, timezone
 
-import bcrypt
 from flask import session
 
 
 # bcrypt hashing
-def bcryptHashing(text):
-    hashedText = bcrypt.hashpw(text.encode("utf-8"), bcrypt.gensalt())
-    hashedText = hashedText.decode("utf-8")
-    return hashedText
+def scryptHashing(text):
+    salt = os.urandom(16)
+    hashed_bytes = hashlib.scrypt(text.encode("utf-8"), salt=salt, n=16384, r=8, p=1)
+    return salt + hashed_bytes
 
 
 # bcrypt check
-def bcryptCheck(text, hashedText):
-    encodeText = text.encode("utf-8")
-    encodeHashedText = hashedText.encode("utf-8")
-    return bcrypt.checkpw(encodeText, encodeHashedText)
+def scryptCheck(text, hashedText):
+    try:
+        salt = hashedText[:16]
+        original_hash = hashedText[16:]
+
+        new_hash = hashlib.scrypt(text.encode("utf-8"), salt=salt, n=16384, r=8, p=1)
+
+        return hmac.compare_digest(original_hash, new_hash)
+    except Exception:
+        return False
 
 
 # Create login session

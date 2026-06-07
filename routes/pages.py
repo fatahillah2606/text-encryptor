@@ -6,10 +6,12 @@ from functools import wraps
 from flask import Blueprint, redirect, render_template, session, url_for
 
 from src.data_manager import UserManager
-from src.encryptor import decrypt_aes, get_valid_key
+from src.encryptor import NewEncryption, OldEncryption
 
 # Get available users
 user = UserManager()
+
+encryption_method = NewEncryption()
 
 
 # pages protection
@@ -50,15 +52,17 @@ def inject_globals():
                 for row in rows:
                     # Combine iv + encrypted_key and unhexlify
                     key_from_db = binascii.hexlify(
-                        row["iv"] + row["encrypted_key"]
+                        row["key_iv"] + row["encrypted_key"]
                     ).decode()
                     key_from_db = binascii.unhexlify(key_from_db)
 
                     # Get valid key
-                    master_key = get_valid_key(session["key"])
+                    master_key = encryption_method.get_valid_key(session["key"])
 
                     # Decrypt key
-                    decrypted_key = decrypt_aes(key_from_db, master_key["encoded_key"])
+                    decrypted_key = encryption_method.decrypt_aes(
+                        key_from_db, master_key["encoded_key"]
+                    )
 
                     user_keys.append(
                         {

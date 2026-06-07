@@ -5,8 +5,10 @@ from flask import Blueprint, jsonify, request, session
 
 from src.data_io import DataExporter, DataImporter
 from src.data_manager import KeyManager, PasswordManager, UserManager
-from src.encryptor import decrypt_aes, encrypt_aes, generate_password, get_valid_key
+from src.encryptor import NewEncryption, OldEncryption, generate_password
 from src.essentials import createLoginSession
+
+encryption_method = NewEncryption()
 
 
 # API Response
@@ -52,7 +54,7 @@ def encryption_key():
     if request.method == "POST":
         try:
             data = request.json
-            valid_key = get_valid_key(str(data.get("key")))
+            valid_key = encryption_method.get_valid_key(str(data.get("key")))
 
             return api_response(
                 "success",
@@ -104,9 +106,11 @@ def encrypt_text():
                 {},
             ), 400
 
-        valid_key = get_valid_key(key)
+        valid_key = encryption_method.get_valid_key(key)
 
-        vi, encrypted_text = encrypt_aes(text, valid_key["encoded_key"])
+        vi, encrypted_text = encryption_method.encrypt_aes(
+            text, valid_key["encoded_key"]
+        )
         encrypted_text = binascii.hexlify(vi + encrypted_text).decode()
 
         return api_response(
@@ -145,10 +149,12 @@ def decrypt_text():
                 {},
             ), 400
 
-        valid_key = get_valid_key(key)
+        valid_key = encryption_method.get_valid_key(key)
         convert_text = binascii.unhexlify(text)
 
-        decrypted_text = decrypt_aes(convert_text, valid_key["encoded_key"])
+        decrypted_text = encryption_method.decrypt_aes(
+            convert_text, valid_key["encoded_key"]
+        )
 
         return api_response(
             "success",
@@ -194,11 +200,13 @@ def password_generator():
             )
 
         password = generate_password(length)
-        valid_key = get_valid_key(key)
+        valid_key = encryption_method.get_valid_key(key)
 
         encrypted = ""
         if encrypt:
-            iv, encrypted_text = encrypt_aes(password, valid_key["encoded_key"])
+            iv, encrypted_text = encryption_method.encrypt_aes(
+                password, valid_key["encoded_key"]
+            )
             encrypted = binascii.hexlify(iv + encrypted_text).decode()
 
         data = {"password": password, "encrypted_password": encrypted}

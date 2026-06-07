@@ -2,8 +2,8 @@ import binascii
 import os
 import sqlite3
 
-from src.encryptor import decrypt_aes, encrypt_aes, get_valid_key
-from src.essentials import bcryptCheck, bcryptHashing
+from src.encryptor import NewEncryption, OldEncryption
+from src.essentials import scryptCheck, scryptHashing
 
 #
 # User manager
@@ -16,6 +16,7 @@ class UserManager:
 
         # Create an instance from class KeyManager
         self.keys = KeyManager()
+        self.new_encryption = NewEncryption()
 
     # Get availabel users
     def getAvailableUsers(self):
@@ -73,7 +74,7 @@ class UserManager:
 
         try:
             # hash the password first
-            hashedPassword = bcryptHashing(password)
+            hashedPassword = scryptHashing(password)
 
             # Insert into database
             with sqlite3.connect(self.db_path) as conn:
@@ -106,7 +107,7 @@ class UserManager:
 
                 if userdata:
                     # Check the password
-                    valid = bcryptCheck(password, userdata["password_hash"])
+                    valid = scryptCheck(password, userdata["password_hash"])
 
                     if valid:
                         return "success", userdata
@@ -172,15 +173,17 @@ class UserManager:
                 if rows:
                     for row in rows:
                         keyFromDb = binascii.hexlify(
-                            row["iv"] + row["encrypted_key"]
+                            row["key_iv"] + row["encrypted_key"]
                         ).decode()
                         keyFromDb = binascii.unhexlify(keyFromDb)
 
                         # get valid key
-                        validKey = get_valid_key(currentPassword)
+                        validKey = self.new_encryption.get_valid_key(currentPassword)
 
                         # Decrypt the key
-                        decryptedKey = decrypt_aes(keyFromDb, validKey["encoded_key"])
+                        decryptedKey = self.new_encryption.decrypt_aes(
+                            keyFromDb, validKey["encoded_key"]
+                        )
 
                         keyList.append({"key_id": row["key_id"], "key": decryptedKey})
 
@@ -188,7 +191,7 @@ class UserManager:
             with sqlite3.connect(self.db_path) as conn:
                 query = "UPDATE users SET password_hash = ? WHERE user_id = ?"
 
-                hashedPw = bcryptHashing(new_password)
+                hashedPw = scryptHashing(new_password)
 
                 # Save to database
                 cursor = conn.cursor()
@@ -200,17 +203,17 @@ class UserManager:
             if keyList:
                 for eachKey in keyList:
                     with sqlite3.connect(self.db_path) as conn:
-                        query = "UPDATE keys SET encrypted_key = ?, iv = ? WHERE key_id = ? AND user_id = ?"
+                        query = "UPDATE keys SET encrypted_key = ?, key_iv = ? WHERE key_id = ? AND user_id = ?"
 
-                        master_key = get_valid_key(new_password)
-                        iv, encrypted_key = encrypt_aes(
+                        master_key = self.new_encryption.get_valid_key(new_password)
+                        key_iv, encrypted_key = self.new_encryption.encrypt_aes(
                             eachKey["key"], master_key["encoded_key"]
                         )
 
                         cursor = conn.cursor()
                         cursor.execute("PRAGMA foreign_keys = ON;")
                         cursor.execute(
-                            query, (encrypted_key, iv, eachKey["key_id"], userId)
+                            query, (encrypted_key, key_iv, eachKey["key_id"], userId)
                         )
 
                         conn.commit()
@@ -226,7 +229,7 @@ class UserManager:
     # Import data
     # Key importing
     def import_keys(self, dataSheet, user_id, master_key):
-        query = "INSERT INTO keys (user_id, key_name, encrypted_key, iv) VALUES (?, ?, ?, ?)"
+        query = "INSERT INTO keys (user_id, key_name, encrypted_key, key_iv) VALUES (?, ?, ?, ?)"
 
         try:
             # Serialize the data
@@ -234,14 +237,16 @@ class UserManager:
             theKey = dataSheet["encryption_key"]
 
             # Encrypt the key
-            master_key = get_valid_key(master_key)
-            iv, encrypted_key = encrypt_aes(theKey, master_key["encoded_key"])
+            master_key = self.new_encryption.get_valid_key(master_key)
+            key_iv, encrypted_key = self.new_encryption.encrypt_aes(
+                theKey, master_key["encoded_key"]
+            )
 
             # Insert into db
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
                 cursor.execute("PRAGMA foreign_keys = ON;")
-                cursor.execute(query, (user_id, keyName, encrypted_key, iv))
+                cursor.execute(query, (user_id, keyName, encrypted_key, key_iv))
 
                 key_id = cursor.lastrowid
                 conn.commit()
@@ -256,7 +261,7 @@ class UserManager:
 
     # Account importing
     def import_accounts(self, dataSheet, selectedKeyId, user_id, session_key):
-        query = "INSERT INTO passwords (user_id, key_id, service_url, service_name, username_account, encrypted_password, iv, service_notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        query = "INSERT INTO passwords (user_id, key_id, service_url, service_name, username_account, username_iv, encrypted_password, password_iv, service_notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
         try:
             # Serialize data
@@ -266,10 +271,19 @@ class UserManager:
             password = dataSheet["password"]
             serviceNotes = dataSheet["note"]
 
-            # Encrypt the password with selected key
+            # Validate selected key
             selected_key = self.keys.get_user_key(selectedKeyId, user_id, session_key)
-            valid_selected_key = get_valid_key(selected_key["encryption_key"])
-            iv, encrypted_password = encrypt_aes(
+            valid_selected_key = self.new_encryption.get_valid_key(
+                selected_key["encryption_key"]
+            )
+
+            # Encrypt the password with selected key
+            username_iv, encrypted_username = self.new_encryption.encrypt_aes(
+                username, valid_selected_key["encoded_key"]
+            )
+
+            # Encrypt the password with selected key
+            password_iv, encrypted_password = self.new_encryption.encrypt_aes(
                 password, valid_selected_key["encoded_key"]
             )
 
@@ -284,9 +298,10 @@ class UserManager:
                         selectedKeyId,
                         serviceUrl,
                         serviceName,
-                        username,
+                        encrypted_username,
+                        username_iv,
                         encrypted_password,
-                        iv,
+                        password_iv,
                         serviceNotes,
                     ),
                 )
@@ -318,15 +333,17 @@ class UserManager:
                 for row in rows:
                     # Combine iv + encrypted_key and unhexlify
                     key_from_db = binascii.hexlify(
-                        row["iv"] + row["encrypted_key"]
+                        row["key_iv"] + row["encrypted_key"]
                     ).decode()
                     key_from_db = binascii.unhexlify(key_from_db)
 
                     # Get valid key
-                    valid_key = get_valid_key(key)
+                    valid_key = self.new_encryption.get_valid_key(key)
 
                     # Decrypt key
-                    decrypted_key = decrypt_aes(key_from_db, valid_key["encoded_key"])
+                    decrypted_key = self.new_encryption.decrypt_aes(
+                        key_from_db, valid_key["encoded_key"]
+                    )
 
                     result.append(
                         {
@@ -357,18 +374,33 @@ class UserManager:
                 result = []
 
                 for row in rows:
-                    # Combine iv + encrypted_key and unhexlify
+                    # Get valid key
+                    passwordKey = self.keys.get_user_key(row["key_id"], user_id, key)
+                    valid_key = self.new_encryption.get_valid_key(
+                        passwordKey["encryption_key"]
+                    )
+
+                    # For username
+                    # Combine iv + encrypted username and unhexlify
+                    username_from_db = binascii.hexlify(
+                        row["username_iv"] + row["username_account"]
+                    ).decode()
+                    username_from_db = binascii.unhexlify(username_from_db)
+
+                    # Decrypt username
+                    decrypted_username = self.new_encryption.decrypt_aes(
+                        username_from_db, valid_key["encoded_key"]
+                    )
+
+                    # For password
+                    # Combine iv + encrypted password and unhexlify
                     password_from_db = binascii.hexlify(
-                        row["iv"] + row["encrypted_password"]
+                        row["password_iv"] + row["encrypted_password"]
                     ).decode()
                     password_from_db = binascii.unhexlify(password_from_db)
 
-                    # Get valid key
-                    passwordKey = self.keys.get_user_key(row["key_id"], user_id, key)
-                    valid_key = get_valid_key(passwordKey["encryption_key"])
-
                     # Decrypt password
-                    decrypted_password = decrypt_aes(
+                    decrypted_password = self.new_encryption.decrypt_aes(
                         password_from_db, valid_key["encoded_key"]
                     )
 
@@ -378,7 +410,7 @@ class UserManager:
                             "key_id": row["key_id"],
                             "name": row["service_name"],
                             "url": row["service_url"],
-                            "username": row["username_account"],
+                            "username": decrypted_username,
                             "password": decrypted_password,
                             "note": row["service_notes"],
                         }
@@ -428,6 +460,7 @@ class UserManager:
 class KeyManager:
     def __init__(self, db_path=os.path.join("db", "vault_manager.db")):
         self.db_path = db_path
+        self.new_encryption = NewEncryption()
 
     # Get all user key
     def get_user_key_all(self, user_id, master_key):
@@ -449,15 +482,17 @@ class KeyManager:
                 for row in rows:
                     # Combine iv + encrypted_key and unhexlify
                     key_from_db = binascii.hexlify(
-                        row["iv"] + row["encrypted_key"]
+                        row["key_iv"] + row["encrypted_key"]
                     ).decode()
                     key_from_db = binascii.unhexlify(key_from_db)
 
                     # Get valid key
-                    valid_key = get_valid_key(master_key)
+                    valid_key = self.new_encryption.get_valid_key(master_key)
 
                     # Decrypt key
-                    decrypted_key = decrypt_aes(key_from_db, valid_key["encoded_key"])
+                    decrypted_key = self.new_encryption.decrypt_aes(
+                        key_from_db, valid_key["encoded_key"]
+                    )
 
                     result.append(
                         {
@@ -492,15 +527,17 @@ class KeyManager:
                 if key:
                     # Combine iv + encrypted_key and unhexlify
                     key_from_db = binascii.hexlify(
-                        key["iv"] + key["encrypted_key"]
+                        key["key_iv"] + key["encrypted_key"]
                     ).decode()
                     key_from_db = binascii.unhexlify(key_from_db)
 
                     # Get valid key
-                    valid_key = get_valid_key(master_key)
+                    valid_key = self.new_encryption.get_valid_key(master_key)
 
                     # Decrypt key
-                    decrypted_key = decrypt_aes(key_from_db, valid_key["encoded_key"])
+                    decrypted_key = self.new_encryption.decrypt_aes(
+                        key_from_db, valid_key["encoded_key"]
+                    )
 
                     result = {
                         "key_id": key["key_id"],
@@ -516,18 +553,20 @@ class KeyManager:
 
     # Create key
     def create_user_key(self, keyName, theKey, user_id, session_key):
-        query = "INSERT INTO keys (user_id, key_name, encrypted_key, iv) VALUES (?, ?, ?, ?)"
+        query = "INSERT INTO keys (user_id, key_name, encrypted_key, key_iv) VALUES (?, ?, ?, ?)"
 
         try:
             # Encrypt the key
-            master_key = get_valid_key(session_key)
-            iv, encrypted_key = encrypt_aes(theKey, master_key["encoded_key"])
+            master_key = self.new_encryption.get_valid_key(session_key)
+            key_iv, encrypted_key = self.new_encryption.encrypt_aes(
+                theKey, master_key["encoded_key"]
+            )
 
             # Insert into db
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
                 cursor.execute("PRAGMA foreign_keys = ON;")
-                cursor.execute(query, (user_id, keyName, encrypted_key, iv))
+                cursor.execute(query, (user_id, keyName, encrypted_key, key_iv))
 
                 conn.commit()
 
@@ -560,23 +599,39 @@ class KeyManager:
 
                 if rows:
                     for row in rows:
-                        # Combine iv + encrypted_key and unhexlify
+                        # Get valid key
+                        valid_key = self.new_encryption.get_valid_key(
+                            currentKey["encryption_key"]
+                        )
+
+                        # For username
+                        # Combine iv + encrypted username and unhexlify
+                        username_from_db = binascii.hexlify(
+                            row["username_iv"] + row["username_account"]
+                        ).decode()
+                        username_from_db = binascii.unhexlify(username_from_db)
+
+                        # Decrypt password
+                        decrypted_username = self.new_encryption.decrypt_aes(
+                            username_from_db, valid_key["encoded_key"]
+                        )
+
+                        # For password
+                        # Combine iv + encrypted password and unhexlify
                         password_from_db = binascii.hexlify(
-                            row["iv"] + row["encrypted_password"]
+                            row["password_iv"] + row["encrypted_password"]
                         ).decode()
                         password_from_db = binascii.unhexlify(password_from_db)
 
-                        # Make it valid
-                        valid_key = get_valid_key(currentKey["encryption_key"])
-
                         # Decrypt password
-                        decrypted_password = decrypt_aes(
+                        decrypted_password = self.new_encryption.decrypt_aes(
                             password_from_db, valid_key["encoded_key"]
                         )
 
                         passwordList.append(
                             {
                                 "password_id": row["password_id"],
+                                "username": decrypted_username,
                                 "password": decrypted_password,
                             }
                         )
@@ -585,19 +640,21 @@ class KeyManager:
             newKey = ""
 
             with sqlite3.connect(self.db_path) as conn:
-                query = "UPDATE keys SET key_name = ?, encrypted_key = ?, iv = ? WHERE key_id = ?"
+                query = "UPDATE keys SET key_name = ?, encrypted_key = ?, key_iv = ? WHERE key_id = ?"
 
-                master_key = get_valid_key(session_key)
-                iv, encrypted_key = encrypt_aes(theKey, master_key["encoded_key"])
+                master_key = self.new_encryption.get_valid_key(session_key)
+                key_iv, encrypted_key = self.new_encryption.encrypt_aes(
+                    theKey, master_key["encoded_key"]
+                )
 
                 # Save to newKey
-                newKey = binascii.hexlify(iv + encrypted_key).decode()
+                newKey = binascii.hexlify(key_iv + encrypted_key).decode()
                 newKey = binascii.unhexlify(newKey)
 
                 # Save new key to database
                 cursor = conn.cursor()
                 cursor.execute("PRAGMA foreign_keys = ON;")
-                cursor.execute(query, (keyName, encrypted_key, iv, key_id))
+                cursor.execute(query, (keyName, encrypted_key, key_iv, key_id))
 
                 conn.commit()
 
@@ -605,23 +662,43 @@ class KeyManager:
             if passwordList:
                 for eachPassword in passwordList:
                     with sqlite3.connect(self.db_path) as conn:
-                        query = "UPDATE passwords SET encrypted_password = ?, iv = ? WHERE password_id = ?"
+                        query = "UPDATE passwords SET username_account = ?, username_iv = ?, encrypted_password = ?, password_iv = ? WHERE password_id = ?"
 
                         # Decrypt the key first
-                        master_key = get_valid_key(session_key)
-                        decrypted_key = decrypt_aes(newKey, master_key["encoded_key"])
-
-                        # Encrypt the password
-                        validate_key = get_valid_key(decrypted_key)
-                        iv, encrypted_password = encrypt_aes(
-                            eachPassword["password"], validate_key["encoded_key"]
+                        master_key = self.new_encryption.get_valid_key(session_key)
+                        decrypted_key = self.new_encryption.decrypt_aes(
+                            newKey, master_key["encoded_key"]
                         )
 
-                        # Insert the re-encrypted password
+                        # Get valid key
+                        validate_key = self.new_encryption.get_valid_key(decrypted_key)
+
+                        # Encrypt the username
+                        username_iv, encrypted_username = (
+                            self.new_encryption.encrypt_aes(
+                                eachPassword["username"], validate_key["encoded_key"]
+                            )
+                        )
+
+                        # Encrypt the password
+                        password_iv, encrypted_password = (
+                            self.new_encryption.encrypt_aes(
+                                eachPassword["password"], validate_key["encoded_key"]
+                            )
+                        )
+
+                        # Insert the re-encrypted passwords
                         cursor = conn.cursor()
                         cursor.execute("PRAGMA foreign_keys = ON;")
                         cursor.execute(
-                            query, (encrypted_password, iv, eachPassword["password_id"])
+                            query,
+                            (
+                                encrypted_username,
+                                username_iv,
+                                encrypted_password,
+                                password_iv,
+                                eachPassword["password_id"],
+                            ),
                         )
 
                         conn.commit()
@@ -673,6 +750,7 @@ class PasswordManager:
 
         # Create an instance from class KeyManager
         self.keys = KeyManager()
+        self.new_encryption = NewEncryption()
 
     # Get all user passwords
     def get_user_password_all(self, user_id, master_key):
@@ -691,12 +769,6 @@ class PasswordManager:
                 result = []
 
                 for row in rows:
-                    # Combine iv + encrypted_key and unhexlify
-                    password_from_db = binascii.hexlify(
-                        row["iv"] + row["encrypted_password"]
-                    ).decode()
-                    password_from_db = binascii.unhexlify(password_from_db)
-
                     # Get valid key
                     passwordKey = self.keys.get_user_key(
                         row["key_id"], user_id, master_key
@@ -734,20 +806,35 @@ class PasswordManager:
                 result = {}
 
                 if password:
-                    # Combine iv + encrypted_key and unhexlify
-                    password_from_db = binascii.hexlify(
-                        password["iv"] + password["encrypted_password"]
-                    ).decode()
-                    password_from_db = binascii.unhexlify(password_from_db)
-
                     # Get valid key
                     passwordKey = self.keys.get_user_key(
                         password["key_id"], user_id, master_key
                     )
-                    valid_key = get_valid_key(passwordKey["encryption_key"])
+                    valid_key = self.new_encryption.get_valid_key(
+                        passwordKey["encryption_key"]
+                    )
+
+                    # For username
+                    # Combine iv + encrypted username and unhexlify
+                    username_from_db = binascii.hexlify(
+                        password["username_iv"] + password["username_account"]
+                    ).decode()
+                    username_from_db = binascii.unhexlify(username_from_db)
+
+                    # Decrypt username
+                    decrypted_username = self.new_encryption.decrypt_aes(
+                        username_from_db, valid_key["encoded_key"]
+                    )
+
+                    # For password
+                    # Combine iv + encrypted password and unhexlify
+                    password_from_db = binascii.hexlify(
+                        password["password_iv"] + password["encrypted_password"]
+                    ).decode()
+                    password_from_db = binascii.unhexlify(password_from_db)
 
                     # Decrypt password
-                    decrypted_password = decrypt_aes(
+                    decrypted_password = self.new_encryption.decrypt_aes(
                         password_from_db, valid_key["encoded_key"]
                     )
 
@@ -765,7 +852,7 @@ class PasswordManager:
                         "key_id": password["key_id"],
                         "service_url": service_url,
                         "service_name": password["service_name"],
-                        "username_account": password["username_account"],
+                        "username_account": decrypted_username,
                         "decrypted_password": decrypted_password,
                         "service_note": service_notes,
                     }
@@ -787,13 +874,22 @@ class PasswordManager:
         user_id,
         session_key,
     ):
-        query = "INSERT INTO passwords (user_id, key_id, service_url, service_name, username_account, encrypted_password, iv, service_notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        query = "INSERT INTO passwords (user_id, key_id, service_url, service_name, username_account, username_iv, encrypted_password, password_iv, service_notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
         try:
-            # Encrypt the password with selected key
+            # Get valid key
             selected_key = self.keys.get_user_key(selectedKeyId, user_id, session_key)
-            valid_selected_key = get_valid_key(selected_key["encryption_key"])
-            iv, encrypted_password = encrypt_aes(
+            valid_selected_key = self.new_encryption.get_valid_key(
+                selected_key["encryption_key"]
+            )
+
+            # Encrypt the username with selected key
+            username_iv, encrypted_username = self.new_encryption.encrypt_aes(
+                username, valid_selected_key["encoded_key"]
+            )
+
+            # Encrypt the password with selected key
+            password_iv, encrypted_password = self.new_encryption.encrypt_aes(
                 password, valid_selected_key["encoded_key"]
             )
 
@@ -808,9 +904,10 @@ class PasswordManager:
                         selectedKeyId,
                         serviceUrl,
                         serviceName,
-                        username,
+                        encrypted_username,
+                        username_iv,
                         encrypted_password,
-                        iv,
+                        password_iv,
                         serviceNotes,
                     ),
                 )
@@ -838,13 +935,22 @@ class PasswordManager:
         session_key,
         password_id,
     ):
-        query = "UPDATE passwords SET key_id = ?, service_url = ?, service_name = ?, username_account = ?, encrypted_password = ?, iv = ?, service_notes = ? WHERE password_id = ?"
+        query = "UPDATE passwords SET key_id = ?, service_url = ?, service_name = ?, username_account = ?, username_iv = ?, encrypted_password = ?, password_iv = ?, service_notes = ? WHERE password_id = ?"
 
         try:
-            # Encrypt the password with selected key
+            # Get valid key
             selected_key = self.keys.get_user_key(selectedKeyId, user_id, session_key)
-            valid_selected_key = get_valid_key(selected_key["encryption_key"])
-            iv, encrypted_password = encrypt_aes(
+            valid_selected_key = self.new_encryption.get_valid_key(
+                selected_key["encryption_key"]
+            )
+
+            # Encrypt the username with selected key
+            username_iv, encrypted_username = self.new_encryption.encrypt_aes(
+                username, valid_selected_key["encoded_key"]
+            )
+
+            # Encrypt the password with selected key
+            password_iv, encrypted_password = self.new_encryption.encrypt_aes(
                 password, valid_selected_key["encoded_key"]
             )
 
@@ -858,9 +964,10 @@ class PasswordManager:
                         selectedKeyId,
                         serviceUrl,
                         serviceName,
-                        username,
+                        encrypted_username,
+                        username_iv,
                         encrypted_password,
-                        iv,
+                        password_iv,
                         serviceNotes,
                         password_id,
                     ),
