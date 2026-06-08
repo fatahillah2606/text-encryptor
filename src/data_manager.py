@@ -1187,15 +1187,22 @@ class Recovery:
                         password_from_db, valid_key["encoded_key"]
                     )
 
+                    service_url = (
+                        row["service_url"] if "service_url" in row.keys() else ""
+                    )
+                    service_note = (
+                        row["service_notes"] if "service_notes" in row.keys() else ""
+                    )
+
                     result.append(
                         {
                             "password_id": row["password_id"],
                             "key_id": row["key_id"],
                             "name": row["service_name"],
-                            "url": row["service_url"],
+                            "url": service_url,
                             "username": row["username_account"],
                             "password": decrypted_password,
-                            "note": row["service_notes"],
+                            "note": service_note,
                         }
                     )
 
