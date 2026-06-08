@@ -58,4 +58,4 @@ def home():
 
 if __name__ == "__main__":
     check_and_setup_db()
-    app.run(debug=True)
+    app.run(debug=False)
