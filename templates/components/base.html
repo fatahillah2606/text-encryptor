@@ -36,7 +36,7 @@
         </main>
 
         <!-- Modals -->
-        <md-dialog id="key-selector-modal">
+        <md-dialog id="key-selector-modal" class="z-50">
             <div slot="headline">Encryption Key</div>
             <form
                 slot="content"
@@ -73,7 +73,7 @@
 
                     {% for key in user_keys %}
                     <md-select-option
-                        value="{{ key['encrypted_key'] }} "
+                        value="{{ key['encryption_key'] }} "
                         data-context="{{ key['key_name'] }}"
                     >
                         <div slot="headline">{{ key['key_name'] }}</div>
@@ -140,7 +140,7 @@
         {% include 'components/alert_dialog.html' %}
 
         <!-- Toast -->
-        {% include 'components/toast.html' %}
+        {% include 'components/snackbar.html' %}
 
         <!-- Scripts -->
         <script src="{{ url_for('static', filename='scripts/script.js') }}"></script>
@@ -257,7 +257,7 @@
                         JSON.stringify(keyData),
                     );
 
-                    showToast("Encryption key changed.");
+                    showSnackbar("Encryption key changed.");
                 }
             }
 

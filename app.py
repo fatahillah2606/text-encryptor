@@ -8,12 +8,14 @@ from flask.sansio.app import timedelta
 
 from routes.api import api_route
 from routes.pages import pages_route
-from src.init_db import create_database, update_database
+from src.db_manager import initialize_db
 
 load_dotenv()
 
+
 SESSION_KEY = secrets.token_hex()
-# SESSION_KEY = os.getenv("SESSION_KEY")  # for development, to prevent logged out when restarting
+# SESSION_KEY = os.getenv("SESSION_KEY") # for development, to prevent logged out when restarting
+
 
 # Check db
 db_path = os.path.join("db", "vault_manager.db")
@@ -21,12 +23,7 @@ db_path = os.path.join("db", "vault_manager.db")
 
 def check_and_setup_db():
     print("Checking database...")
-    if not os.path.exists(db_path):
-        print("Database not found. Generating...")
-        create_database()
-    else:
-        print("Database found!")
-        update_database()
+    initialize_db()
 
 
 app = Flask(__name__)

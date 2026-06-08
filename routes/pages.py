@@ -1,15 +1,15 @@
-import binascii
-import os
-import sqlite3
 from functools import wraps
 
 from flask import Blueprint, redirect, render_template, session, url_for
 
-from src.data_manager import UserManager
-from src.encryptor import decrypt_aes, get_valid_key
+from src.data_manager import Recovery, UserManager
+from src.encryptor import NewEncryption, OldEncryption
 
 # Get available users
 user = UserManager()
+
+encryption_method = NewEncryption()
+recovery_method = Recovery()
 
 
 # pages protection
@@ -29,46 +29,9 @@ pages_route = Blueprint("pages", __name__)
 
 @pages_route.context_processor
 def inject_globals():
+    user_keys = []
     if "username" in session:
-        user_keys = []
-
-        # Database path
-        db_path = os.path.join("db", "vault_manager.db")
-
-        # Check user keys into database
-        with sqlite3.connect(db_path) as conn:
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
-
-            # Try to get all keys from user
-            query = "SELECT * FROM keys WHERE user_id = ?"
-            cursor.execute(query, (session["user_id"],))
-
-            rows = cursor.fetchall()
-
-            if rows:
-                for row in rows:
-                    # Combine iv + encrypted_key and unhexlify
-                    key_from_db = binascii.hexlify(
-                        row["iv"] + row["encrypted_key"]
-                    ).decode()
-                    key_from_db = binascii.unhexlify(key_from_db)
-
-                    # Get valid key
-                    master_key = get_valid_key(session["key"])
-
-                    # Decrypt key
-                    decrypted_key = decrypt_aes(key_from_db, master_key["encoded_key"])
-
-                    user_keys.append(
-                        {
-                            "key_id": row["key_id"],
-                            "key_name": row["key_name"],
-                            "encrypted_key": decrypted_key,
-                        }
-                    )
-    else:
-        user_keys = []
+        user_keys = user.user_saved_keys(session.get("user_id"), session.get("key"))
 
     return {
         "name": session.get("name"),
@@ -84,10 +47,14 @@ def login():
     # Get user list
     userList = user.getAvailableUsers()
 
+    recoveryAvailable = recovery_method.check_old_users()
+
     if "username" in session:
         return redirect(url_for("pages.dashboard"))
     elif userList:
-        return render_template("pages/login.html", userlist=userList)
+        return render_template(
+            "pages/login.html", userlist=userList, recovery=recoveryAvailable
+        )
     else:
         return redirect(url_for("pages.register"))
 
@@ -97,6 +64,8 @@ def register():
     # Get user list
     userList = user.getAvailableUsers()
 
+    recoveryAvailable = recovery_method.check_old_users()
+
     if "username" in session:
         return redirect(url_for("pages.dashboard"))
     else:
@@ -105,7 +74,20 @@ def register():
             if not userList
             else ""
         )
-        return render_template("pages/register.html", notice=notice)
+        return render_template(
+            "pages/register.html", notice=notice, recovery=recoveryAvailable
+        )
+
+
+@pages_route.route("/recovery")
+def recovery():
+    userList = recovery_method.getRecoverableAccounts()
+
+    recoveryAvailable = recovery_method.check_old_users()
+    if recoveryAvailable:
+        return render_template("pages/recovery.html", userlist=userList)
+    else:
+        return redirect(url_for("pages.login"))
 
 
 @pages_route.route("/logout")

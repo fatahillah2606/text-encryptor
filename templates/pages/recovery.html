@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Recovery</title>
+        <!-- Local CSS -->
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='styles/tailwindcss/tailwind.css') }}"
+        />
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='styles/style.css') }}"
+        />
+        <script src="{{ url_for('static', filename='scripts/material-web.js') }}"></script>
+    </head>
+    <body
+        class="bg-md-surface-container w-full h-screen flex items-center justify-center"
+    >
+        <!-- Login box -->
+        <section
+            class="relative md:max-w-5xl w-full h-screen md:h-auto bg-md-background md:rounded-4xl p-5 md:p-9 md:m-5 overflow-hidden"
+        >
+            <!-- Progress bar -->
+            <md-linear-progress
+                indeterminate
+                class="absolute top-0 left-0 block w-full hidden"
+            ></md-linear-progress>
+
+            <!-- Logo -->
+            <div
+                class="w-12 h-12 flex items-center justify-center m-0 p-0 bg-md-primary rounded-xl"
+            >
+                <span
+                    class="material-symbols-rounded text-4xl! text-md-on-primary!"
+                >
+                    encrypted
+                </span>
+            </div>
+
+            <!-- Login content -->
+            <div
+                class="flex flex-col md:flex-row items-start justify-between gap-6 md:gap-12"
+            >
+                <!-- Left content -->
+                <div class="w-full">
+                    <h1 class="md-typescale-display-small text-md-on-surface">
+                        Recovery
+                    </h1>
+                    <p class="md-typescale-body-large text-md-on-surface">
+                        Select an account to recover.
+                    </p>
+                </div>
+
+                <!-- Right content -->
+                <div class="w-full relative overflow-hidden">
+                    <div
+                        id="slider"
+                        class="flex w-full h-full transition-transform duration-500 ease-in-out"
+                    >
+                        <!-- Available user to recover -->
+                        <div
+                            id="user-list"
+                            class="w-full shrink-0 h-full py-4 flex flex-col justify-between"
+                        >
+                            <div class="h-auto max-h-57.5 overflow-auto">
+                                {% for user in userlist %}
+                                <div
+                                    class="relative flex items-center justify-start gap-2.5 py-3 px-3 md:px-6 rounded-3xl cursor-pointer"
+                                    onclick="slideNext(`{{ user['username'] }}`)"
+                                >
+                                    <div
+                                        class="w-7 h-7 flex items-center justify-center bg-md-secondary-container rounded-full"
+                                    >
+                                        <span
+                                            class="text-md-on-secondary-container"
+                                        >
+                                            {{ user['name'][0] }}
+                                        </span>
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <span
+                                            class="text-md-on-surface text-lg font-semibold"
+                                        >
+                                            {{ user['name'] }}
+                                        </span>
+                                        <span
+                                            class="text-md-on-surface text-sm"
+                                        >
+                                            {{ user['username'] }}
+                                        </span>
+                                    </div>
+                                    <md-ripple></md-ripple>
+                                    <div
+                                        class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[90%] h-px bg-md-outline-variant"
+                                    ></div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <p
+                                class="md-typescale-body-medium text-md-on-surface"
+                            >
+                                Make sure you remember the password of the
+                                account you want to recover.
+                                <a
+                                    href="/pages/login"
+                                    class="text-md-primary no-underline font-semibold hover:underline!"
+                                >
+                                    Click here to return to the login page.
+                                </a>
+                            </p>
+                        </div>
+
+                        <!-- Password field content for decryption -->
+                        <div
+                            id="password-field"
+                            class="w-full shrink-0 h-full p-4 flex flex-col justify-between"
+                        >
+                            <form
+                                action=""
+                                method="post"
+                                id="recovery_form"
+                                name="recovery_form"
+                            >
+                                <div class="flex flex-col gap-5">
+                                    <md-outlined-text-field
+                                        label="Password"
+                                        class="block w-full"
+                                        name="password"
+                                        id="password"
+                                        type="password"
+                                        required
+                                    >
+                                    </md-outlined-text-field>
+
+                                    <div
+                                        class="flex items-center justify-start gap-4"
+                                        onclick="
+                                            showPw('show-pw', ['password'])
+                                        "
+                                    >
+                                        <md-checkbox
+                                            id="show-pw"
+                                            touch-target="wrapper"
+                                            class="m-0"
+                                        ></md-checkbox>
+                                        <label
+                                            for="show-pw"
+                                            class="md-typescale-body-medium text-md-on-surface"
+                                        >
+                                            Show password
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="mt-5 flex flex-row-reverse gap-5">
+                                    <md-filled-button
+                                        type="submit"
+                                        name="recover"
+                                        id="recover"
+                                    >
+                                        Recover
+                                    </md-filled-button>
+
+                                    <md-text-button
+                                        type="button"
+                                        onclick="slidePrev()"
+                                    >
+                                        Back
+                                    </md-text-button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- If there was duplicate account username -->
+                        <div
+                            id="duplicate-handler"
+                            class="w-full shrink-0 h-full p-4 flex flex-col justify-between"
+                        >
+                            <form
+                                action=""
+                                method="post"
+                                id="duplicate_action"
+                                name="duplicate_action"
+                            >
+                                <p
+                                    class="md-typescale-body-medium text-md-on-surface"
+                                >
+                                    There's an account with the same username.
+                                    What would you like to do?
+                                </p>
+
+                                <!-- Radio button -->
+                                <div class="flex flex-col gap-4 mb-5">
+                                    <div class="flex items-center gap-4">
+                                        <md-radio
+                                            id="export_option"
+                                            name="option"
+                                            value="export"
+                                            checked
+                                        ></md-radio>
+                                        <label
+                                            class="text-md-on-surface md-typescale-body-medium"
+                                            for="export_option"
+                                        >
+                                            Export to JSON file (Encrypted with
+                                            current password)
+                                        </label>
+                                    </div>
+
+                                    <div class="flex items-center gap-4">
+                                        <md-radio
+                                            id="create_new_option"
+                                            name="option"
+                                            value="new"
+                                        ></md-radio>
+                                        <label
+                                            class="text-md-on-surface md-typescale-body-medium"
+                                            for="create_new_option"
+                                        >
+                                            Create a new username
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- New username -->
+                                <md-outlined-text-field
+                                    label="Username"
+                                    class="block w-full"
+                                    name="username"
+                                    id="username"
+                                    type="text"
+                                    required
+                                    disabled
+                                >
+                                </md-outlined-text-field>
+
+                                <div class="mt-5 flex flex-row-reverse gap-5">
+                                    <md-filled-button
+                                        type="submit"
+                                        name="proceed"
+                                        id="proceed"
+                                    >
+                                        Proceed
+                                    </md-filled-button>
+
+                                    <md-text-button
+                                        type="button"
+                                        onclick="slidePrev()"
+                                    >
+                                        Back
+                                    </md-text-button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Toast -->
+            {% include 'components/snackbar.html' %}
+        </section>
+        <script src="{{ url_for('static', filename='scripts/script.js') }}"></script>
+        <script src="{{ url_for('static', filename='scripts/api.js') }}"></script>
+        <script>
+            // Sliding animation
+            const slider = document.querySelector("#slider");
+            let account = null;
+            let currentIndex = 0;
+
+            function updatePosition() {
+                slider.style.transform = `translateX(-${currentIndex * 100}%)`;
+            }
+
+            function slideNext(selectedAccount = null) {
+                if (selectedAccount) {
+                    account = selectedAccount;
+                }
+
+                currentIndex++;
+                updatePosition();
+            }
+
+            function slidePrev() {
+                if (currentIndex === 0) {
+                    account = null;
+                }
+                currentIndex--;
+                updatePosition();
+            }
+
+            // Recovery
+            const recovery_api = "/api/account/recovery";
+            const recoveryForm = document.getElementById("recovery_form");
+            const duplicateAction = document.getElementById("duplicate_action");
+
+            async function decryptAndRecover(
+                formulir,
+                duplicate_action = null,
+            ) {
+                // Prograss bar
+                const progressBar =
+                    document.querySelector("md-linear-progress");
+
+                progressBar.classList.remove("hidden");
+
+                // Aquired data
+                let formData = new FormData(formulir);
+                formData.append("username", account);
+                formData = Object.fromEntries(formData.entries());
+
+                let action;
+                if (duplicate_action) {
+                    action = new FormData(duplicate_action);
+                    action = Object.fromEntries(action.entries());
+                }
+
+                formData.action = action;
+
+                // Send request
+                sendRequest(recovery_api, formData, "POST")
+                    .then((response) => {
+                        if (response.code === 201) {
+                            const dataSheet = response.data;
+                            const blob = new Blob([dataSheet.json_file], {
+                                type: "application/json;charset=utf-8;",
+                            });
+
+                            tempoaryUrl(
+                                blob,
+                                "Text Encryptor - Keys & Passwords",
+                                "json",
+                            );
+
+                            showSnackbar(response.message);
+                        } else {
+                            location.href = "/pages/dashboard";
+                        }
+
+                        recoveryForm.recover.disabled = false;
+                        duplicateAction.proceed.disabled = false;
+                        progressBar.classList.add("hidden");
+                    })
+                    .catch((error) => {
+                        if (error.code === 409 && currentIndex === 1) {
+                            slideNext();
+                        } else {
+                            // Password form
+                            if (currentIndex === 1) {
+                                showSupportText(
+                                    recoveryForm.password,
+                                    error.message,
+                                );
+                            }
+
+                            // Duplicate action form
+                            if (currentIndex === 2) {
+                                showSupportText(
+                                    duplicateAction.username,
+                                    error.message,
+                                );
+                            }
+                        }
+
+                        recoveryForm.recover.disabled = false;
+                        duplicateAction.proceed.disabled = false;
+                        progressBar.classList.add("hidden");
+                    });
+            }
+
+            // radio listener
+            const optionRadio = duplicateAction.option;
+            optionRadio.forEach((radio) => {
+                radio.addEventListener("change", () => {
+                    if (duplicateAction.create_new_option.checked) {
+                        duplicateAction.username.disabled = false;
+                    } else {
+                        duplicateAction.username.disabled = true;
+                    }
+                });
+            });
+
+            // Recovery form submit btn
+            recoveryForm.addEventListener("submit", (event) => {
+                event.preventDefault();
+
+                if (recoveryForm.recover.disabled === false) {
+                    recoveryForm.recover.disabled = true;
+
+                    hideSupportText(recoveryForm.password);
+                    decryptAndRecover(recoveryForm);
+                }
+            });
+
+            // Duplicate action form submit btn
+            duplicateAction.addEventListener("submit", (event) => {
+                event.preventDefault();
+
+                if (duplicateAction.proceed.disabled === false) {
+                    duplicateAction.proceed.disabled = true;
+
+                    hideSupportText(duplicateAction.username);
+                    decryptAndRecover(recoveryForm, duplicateAction);
+                }
+            });
+        </script>
+    </body>
+</html>

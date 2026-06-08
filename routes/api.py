@@ -4,9 +4,11 @@ from functools import wraps
 from flask import Blueprint, jsonify, request, session
 
 from src.data_io import DataExporter, DataImporter
-from src.data_manager import KeyManager, PasswordManager, UserManager
-from src.encryptor import decrypt_aes, encrypt_aes, generate_password, get_valid_key
+from src.data_manager import KeyManager, PasswordManager, Recovery, UserManager
+from src.encryptor import NewEncryption, generate_password
 from src.essentials import createLoginSession
+
+encryption_method = NewEncryption()
 
 
 # API Response
@@ -52,7 +54,7 @@ def encryption_key():
     if request.method == "POST":
         try:
             data = request.json
-            valid_key = get_valid_key(str(data.get("key")))
+            valid_key = encryption_method.get_valid_key(str(data.get("key")))
 
             return api_response(
                 "success",
@@ -104,9 +106,11 @@ def encrypt_text():
                 {},
             ), 400
 
-        valid_key = get_valid_key(key)
+        valid_key = encryption_method.get_valid_key(key)
 
-        vi, encrypted_text = encrypt_aes(text, valid_key["encoded_key"])
+        vi, encrypted_text = encryption_method.encrypt_aes(
+            text, valid_key["encoded_key"]
+        )
         encrypted_text = binascii.hexlify(vi + encrypted_text).decode()
 
         return api_response(
@@ -145,10 +149,12 @@ def decrypt_text():
                 {},
             ), 400
 
-        valid_key = get_valid_key(key)
+        valid_key = encryption_method.get_valid_key(key)
         convert_text = binascii.unhexlify(text)
 
-        decrypted_text = decrypt_aes(convert_text, valid_key["encoded_key"])
+        decrypted_text = encryption_method.decrypt_aes(
+            convert_text, valid_key["encoded_key"]
+        )
 
         return api_response(
             "success",
@@ -194,11 +200,13 @@ def password_generator():
             )
 
         password = generate_password(length)
-        valid_key = get_valid_key(key)
+        valid_key = encryption_method.get_valid_key(key)
 
         encrypted = ""
         if encrypt:
-            iv, encrypted_text = encrypt_aes(password, valid_key["encoded_key"])
+            iv, encrypted_text = encryption_method.encrypt_aes(
+                password, valid_key["encoded_key"]
+            )
             encrypted = binascii.hexlify(iv + encrypted_text).decode()
 
         data = {"password": password, "encrypted_password": encrypted}
@@ -605,7 +613,9 @@ def exportData():
 
             # Serialize data for support Excel and Browser
             for pw in allUserPw:
-                service_url = pw["url"] if pw["url"] else "https://example.com/"
+                service_url = (
+                    pw["url"] if pw["url"] else "https://from.text-encryptor.app/"
+                )
                 service_notes = pw["note"] if pw["note"] else ""
 
                 dataSheet.append(
@@ -967,6 +977,130 @@ def deletePassword(password_id):
             return api_response("success", 200, result, [], {})
         else:
             return api_response("error", 500, result, [], {}), 500
+
+    except Exception as err:
+        return api_response(
+            "error",
+            500,
+            f"An error occurred on the server. \nError message:{str(err)}",
+            [],
+            {},
+        ), 500
+
+
+recovery_method = Recovery()
+
+
+# Recovery
+@api_route.route("/account/recovery", methods=["POST"])
+def recoverAccount():
+    try:
+        data = request.json
+        username = str(data.get("username"))
+        password = data.get("password")
+
+        recovered_data = {}
+
+        # Get user information
+        user_info = recovery_method.get_user_information(username)
+
+        # Try to decrypt first
+        status, result = recovery_method.user_saved_keys(user_info["user_id"], password)
+
+        if status == "success":
+            user_keys = result
+            user_passwords = recovery_method.user_saved_accounts(
+                user_info["user_id"], password
+            )
+
+            recovered_data = {"keys": user_keys, "passwords": user_passwords}
+
+            # Then check for duplicate user account
+            status, result = user.checkUsername(username)
+            if status == "success":
+                # Recover the account
+                recovered_account = user.register(
+                    user_info["name"], user_info["username"], password
+                )
+
+                # Recover the data
+                importer.import_into_db(
+                    recovered_data, recovered_account["user_id"], password
+                )
+
+                # Log-in the user with recovered account
+                createLoginSession(
+                    recovered_account["user_id"],
+                    recovered_account["name"],
+                    recovered_account["username"],
+                    password,
+                )
+
+                # Delete the old account
+                recovery_method.delete_old_account(user_info["user_id"])
+
+                return api_response(
+                    "success", 200, "Account successfully recovered", [], {}
+                )
+
+            elif status == "failed":
+                duplicate_action = data.get("action")
+
+                if duplicate_action:
+                    option = duplicate_action.get("option")
+
+                    if option == "export":
+                        result = {
+                            "file_type": "json",
+                            "json_file": exporter.export_encrypted(
+                                recovered_data, password
+                            ),
+                        }
+
+                        return api_response(
+                            "success", 201, "Successfully exported data", result, {}
+                        ), 201
+
+                    else:
+                        new_username = duplicate_action.get("username")
+
+                        # Recover the account
+                        recovered_account = user.register(
+                            user_info["name"], new_username, password
+                        )
+
+                        # Recover the data
+                        importer.import_into_db(
+                            recovered_data, recovered_account["user_id"], password
+                        )
+
+                        # Log-in the user with recovered account
+                        createLoginSession(
+                            recovered_account["user_id"],
+                            recovered_account["name"],
+                            recovered_account["username"],
+                            password,
+                        )
+
+                        # Delete the old account
+                        recovery_method.delete_old_account(user_info["user_id"])
+
+                        return api_response(
+                            "success", 200, "Account successfully recovered", [], {}
+                        )
+
+                return api_response(
+                    "error",
+                    409,
+                    "There is already an account with the same username.",
+                    [],
+                    {},
+                ), 409
+
+            else:
+                return api_response("error", 500, result, [], {}), 500
+        else:
+            return api_response("error", 403, result, [], {}), 403
 
     except Exception as err:
         return api_response(

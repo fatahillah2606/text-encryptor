@@ -244,7 +244,7 @@
                                 </p>
 
                                 <div
-                                    class="my-2.5 relative flex items-center justify-center max-w-36 shadow-xs rounded-3xl border border-zinc-200 dark:border-zinc-700 overflow-hidden"
+                                    class="my-2.5 relative flex items-center justify-center max-w-36 shadow-xs rounded-3xl border border-md-outline-variant overflow-hidden"
                                 >
                                     <button
                                         type="button"
@@ -471,7 +471,7 @@
 
                 encryptResult.value = result.data.encrypted_text;
 
-                showToast(result.message);
+                showSnackbar(result.message);
             } catch (error) {
                 showAlert("Unable to encrypt", error.message);
             }
@@ -506,7 +506,7 @@
 
                 decryptResult.value = result.data.decrypted_text;
 
-                showToast(result.message);
+                showSnackbar(result.message);
             } catch (error) {
                 showAlert("Unable to decrypt", error.message);
             }
@@ -561,7 +561,7 @@
                 encryptedGeneratedPassword.textContent =
                     result.data.encrypted_password;
 
-                showToast(result.message);
+                showSnackbar(result.message);
             } catch (error) {
                 showAlert("Unable to generate password", error.message);
             }

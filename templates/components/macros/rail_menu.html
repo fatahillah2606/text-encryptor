@@ -3,15 +3,23 @@
     href="{{ url }}"
     class="rail-menu shrink-0 group{% if current == target %} active {% else %} {% endif %} relative flex flex-col items-center w-20 gap-1 min-h-15 mb-3 overflow-hidden"
 >
-    <md-icon
-        class="relative group-hover:bg-md-outline-variant group-[.active]:hover:bg-md-on-primary text-md-on-surface! group-[.active]:text-md-secondary! group-[.active]:bg-md-on-primary w-14 h-8 rounded-full"
+    <div
+        class="relative group-[.active]:bg-md-secondary-container rounded-full"
     >
-        {{ icon }}
-    </md-icon>
+        <md-ripple unbounded></md-ripple>
+        <md-icon
+            class="text-md-on-surface-variant! group-[.active]:text-md-on-secondary-container! w-14 h-8"
+        >
+            {{ icon }}
+        </md-icon>
+    </div>
     <span
         class="md-typescale-label-medium text-md-on-surface group-[.active]:text-md-secondary block text-center"
     >
         {{ label }}
     </span>
+
+    <!-- Ripple effect -->
+    <md-ripple id="rail-menu-ripple" class="hidden"></md-ripple>
 </a>
 {% endmacro %}

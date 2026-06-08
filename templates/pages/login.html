@@ -51,6 +51,36 @@
                     <p class="md-typescale-body-large text-md-on-surface">
                         Select an account to continue.
                     </p>
+
+                    {% if recovery %}
+                    <!-- Recovery notice -->
+                    <div
+                        class="p-4 rounded-xl bg-md-tertiary-container flex gap-3 items-start mt-2.5"
+                    >
+                        <span
+                            class="material-symbols-rounded text-md-on-tertiary-container mt-0.5"
+                        >
+                            info
+                        </span>
+                        <div class="flex flex-col">
+                            <span
+                                id="export-manifest-desc"
+                                class="md-typescale-body-medium text-md-on-tertiary-container leading-relaxed"
+                            >
+                                Found an account saved in a previous version.
+                                You can restore your saved data now or do it
+                                later.
+                            </span>
+                            <div class="mt-4" style="direction: rtl">
+                                <md-filled-button
+                                    onclick="movePage('/pages/recovery')"
+                                >
+                                    Recover
+                                </md-filled-button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
 
                 <!-- Right content -->
@@ -71,9 +101,11 @@
                                     onclick="slideNext(`{{ user['username'] }}`)"
                                 >
                                     <div
-                                        class="w-7 h-7 flex items-center justify-center bg-md-on-primary rounded-full"
+                                        class="w-7 h-7 flex items-center justify-center bg-md-secondary-container rounded-full"
                                     >
-                                        <span class="text-md-secondary">
+                                        <span
+                                            class="text-md-on-secondary-container"
+                                        >
                                             {{ user['name'][0] }}
                                         </span>
                                     </div>
@@ -116,6 +148,7 @@
                                 </div>
                                 <md-ripple></md-ripple>
                             </a>
+
                             <p
                                 class="md-typescale-body-medium text-md-on-surface"
                             >
@@ -174,7 +207,11 @@
                                 </div>
 
                                 <div class="mt-5 flex flex-row-reverse gap-5">
-                                    <md-filled-button type="submit">
+                                    <md-filled-button
+                                        type="submit"
+                                        id="login"
+                                        name="login"
+                                    >
                                         Login
                                     </md-filled-button>
 
@@ -192,7 +229,7 @@
             </div>
 
             <!-- Toast -->
-            {% include 'components/toast.html' %}
+            {% include 'components/snackbar.html' %}
         </section>
         <script src="{{ url_for('static', filename='scripts/script.js') }}"></script>
         <script src="{{ url_for('static', filename='scripts/api.js') }}"></script>
@@ -238,11 +275,14 @@
                     );
 
                     if (result.code === 200) {
+                        loginForm.login.disabled = false;
+
                         progressBar.classList.add("hidden");
                         location.href = "/pages/dashboard";
                     }
                 } catch (error) {
                     progressBar.classList.add("hidden");
+                    loginForm.login.disabled = false;
 
                     showSupportText(theField, error.message);
                 }
@@ -251,8 +291,11 @@
             loginForm.addEventListener("submit", (event) => {
                 event.preventDefault();
 
-                hideSupportText(theField);
-                login(loginForm);
+                if (loginForm.login.disabled === false) {
+                    loginForm.login.disabled = true;
+                    hideSupportText(theField);
+                    login(loginForm);
+                }
             });
         </script>
     </body>
