@@ -51,6 +51,7 @@
                         Register to use the password manager feature.
                     </p>
 
+                    {% if recovery %}
                     <!-- Recovery notice -->
                     <div
                         class="p-4 rounded-xl bg-md-tertiary-container flex gap-3 items-start mt-2.5"
@@ -78,6 +79,7 @@
                             </div>
                         </div>
                     </div>
+                    {% endif %}
                 </div>
                 <!-- Right content -->
                 <div class="w-full relative overflow-hidden">
@@ -137,6 +139,8 @@
                                 <div class="mt-5 flex flex-row-reverse gap-5">
                                     <md-filled-button
                                         type="button"
+                                        id="next_step"
+                                        name="next_step"
                                         onclick="slideNext()"
                                     >
                                         Next
@@ -197,7 +201,11 @@
 
                                 <!-- etc -->
                                 <div class="mt-5 flex flex-row-reverse gap-5">
-                                    <md-filled-button type="submit">
+                                    <md-filled-button
+                                        type="submit"
+                                        id="register"
+                                        name="register"
+                                    >
                                         Register
                                     </md-filled-button>
 
@@ -256,6 +264,7 @@
             const slider = document.querySelector("#slider");
 
             async function slideNext() {
+                registerForm.next_step.disabled = true;
                 // Check validity before going to next step
                 const accountContent = document.querySelectorAll(
                     "#account-content md-outlined-text-field",
@@ -288,11 +297,13 @@
                         // If username available
                         if (result.code == 200) {
                             progressBar.classList.add("hidden");
+                            registerForm.next_step.disabled = false;
                             slider.style.transform = "translateX(-100%)";
                         }
                     } catch (error) {
                         // If unavailable
                         progressBar.classList.add("hidden");
+                        registerForm.next_step.disabled = false;
 
                         showSupportText(usernameField, error.message);
                     }
@@ -325,10 +336,12 @@
 
                     if (result.code === 200) {
                         progressBar.classList.add("hidden");
+                        registerForm.register.disabled = false;
                         location.href = "/pages/dashboard";
                     }
                 } catch (error) {
                     progressBar.classList.add("hidden");
+                    registerForm.register.disabled = false;
 
                     showAlert("Unable to register you", error.message);
                 }
@@ -337,20 +350,25 @@
             registerForm.addEventListener("submit", (event) => {
                 event.preventDefault();
 
-                // Check all field validity
-                let valid = checkFieldValidity(allField);
+                if (registerForm.register.disabled === false) {
+                    registerForm.register.disabled = true;
 
-                if (valid) {
-                    if (
-                        registerForm.password.value ===
-                        registerForm.retype_password.value
-                    ) {
-                        register(registerForm);
-                    } else {
-                        showSupportText(
-                            retypePw,
-                            "The password does not match. Please try again.",
-                        );
+                    // Check all field validity
+                    let valid = checkFieldValidity(allField);
+
+                    if (valid) {
+                        if (
+                            registerForm.password.value ===
+                            registerForm.retype_password.value
+                        ) {
+                            register(registerForm);
+                        } else {
+                            registerForm.register.disabled = false;
+                            showSupportText(
+                                retypePw,
+                                "The password does not match. Please try again.",
+                            );
+                        }
                     }
                 }
             });

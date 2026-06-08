@@ -120,8 +120,8 @@
                             <form
                                 action=""
                                 method="post"
-                                id="login_form"
-                                name="login_form"
+                                id="recovery_form"
+                                name="recovery_form"
                             >
                                 <div class="flex flex-col gap-5">
                                     <md-outlined-text-field
@@ -155,7 +155,11 @@
                                 </div>
 
                                 <div class="mt-5 flex flex-row-reverse gap-5">
-                                    <md-filled-button type="submit">
+                                    <md-filled-button
+                                        type="submit"
+                                        name="recover"
+                                        id="recover"
+                                    >
                                         Recover
                                     </md-filled-button>
 
@@ -191,16 +195,17 @@
                                 <div class="flex flex-col gap-4 mb-5">
                                     <div class="flex items-center gap-4">
                                         <md-radio
-                                            id="merge_option"
+                                            id="export_option"
                                             name="option"
-                                            value="merge"
+                                            value="export"
                                             checked
                                         ></md-radio>
                                         <label
                                             class="text-md-on-surface md-typescale-body-medium"
-                                            for="merge_option"
+                                            for="export_option"
                                         >
-                                            Merge the passwords
+                                            Export to JSON file (Encrypted with
+                                            current password)
                                         </label>
                                     </div>
 
@@ -232,7 +237,11 @@
                                 </md-outlined-text-field>
 
                                 <div class="mt-5 flex flex-row-reverse gap-5">
-                                    <md-filled-button type="submit">
+                                    <md-filled-button
+                                        type="submit"
+                                        name="proceed"
+                                        id="proceed"
+                                    >
                                         Proceed
                                     </md-filled-button>
 
@@ -274,46 +283,90 @@
             }
 
             function slidePrev() {
-                account = null;
+                if (currentIndex === 0) {
+                    account = null;
+                }
                 currentIndex--;
                 updatePosition();
             }
 
-            // Auth
-            const login_api = "/api/auth/login";
-            const recoveryForm = document.getElementById("login_form");
+            // Recovery
+            const recovery_api = "/api/account/recovery";
+            const recoveryForm = document.getElementById("recovery_form");
             const duplicateAction = document.getElementById("duplicate_action");
 
-            async function decryptAndRecover(formulir) {
+            async function decryptAndRecover(
+                formulir,
+                duplicate_action = null,
+            ) {
                 // Prograss bar
                 const progressBar =
                     document.querySelector("md-linear-progress");
 
-                try {
-                    progressBar.classList.remove("hidden");
+                progressBar.classList.remove("hidden");
 
-                    // Aquired data
-                    let formData = new FormData(formulir);
-                    formData.append("username", account);
+                // Aquired data
+                let formData = new FormData(formulir);
+                formData.append("username", account);
+                formData = Object.fromEntries(formData.entries());
 
-                    formData = Object.fromEntries(formData.entries());
-
-                    // Send request
-                    const result = await sendRequest(
-                        login_api,
-                        formData,
-                        "POST",
-                    );
-
-                    if (result.code === 200) {
-                        progressBar.classList.add("hidden");
-                        location.href = "/pages/dashboard";
-                    }
-                } catch (error) {
-                    progressBar.classList.add("hidden");
-
-                    showSupportText(recoveryForm.password, error.message);
+                let action;
+                if (duplicate_action) {
+                    action = new FormData(duplicate_action);
+                    action = Object.fromEntries(action.entries());
                 }
+
+                formData.action = action;
+
+                // Send request
+                sendRequest(recovery_api, formData, "POST")
+                    .then((response) => {
+                        if (response.code === 201) {
+                            const dataSheet = response.data;
+                            const blob = new Blob([dataSheet.json_file], {
+                                type: "application/json;charset=utf-8;",
+                            });
+
+                            tempoaryUrl(
+                                blob,
+                                "Text Encryptor - Keys & Passwords",
+                                "json",
+                            );
+
+                            showSnackbar(response.message);
+                        } else {
+                            location.href = "/pages/dashboard";
+                        }
+
+                        recoveryForm.recover.disabled = false;
+                        duplicateAction.proceed.disabled = false;
+                        progressBar.classList.add("hidden");
+                    })
+                    .catch((error) => {
+                        if (error.code === 409 && currentIndex === 1) {
+                            slideNext();
+                        } else {
+                            // Password form
+                            if (currentIndex === 1) {
+                                showSupportText(
+                                    recoveryForm.password,
+                                    error.message,
+                                );
+                            }
+
+                            // Duplicate action form
+                            if (currentIndex === 2) {
+                                showSupportText(
+                                    duplicateAction.username,
+                                    error.message,
+                                );
+                            }
+                        }
+
+                        recoveryForm.recover.disabled = false;
+                        duplicateAction.proceed.disabled = false;
+                        progressBar.classList.add("hidden");
+                    });
             }
 
             // radio listener
@@ -328,13 +381,28 @@
                 });
             });
 
+            // Recovery form submit btn
             recoveryForm.addEventListener("submit", (event) => {
                 event.preventDefault();
 
-                hideSupportText(recoveryForm.password);
-                // login(loginForm);
+                if (recoveryForm.recover.disabled === false) {
+                    recoveryForm.recover.disabled = true;
 
-                slideNext();
+                    hideSupportText(recoveryForm.password);
+                    decryptAndRecover(recoveryForm);
+                }
+            });
+
+            // Duplicate action form submit btn
+            duplicateAction.addEventListener("submit", (event) => {
+                event.preventDefault();
+
+                if (duplicateAction.proceed.disabled === false) {
+                    duplicateAction.proceed.disabled = true;
+
+                    hideSupportText(duplicateAction.username);
+                    decryptAndRecover(recoveryForm, duplicateAction);
+                }
             });
         </script>
     </body>

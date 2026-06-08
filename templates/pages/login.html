@@ -52,6 +52,7 @@
                         Select an account to continue.
                     </p>
 
+                    {% if recovery %}
                     <!-- Recovery notice -->
                     <div
                         class="p-4 rounded-xl bg-md-tertiary-container flex gap-3 items-start mt-2.5"
@@ -79,6 +80,7 @@
                             </div>
                         </div>
                     </div>
+                    {% endif %}
                 </div>
 
                 <!-- Right content -->
@@ -205,7 +207,11 @@
                                 </div>
 
                                 <div class="mt-5 flex flex-row-reverse gap-5">
-                                    <md-filled-button type="submit">
+                                    <md-filled-button
+                                        type="submit"
+                                        id="login"
+                                        name="login"
+                                    >
                                         Login
                                     </md-filled-button>
 
@@ -269,11 +275,14 @@
                     );
 
                     if (result.code === 200) {
+                        loginForm.login.disabled = false;
+
                         progressBar.classList.add("hidden");
                         location.href = "/pages/dashboard";
                     }
                 } catch (error) {
                     progressBar.classList.add("hidden");
+                    loginForm.login.disabled = false;
 
                     showSupportText(theField, error.message);
                 }
@@ -282,8 +291,11 @@
             loginForm.addEventListener("submit", (event) => {
                 event.preventDefault();
 
-                hideSupportText(theField);
-                login(loginForm);
+                if (loginForm.login.disabled === false) {
+                    loginForm.login.disabled = true;
+                    hideSupportText(theField);
+                    login(loginForm);
+                }
             });
         </script>
     </body>

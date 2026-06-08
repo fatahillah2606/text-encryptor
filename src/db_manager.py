@@ -57,61 +57,59 @@ def create_database():
         os.makedirs("db")
 
     try:
-        # Connect to db or created it if not exist.
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
+        with sqlite3.connect(db_path) as conn:
+            # Connect to db or created it if not exist.
+            cursor = conn.cursor()
 
-        # Enable foreign key support
-        cursor.execute("PRAGMA foreign_keys = ON;")
+            # Enable foreign key support
+            cursor.execute("PRAGMA foreign_keys = ON;")
 
-        # Set database version
-        cursor.execute("PRAGMA user_version = 2;")
+            # Set database version
+            cursor.execute("PRAGMA user_version = 2;")
 
-        # 1. Tabel "Users"
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS users (
-                user_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name VARCHAR(50) NOT NULL,
-                username VARCHAR(50) NOT NULL UNIQUE,
-                password_hash BLOB NOT NULL
-            )
-        """)
+            # 1. Tabel "Users"
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name VARCHAR(50) NOT NULL,
+                    username VARCHAR(50) NOT NULL UNIQUE,
+                    password_hash BLOB NOT NULL
+                )
+                """)
 
-        # 2. Tabel "Keys"
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS keys (
-                key_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                key_name VARCHAR(50) NOT NULL,
-                encrypted_key BLOB NOT NULL,
-                key_iv BLOB NOT NULL,
-                FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-            )
-        """)
+            # 2. Tabel "Keys"
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS keys (
+                    key_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    key_name VARCHAR(50) NOT NULL,
+                    encrypted_key BLOB NOT NULL,
+                    key_iv BLOB NOT NULL,
+                    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+                )
+                """)
 
-        # 3. Tabel "Passwords"
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS passwords (
-                password_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                key_id INTEGER NOT NULL,
-                service_url TEXT NULL,
-                service_name VARCHAR(50) NOT NULL,
-                username_account BLOB NOT NULL,
-                username_iv BLOB NOT NULL,
-                encrypted_password BLOB NOT NULL,
-                password_iv BLOB NOT NULL,
-                service_notes TEXT NULL,
-                FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-                FOREIGN KEY (key_id) REFERENCES keys(key_id) ON DELETE CASCADE
-            )
-        """)
+            # 3. Tabel "Passwords"
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS passwords (
+                    password_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    key_id INTEGER NOT NULL,
+                    service_url TEXT NULL,
+                    service_name VARCHAR(50) NOT NULL,
+                    username_account BLOB NOT NULL,
+                    username_iv BLOB NOT NULL,
+                    encrypted_password BLOB NOT NULL,
+                    password_iv BLOB NOT NULL,
+                    service_notes TEXT NULL,
+                    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+                    FOREIGN KEY (key_id) REFERENCES keys(key_id) ON DELETE CASCADE
+                )
+                """)
 
-        conn.commit()
+            conn.commit()
+
         print("Generation complete.")
 
     except sqlite3.Error as e:
         print(f"An error occurred: {e}")
-    finally:
-        if conn:
-            conn.close()

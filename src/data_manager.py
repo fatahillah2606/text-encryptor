@@ -1009,3 +1009,200 @@ class PasswordManager:
                 "error",
                 f"An error occurred in the database. \nError message: {str(err)}",
             )
+
+
+# Recovery
+class Recovery:
+    def __init__(self, old_db_path=os.path.join("db", "old_vault_manager.db")):
+        self.db_path = old_db_path
+        self.user_manager = UserManager(old_db_path)
+        self.old_encryption = OldEncryption()
+
+    # Check if there was a user in old database
+    def check_old_users(self):
+        if os.path.exists(self.db_path):
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                query = "SELECT EXISTS(SELECT 1 FROM users LIMIT 1);"
+                cursor.execute(query)
+                result = cursor.fetchone()[0]
+
+                return bool(result)
+
+    def getRecoverableAccounts(self):
+        return self.user_manager.getAvailableUsers()
+
+    # Get user information
+    def get_user_information(self, username):
+        query = "SELECT * FROM users WHERE username = ?"
+
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                cursor.execute("PRAGMA foreign_keys = ON;")
+                cursor.execute(query, (username,))
+
+                data = cursor.fetchone()
+                result = {}
+
+                if data:
+                    result = {
+                        "user_id": data["user_id"],
+                        "name": data["name"],
+                        "username": data["username"],
+                    }
+
+                    return result
+
+                else:
+                    return "Account not found"
+
+        except sqlite3.Error as err:
+            return f"An error occurred in the database. \nError message: {str(err)}"
+
+    # Delete old user account
+    def delete_old_account(self, user_id):
+        return self.user_manager.deleteProfile(user_id)
+
+    # Get all key from old db
+    def user_saved_keys(self, user_id, master_key):
+        query = "SELECT * FROM keys WHERE user_id = ?"
+
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                cursor.execute("PRAGMA foreign_keys = ON;")
+
+                cursor.execute(query, (user_id,))
+
+                rows = cursor.fetchall()
+
+                result = []
+
+                for row in rows:
+                    # Try to decrypt the key
+                    try:
+                        key_from_db = binascii.hexlify(
+                            row["iv"] + row["encrypted_key"]
+                        ).decode()
+                        key_from_db = binascii.unhexlify(key_from_db)
+
+                        valid_key = self.old_encryption.get_valid_key(master_key)
+
+                        decrypted_key = self.old_encryption.decrypt_aes(
+                            key_from_db, valid_key["encoded_key"]
+                        )
+
+                        result.append(
+                            {
+                                "key_id": row["key_id"],
+                                "key_name": row["key_name"],
+                                "encryption_key": decrypted_key,
+                            }
+                        )
+                    except Exception:
+                        return (
+                            "error",
+                            "Decryption failed due to incorrect password. Please try again.",
+                        )
+
+                return "success", result
+
+        except sqlite3.Error as err:
+            return (
+                "error",
+                f"An error occurred in the database, \nError message: {str(err)}",
+            )
+
+    # Get key from old db
+    def get_user_key(self, key_id, user_id, master_key):
+        query = "SELECT * FROM keys WHERE key_id = ? AND user_id = ?"
+
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                cursor.execute("PRAGMA foreign_keys = ON;")
+
+                cursor.execute(query, (key_id, user_id))
+
+                key = cursor.fetchone()
+
+                result = {}
+
+                if key:
+                    key_from_db = binascii.hexlify(
+                        key["iv"] + key["encrypted_key"]
+                    ).decode()
+                    key_from_db = binascii.unhexlify(key_from_db)
+
+                    valid_key = self.old_encryption.get_valid_key(master_key)
+
+                    decrypted_key = self.old_encryption.decrypt_aes(
+                        key_from_db, valid_key["encoded_key"]
+                    )
+
+                    result = {
+                        "key_id": key["key_id"],
+                        "user_id": key["user_id"],
+                        "key_name": key["key_name"],
+                        "encryption_key": decrypted_key,
+                    }
+
+            return result
+
+        except sqlite3.Error as err:
+            return f"An error occurred in the database. \nError message: {str(err)}"
+
+    # Get all password from old db
+    def user_saved_accounts(self, user_id, master_key):
+        try:
+            query = "SELECT * FROM passwords WHERE user_id = ?"
+
+            with sqlite3.connect(self.db_path) as conn:
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                cursor.execute("PRAGMA foreign_keys = ON;")
+
+                cursor.execute(query, (user_id,))
+
+                rows = cursor.fetchall()
+
+                result = []
+
+                for row in rows:
+                    passwordKey = self.get_user_key(row["key_id"], user_id, master_key)
+                    valid_key = self.old_encryption.get_valid_key(
+                        passwordKey["encryption_key"]
+                    )
+
+                    password_from_db = binascii.hexlify(
+                        row["iv"] + row["encrypted_password"]
+                    ).decode()
+                    password_from_db = binascii.unhexlify(password_from_db)
+
+                    decrypted_password = self.old_encryption.decrypt_aes(
+                        password_from_db, valid_key["encoded_key"]
+                    )
+
+                    result.append(
+                        {
+                            "password_id": row["password_id"],
+                            "key_id": row["key_id"],
+                            "name": row["service_name"],
+                            "url": row["service_url"],
+                            "username": row["username_account"],
+                            "password": decrypted_password,
+                            "note": row["service_notes"],
+                        }
+                    )
+
+                return result
+
+        except sqlite3.Error as err:
+            return (
+                "error",
+                f"An error occurred in the database. \nError message: {str(err)}",
+            )

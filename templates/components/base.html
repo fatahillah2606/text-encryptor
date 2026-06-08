@@ -73,7 +73,7 @@
 
                     {% for key in user_keys %}
                     <md-select-option
-                        value="{{ key['encrypted_key'] }} "
+                        value="{{ key['encryption_key'] }} "
                         data-context="{{ key['key_name'] }}"
                     >
                         <div slot="headline">{{ key['key_name'] }}</div>
