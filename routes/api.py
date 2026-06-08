@@ -1063,39 +1063,40 @@ def recoverAccount():
 
                     else:
                         new_username = duplicate_action.get("username")
+                        status, result = user.checkUsername(new_username)
 
-                        # Recover the account
-                        recovered_account = user.register(
-                            user_info["name"], new_username, password
-                        )
+                        if status == "success":
+                            # Recover the account
+                            recovered_account = user.register(
+                                user_info["name"], new_username, password
+                            )
 
-                        # Recover the data
-                        importer.import_into_db(
-                            recovered_data, recovered_account["user_id"], password
-                        )
+                            # Recover the data
+                            importer.import_into_db(
+                                recovered_data, recovered_account["user_id"], password
+                            )
 
-                        # Log-in the user with recovered account
-                        createLoginSession(
-                            recovered_account["user_id"],
-                            recovered_account["name"],
-                            recovered_account["username"],
-                            password,
-                        )
+                            # Log-in the user with recovered account
+                            createLoginSession(
+                                recovered_account["user_id"],
+                                recovered_account["name"],
+                                recovered_account["username"],
+                                password,
+                            )
 
-                        # Delete the old account
-                        recovery_method.delete_old_account(user_info["user_id"])
+                            # Delete the old account
+                            recovery_method.delete_old_account(user_info["user_id"])
 
-                        return api_response(
-                            "success", 200, "Account successfully recovered", [], {}
-                        )
+                            return api_response(
+                                "success", 200, "Account successfully recovered", [], {}
+                            )
 
-                return api_response(
-                    "error",
-                    409,
-                    "There is already an account with the same username.",
-                    [],
-                    {},
-                ), 409
+                        else:
+                            return api_response("error", 409, result, [], {}), 409
+
+                # Return this if duplicate_action is empty
+                else:
+                    return api_response("error", 409, result, [], {}), 409
 
             else:
                 return api_response("error", 500, result, [], {}), 500

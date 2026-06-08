@@ -1,7 +1,7 @@
 {% macro bar_items(label, icon, url, current, target) %}
 <a
     href="{{ url }}"
-    class="rail-menu shrink-0 group{% if current == target %} active {% else %} {% endif %} relative flex flex-col items-center w-20 gap-1 min-h-15 overflow-hidden"
+    class="rail-menu shrink-0 group{% if current == target %} active {% else %} {% endif %} relative flex flex-col items-center gap-1 min-h-15 overflow-hidden"
 >
     <div
         class="relative group-[.active]:bg-md-secondary-container rounded-full"
