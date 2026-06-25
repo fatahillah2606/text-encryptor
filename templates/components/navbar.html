@@ -1,6 +1,6 @@
 {% from "components/macros/bar_menu.html" import bar_items %}
 <div
-    class="fixed md:hidden bottom-0 w-full bg-md-surface-container py-1.5 flex justify-around z-20"
+    class="w-full md:hidden bg-md-surface-container py-1.5 flex justify-around z-20 shrink-0"
 >
     <!-- Dashboard -->
     {{ bar_items('Dashboard', 'dashboard', url_for('pages.dashboard'),
