@@ -5,14 +5,10 @@
 
 <!-- Section -->
 {% block section %}
-<section
-    class="w-full! h-[calc(100vh-72px)] overflow-auto p-0 md:p-2.5 md:pl-0 md:pt-0"
->
-    <div
-        class="bg-md-background w-full h-full md:rounded-4xl overflow-auto p-5"
-    >
+<section class="main-section">
+    <div class="bg-md-background md:rounded-4xl overflow-auto p-5 h-full">
         <div class="flex justify-center">
-            <div class="w-full max-w-2xl animate-showup mb-20 md:mb-0">
+            <div class="w-full max-w-2xl animate-showup">
                 <!-- Heading -->
                 <div
                     class="flex items-center justify-start gap-2.5 bg-md-background z-10"
@@ -26,18 +22,30 @@
 
                 <!-- Search bar -->
                 <search
-                    class="w-full h-12 overflow-hidden rounded-full bg-md-surface-variant mb-5 relative"
+                    class="w-full h-12 overflow-hidden rounded-full bg-md-surface-container-high mb-5 relative"
                     id="search-bar"
                 >
                     <form action="" class="flex items-center">
-                        <md-icon class="text-md-on-surface w-12 h-12 shrink-0">
+                        <md-icon
+                            class="text-md-on-surface-variant w-12 h-12 shrink-0"
+                        >
                             search
                         </md-icon>
                         <input
                             type="search"
-                            class="w-full h-12 outline-0 text-md-on-surface text-lg"
+                            class="w-full h-12 outline-0 text-md-on-surface-variant text-lg"
                             placeholder="Search"
                         />
+                        <button
+                            type="reset"
+                            class="w-12 h-12 shrink-0 cursor-pointer hidden"
+                            id="clear-btn"
+                            name="clear-btn"
+                        >
+                            <md-icon class="text-md-on-surface-variant">
+                                close
+                            </md-icon>
+                        </button>
                     </form>
                     <md-ripple></md-ripple>
                 </search>
@@ -48,21 +56,10 @@
                         class="rounded-2xl overflow-hidden flex flex-col gap-1"
                         id="data_list"
                     >
-                        {% for i in range(10) %}
-                        <div
-                            class="relative py-5 px-5 bg-md-surface-container rounded-md flex items-center gap-5 cursor-pointer"
-                        >
-                            <div
-                                class="w-6 h-6 rounded-full bg-md-surface-variant animate-pulse"
-                            ></div>
-                            <div>
-                                <div
-                                    class="bg-md-surface-variant w-40 h-5 rounded-lg animate-pulse mb-1.5"
-                                ></div>
-                            </div>
-                            <md-ripple></md-ripple>
-                        </div>
-                        {% endfor %}
+                        <md-circular-progress
+                            class="block m-auto"
+                            indeterminate
+                        ></md-circular-progress>
                     </div>
                 </div>
             </div>
@@ -88,6 +85,7 @@
                 id="key_name"
                 class="col-span-2"
                 type="text"
+                maxlength="20"
                 required
             >
             </md-filled-text-field>
@@ -153,6 +151,7 @@
                 id="edit_key_name"
                 class="col-span-2"
                 type="text"
+                maxlength="20"
                 required
                 readonly
             >
@@ -543,61 +542,136 @@
     }
 
     // Load keys
+    let allKeys = [];
+    let visibleKeyCount = 0;
+    let keyAnimationTimeouts = [];
+    let isKeyObserving = false;
+    let keySearchQuery = ""; // Tracks the text input for keys
+
     async function loadKeys() {
         try {
-            const result = await sendRequest(userKeysAPI, {}, "GET"); // Note: userKeysAPI already declared in base.html
-            const keys = result.data;
-
-            // Remove master key from list
-            const filteredKey = keys.filter(
+            const result = await sendRequest(userKeysAPI, {}, "GET");
+            // Save the base data after removing master_key
+            allKeys = result.data.filter(
                 (item) => item.key_name !== "master_key",
             );
 
-            if (filteredKey.length !== 0) {
-                keyElm = "";
-                // Show the keys
-                filteredKey.forEach((key) => {
-                    keyElm += `
-                        <div
-                            class="relative py-5 px-5 bg-md-surface-container rounded-md flex items-center gap-5 cursor-pointer"
-                            onclick="openExistingKey('/api/user/key/${key.key_id}')"
-                        >
-                            <md-icon class="text-md-on-surface">key_vertical</md-icon>
-                            <div>
-                                <h2
-                                    class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
-                                >
-                                    ${key.key_name}
-                                </h2>
-                            </div>
-                            <md-ripple></md-ripple>
-                        </div>
-                    `;
-                });
-
-                keyList.innerHTML = keyElm;
-            } else {
-                keyList.innerHTML = `
-                    <blockquote
-                            class="flex items-start bg-md-tertiary-container rounded-2xl w-full m-0 p-5 gap-2.5"
-                        >
-                            <md-icon class="text-md-on-tertiary-container shrink-0">
-                                info
-                            </md-icon>
-                            <p
-                                class="md-typescale-body-large text-md-on-tertiary-container italic! font-semibold! m-0"
-                            >
-                                "The way forward is locked. No key has been saved here yet."
-                            </p>
-                        </blockquote>
-                `;
-            }
+            renderKeys();
+            setupKeyInfiniteScroll();
         } catch (error) {
             showAlert("Unable to load key list", error.message);
         }
     }
 
-    // Load all key
+    function renderKeys() {
+        // Clear active timeouts to avoid element overlap issues
+        keyAnimationTimeouts.forEach((timeout) => clearTimeout(timeout));
+        keyAnimationTimeouts = [];
+
+        keyList.innerHTML = "";
+        visibleKeyCount = 0;
+
+        const filtered = getFilteredKeys();
+
+        if (allKeys.length === 0) {
+            keyList.innerHTML = `
+                <blockquote class="flex items-start bg-md-tertiary-container rounded-2xl w-full m-0 p-5 gap-2.5">
+                    <md-icon class="text-md-on-tertiary-container shrink-0">info</md-icon>
+                    <p class="md-typescale-body-large text-md-on-tertiary-container italic! font-semibold! m-0">
+                        "The gateway is locked. No encryption keys have been established here yet. Let's register a new key first."
+                    </p>
+                </blockquote>
+            `;
+            return;
+        } else if (filtered.length === 0) {
+            keyList.innerHTML = `
+                <blockquote class="flex items-start bg-md-tertiary-container rounded-2xl w-full m-0 p-5 gap-2.5">
+                    <md-icon class="text-md-on-tertiary-container shrink-0">info</md-icon>
+                    <p class="md-typescale-body-large text-md-on-tertiary-container italic! font-semibold! m-0">
+                        "Search returned zero results. No keys match that name. Check the spelling or typos, precision is key"
+                    </p>
+                </blockquote>
+            `;
+            return;
+        }
+
+        appendNextKeyChunk(15);
+    }
+
+    function appendNextKeyChunk(limit) {
+        const filtered = getFilteredKeys();
+        const start = visibleKeyCount;
+        const end = Math.min(start + limit, filtered.length);
+
+        if (start >= filtered.length) return;
+
+        let localIndex = 0;
+
+        for (let i = start; i < end; i++) {
+            const key = filtered[i];
+
+            const itemWrapper = document.createElement("div");
+            itemWrapper.className =
+                "relative py-5 px-5 bg-md-surface-container rounded-md flex items-center gap-5 cursor-pointer animate-showup";
+
+            itemWrapper.onclick = () =>
+                openExistingKey(`/api/user/key/${key.key_id}`);
+
+            itemWrapper.innerHTML = `
+                <md-icon class="text-md-on-surface">key_vertical</md-icon>
+                <div>
+                    <h2 class="md-typescale-title-medium text-md-on-surface font-bold! m-0">${key.key_name}</h2>
+                </div>
+                <md-ripple></md-ripple>
+            `;
+
+            // Sequential DOM appending
+            const tId = setTimeout(() => {
+                keyList.appendChild(itemWrapper);
+            }, localIndex * 30);
+
+            keyAnimationTimeouts.push(tId);
+            localIndex++;
+        }
+
+        visibleKeyCount = end;
+    }
+
+    function getFilteredKeys() {
+        if (!keySearchQuery) return allKeys;
+        return allKeys.filter((key) =>
+            key.key_name.toLowerCase().includes(keySearchQuery),
+        );
+    }
+
+    function setupKeyInfiniteScroll() {
+        if (isKeyObserving) return;
+
+        let sentinel = document.getElementById("key-scroll-sentinel");
+        if (!sentinel) {
+            sentinel = document.createElement("div");
+            sentinel.id = "key-scroll-sentinel";
+            sentinel.className = "h-1 w-full";
+            keyList.after(sentinel);
+        }
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting) {
+                    const filtered = getFilteredKeys();
+                    if (visibleKeyCount < filtered.length) {
+                        appendNextKeyChunk(10);
+                    }
+                }
+            },
+            { rootMargin: "100px" },
+        );
+
+        observer.observe(sentinel);
+        isKeyObserving = true;
+    }
+
+    // Initialization trigger
     loadKeys();
 
     // for enable/disable submit btn

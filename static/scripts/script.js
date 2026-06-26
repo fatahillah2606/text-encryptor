@@ -365,48 +365,45 @@ const searchBar = document.getElementById("search-bar");
 
 if (searchBar) {
     const searchField = searchBar.querySelector("input");
+    const clearField = searchBar.querySelector("#clear-btn");
 
     searchField.addEventListener("keyup", () => {
         const searchValue = searchField.value.toLowerCase();
 
-        const dataRow = document.querySelectorAll("#data_list > div");
+        // if search field not empty
+        searchValue != ""
+            ? clearField.classList.remove("hidden")
+            : clearField.classList.add("hidden");
 
-        dataRow.forEach((data) => {
-            let match = false;
-
-            const h2Title = data.querySelectorAll("h2");
-            const pBody = data.querySelectorAll("p");
-
-            // For h2 elm
-            if (h2Title.length !== 0) {
-                h2Title.forEach((element) => {
-                    if (
-                        element.textContent.toLowerCase().includes(searchValue)
-                    ) {
-                        match = true;
-                    }
-                });
-            }
-
-            // For p elm
-            if (pBody.length !== 0) {
-                pBody.forEach((element) => {
-                    if (
-                        element.textContent.toLowerCase().includes(searchValue)
-                    ) {
-                        match = true;
-                    }
-                });
-            }
-
-            // If match
-            if (match) {
-                data.classList.remove("hidden");
-            } else {
-                data.classList.add("hidden");
-            }
-        });
+        filterSearch(searchValue);
     });
+
+    // Hide clear field btn onclick
+    clearField.addEventListener("click", () => {
+        clearField.classList.add("hidden");
+        const searchValue = "";
+
+        filterSearch(searchValue);
+    });
+}
+
+function filterSearch(search_value) {
+    // If on the Password Page
+    if (
+        typeof allPasswords !== "undefined" &&
+        document.getElementById("data_list") === pwList
+    ) {
+        passwordSearchQuery = search_value;
+        renderPasswords();
+    }
+    // If on the Encryption Keys Page
+    else if (
+        typeof allKeys !== "undefined" &&
+        document.getElementById("data_list") === keyList
+    ) {
+        keySearchQuery = search_value;
+        renderKeys();
+    }
 }
 
 // Enable submit button only if all field is not empty

@@ -246,6 +246,17 @@ def register():
         password = str(data.get("password"))
         retypePassword = str(data.get("retype_password"))
 
+        # name and username length check
+        if len(name) > 50:
+            return api_response(
+                "error", 400, "The maximum length for a name is 50.", [], {}
+            ), 400
+
+        if len(username) > 50:
+            return api_response(
+                "error", 400, "The maximum length for username is 50.", [], {}
+            ), 400
+
         # Check if password match
         if password == retypePassword:
             # Insert into database
@@ -367,10 +378,20 @@ def updateProfile():
 
         updates = {}
         if "name" in data:
-            updates["name"] = str(data.get("name"))
+            name = str(data.get("name"))
+            if len(name) > 50:
+                return api_response(
+                    "error", 400, "The maximum length for a name is 50.", [], {}
+                ), 400
+
+            updates["name"] = name
 
         if "username" in data:
             username = str(data.get("username"))
+            if len(username) > 50:
+                return api_response(
+                    "error", 400, "The maximum length for username is 50.", [], {}
+                ), 400
 
             # Check the availablity first
             status, result = user.checkUsername(username)
@@ -747,6 +768,12 @@ def createEncryptionKey():
         user_id = session["user_id"]
         session_key = session["key"]
 
+        # Check key name length
+        if len(keyName) > 20:
+            return api_response(
+                "error", 400, "The maximum length for a key name is 20.", [], {}
+            ), 400
+
         # Insert into db
         status, result = keys.create_user_key(keyName, theKey, user_id, session_key)
 
@@ -777,6 +804,12 @@ def editEncryptionKey(key_id):
 
         user_id = session["user_id"]
         session_key = session["key"]
+
+        # Check key name length
+        if len(keyName) > 20:
+            return api_response(
+                "error", 400, "The maximum length for a key name is 20.", [], {}
+            ), 400
 
         # Insert into db
         status, result = keys.edit_user_key(
@@ -894,6 +927,17 @@ def createPassword():
         user_id = session["user_id"]
         session_key = session["key"]
 
+        # Check serviceName and username length
+        if len(serviceName) > 50:
+            return api_response(
+                "error", 400, "The maximum length for service name is 50.", [], {}
+            ), 400
+
+        if len(username) > 50:
+            return api_response(
+                "error", 400, "The maximum length for username is 50.", [], {}
+            ), 400
+
         # Insert into db
         status, result = passwords.create_user_password(
             serviceUrl,
@@ -937,6 +981,17 @@ def editPassword(password_id):
 
         user_id = session["user_id"]
         session_key = session["key"]
+
+        # Check serviceName and username length
+        if len(serviceName) > 50:
+            return api_response(
+                "error", 400, "The maximum length for service name is 50.", [], {}
+            ), 400
+
+        if len(username) > 50:
+            return api_response(
+                "error", 400, "The maximum length for username is 50.", [], {}
+            ), 400
 
         # Insert into db
         status, result = passwords.edit_user_password(
@@ -1063,6 +1118,17 @@ def recoverAccount():
 
                     else:
                         new_username = duplicate_action.get("username")
+
+                        # Check username length
+                        if len(new_username) > 50:
+                            return api_response(
+                                "error",
+                                400,
+                                "The maximum length for username is 50.",
+                                [],
+                                {},
+                            ), 400
+
                         status, result = user.checkUsername(new_username)
 
                         if status == "success":

@@ -18,22 +18,22 @@
         />
         <script src="{{ url_for('static', filename='scripts/material-web.js') }}"></script>
     </head>
-    <body class="grid grid-rows-[72px_1fr] h-screen bg-md-surface-container">
+    <body class="flex flex-col h-screen bg-md-surface-container">
         <!-- App Bars -->
         {% include 'components/appbar.html' %}
 
         <main
-            class="relative grid md:grid-cols-[96px_1fr] h-full transition-all ease-out"
+            class="relative grid md:grid-cols-[96px_1fr] transition-all ease-out flex-1"
         >
             <!-- Navigation rail -->
             {% include 'components/navrail.html' %}
 
             <!-- Main Section -->
             {% block section %}{% endblock %}
-
-            <!-- Navigation bar -->
-            {% include 'components/navbar.html' %}
         </main>
+
+        <!-- Navigation bar -->
+        {% include 'components/navbar.html' %}
 
         <!-- Modals -->
         <md-dialog id="key-selector-modal" class="z-50">
