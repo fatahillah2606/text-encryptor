@@ -13,17 +13,17 @@
             >
                 <!-- Profile picture -->
                 <div
-                    class="w-20 h-20 md:w-28 md:h-28 bg-md-secondary-container rounded-full flex items-center justify-center"
+                    class="w-20 h-20 md:w-28 md:h-28 bg-md-primary-container rounded-full flex items-center justify-center"
                 >
                     {% if 'username' in session %}
                     <span
-                        class="text-md-on-secondary-container font-bold text-4xl"
+                        class="text-md-on-primary-container font-bold text-4xl"
                     >
                         {{ name[0] }}
                     </span>
                     {% else %}
                     <span
-                        class="material-symbols-rounded material-icon-fill text-md-on-secondary-container font-bold text-4xl! md:text-6xl!"
+                        class="material-symbols-rounded material-icon-fill text-md-on-primary-container font-bold text-4xl! md:text-6xl!"
                     >
                         person
                     </span>

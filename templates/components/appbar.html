@@ -10,7 +10,11 @@
                 encrypted
             </md-icon>
 
-            <md-icon-button class="cursor-pointer hidden md:flex" id="menu-btn">
+            <md-icon-button
+                class="cursor-pointer hidden md:flex"
+                id="menu-btn"
+                title="Menu"
+            >
                 <md-icon class="text-md-on-secondary-container!">
                     menu
                 </md-icon>
@@ -27,16 +31,16 @@
 
     <!-- User profile -->
     <div class="relative flex items-center justify-center mr-5 gap-2.5">
-        <md-icon-button onclick="openKeyModal()">
+        <md-icon-button onclick="openKeyModal()" title="Encryption key">
             <md-icon>key_vertical</md-icon>
         </md-icon-button>
         {% if 'username' in session %}
         <div
-            class="flex items-center justify-center bg-md-secondary-container cursor-pointer rounded-full w-11 h-11 ml-1"
+            class="flex items-center justify-center bg-md-primary-container cursor-pointer rounded-full w-11 h-11 ml-1"
             title="Account information"
             id="user-profile"
         >
-            <span class="text-md-on-secondary-container font-bold text-lg">
+            <span class="text-md-on-primary-container text-lg">
                 {{ name[0] }}
             </span>
         </div>
@@ -55,5 +59,86 @@
             <md-filled-button>Login</md-filled-button>
         </a>
         {% endif %}
+    </div>
+
+    <!-- For multi-select option -->
+    <div
+        class="absolute top-0 left-0 w-full h-full bg-md-surface-container flex hidden items-center justify-between px-2.5 md:px-0"
+        id="selection-appbar"
+    >
+        <!-- Icon and lable -->
+        <div class="flex items-center justify-start">
+            <div
+                class="md:w-24 mr-2.5 md:mr-0 flex items-center justify-center"
+            >
+                <md-icon-button
+                    class="cursor-pointer flex"
+                    onclick="deselectAll()"
+                    title="Cancel selection"
+                >
+                    <md-icon class="text-md-on-secondary-container!">
+                        close
+                    </md-icon>
+                </md-icon-button>
+            </div>
+
+            <!-- The lable -->
+            <span
+                class="md-typescale-title-medium text-md-on-secondary-container"
+            >
+                <span id="select-count">0</span> selected
+            </span>
+        </div>
+
+        <!-- Multi-select menu -->
+        <div class="relative flex items-center justify-center md:mr-5 gap-2.5">
+            <div class="hidden md:block">
+                <md-icon-button
+                    title="Select all"
+                    onclick="selectAllFiltered()"
+                >
+                    <md-icon>select_all</md-icon>
+                </md-icon-button>
+
+                {% if active_page == 'password_manager' %}
+                <md-icon-button
+                    title="Export selected"
+                    onclick="openExportMenu()"
+                >
+                    <md-icon>upload</md-icon>
+                </md-icon-button>
+                {% endif %}
+
+                <md-icon-button
+                    title="Delete selected"
+                    onclick="deleteSelected()"
+                >
+                    <md-icon>delete</md-icon>
+                </md-icon-button>
+            </div>
+
+            <div class="md:hidden relative">
+                <md-icon-button id="more-select-opt">
+                    <md-icon>more_vert</md-icon>
+                </md-icon-button>
+
+                <!-- multi-select more option -->
+                <md-menu id="more-select-menu" anchor="more-select-opt">
+                    <md-menu-item onclick="selectAllFiltered()">
+                        Select all
+                    </md-menu-item>
+
+                    {% if active_page == 'password_manager' %}
+                    <md-menu-item onclick="openExportMenu()">
+                        Export
+                    </md-menu-item>
+                    {% endif %}
+
+                    <md-menu-item onclick="deleteSelected()">
+                        Delete
+                    </md-menu-item>
+                </md-menu>
+            </div>
+        </div>
     </div>
 </div>

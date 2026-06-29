@@ -116,7 +116,7 @@ def encrypt_text():
         return api_response(
             "success",
             200,
-            "The text has been successfully encrypted",
+            "Successfully encrypted text",
             {"encrypted_text": encrypted_text},
             {},
         )
@@ -159,7 +159,7 @@ def decrypt_text():
         return api_response(
             "success",
             200,
-            "The text has been successfully decrypted",
+            "Successfully decrypted text",
             {"decrypted_text": decrypted_text},
             {},
         )
@@ -211,9 +211,7 @@ def password_generator():
 
         data = {"password": password, "encrypted_password": encrypted}
 
-        return api_response(
-            "success", 200, "Password successfully generated.", data, {}
-        )
+        return api_response("success", 200, "Password generated.", data, {})
 
     except ValueError as err:
         return api_response("error", 400, str(err), [], {}), 400
@@ -853,6 +851,43 @@ def deleteKey(key_id):
         ), 500
 
 
+@api_route.route("/user/key/delete_many", methods=["PUT"])
+@logged_in_only_api
+def deleteManyKey():
+    try:
+        data = request.json
+        selectedKeyIds = data.get("selected_key")
+
+        for eachKey in selectedKeyIds:
+            status, result = keys.delete_user_key(eachKey)
+
+            if status == "error":
+                return api_response(
+                    "error",
+                    500,
+                    f"An error occurred when deleting keys. \nError message:{str(result)}",
+                    [],
+                    {},
+                ), 500
+
+        return api_response(
+            "success",
+            200,
+            f"{len(selectedKeyIds)} Keys deleted.",
+            [],
+            {},
+        )
+
+    except Exception as err:
+        return api_response(
+            "error",
+            500,
+            f"An error occurred on the server. \nError message:{str(err)}",
+            [],
+            {},
+        ), 500
+
+
 #
 # Password manager
 #
@@ -1021,6 +1056,110 @@ def editPassword(password_id):
         ), 500
 
 
+# Export password
+@api_route.route("user/password/export", methods=["POST"])
+@logged_in_only_api
+def exportPassword():
+    try:
+        data = request.json
+        exportFormat = str(data.get("export_format"))
+        exportPassword = str(data.get("export_password"))
+        selectedPasswordIds = data.get("selected_password")
+
+        keyList = []
+        passwordList = []
+
+        # Get the passwords based on selected
+        for eachPw in selectedPasswordIds:
+            passwd = passwords.get_user_password(
+                eachPw, session["user_id"], session["key"]
+            )
+
+            passwordList.append(
+                {
+                    "password_id": passwd["password_id"],
+                    "key_id": passwd["key_id"],
+                    "name": passwd["service_name"],
+                    "url": passwd["service_url"],
+                    "username": passwd["username_account"],
+                    "password": passwd["decrypted_password"],
+                    "note": passwd["service_note"],
+                }
+            )
+
+        # Get the keys based on selected password
+        existing_ids = {item["key_id"] for item in keyList}
+
+        for eachPwIds in passwordList:
+            if eachPwIds["key_id"] not in existing_ids:
+                keyList.append(
+                    keys.get_user_key(
+                        eachPwIds["key_id"], session["user_id"], session["key"]
+                    )
+                )
+
+            existing_ids.add(eachPwIds["key_id"])
+
+        # Export file into json format
+        if exportFormat == "json":
+            userData = {"keys": keyList, "passwords": passwordList}
+
+            if exportPassword:
+                result = {
+                    "file_type": "json",
+                    "json_file": exporter.export_encrypted(userData, exportPassword),
+                }
+
+                return api_response(
+                    "success", 200, "Successfully exported data", result, {}
+                )
+
+            else:
+                result = {
+                    "file_type": "json",
+                    "json_file": exporter.export_unencrypted(userData),
+                }
+
+                return api_response(
+                    "success", 200, "Successfully exported data", result, {}
+                )
+
+        # Export file into csv format
+        elif exportFormat == "csv":
+            dataSheet = []
+
+            # Serialize data for support Excel and Browser
+            for pw in passwordList:
+                service_url = (
+                    pw["url"] if pw["url"] else "https://from.text-encryptor.app/"
+                )
+                service_notes = pw["note"] if pw["note"] else ""
+
+                dataSheet.append(
+                    {
+                        "name": pw["name"],
+                        "url": service_url,
+                        "username": pw["username"],
+                        "password": pw["password"],
+                        "note": service_notes,
+                    }
+                )
+
+            result = exporter.export_csv(dataSheet)
+            return api_response(
+                "success", 200, "Successfully exported data", result, {}
+            )
+
+    except Exception as err:
+        return api_response(
+            "error",
+            500,
+            f"An error occurred on the server. \nError message:{str(err)}",
+            [],
+            {},
+        ), 500
+
+
 # Delete password
 @api_route.route("/user/password/<password_id>/delete", methods=["DELETE"])
 @logged_in_only_api
@@ -1032,6 +1171,43 @@ def deletePassword(password_id):
             return api_response("success", 200, result, [], {})
         else:
             return api_response("error", 500, result, [], {}), 500
+
+    except Exception as err:
+        return api_response(
+            "error",
+            500,
+            f"An error occurred on the server. \nError message:{str(err)}",
+            [],
+            {},
+        ), 500
+
+
+@api_route.route("/user/password/delete_many", methods=["PUT"])
+@logged_in_only_api
+def deleteManyPassword():
+    try:
+        data = request.json
+        selectedPasswordIds = data.get("selected_password")
+
+        for eachPw in selectedPasswordIds:
+            status, result = passwords.delete_user_password(eachPw)
+
+            if status == "error":
+                return api_response(
+                    "error",
+                    500,
+                    f"An error occurred when deleting passwords. \nError message:{str(result)}",
+                    [],
+                    {},
+                ), 500
+
+        return api_response(
+            "success",
+            200,
+            f"{len(selectedPasswordIds)} Passwords deleted.",
+            [],
+            {},
+        )
 
     except Exception as err:
         return api_response(
@@ -1094,9 +1270,7 @@ def recoverAccount():
                 # Delete the old account
                 recovery_method.delete_old_account(user_info["user_id"])
 
-                return api_response(
-                    "success", 200, "Account successfully recovered", [], {}
-                )
+                return api_response("success", 200, "Account recovered.", [], {})
 
             elif status == "failed":
                 duplicate_action = data.get("action")
@@ -1154,7 +1328,7 @@ def recoverAccount():
                             recovery_method.delete_old_account(user_info["user_id"])
 
                             return api_response(
-                                "success", 200, "Account successfully recovered", [], {}
+                                "success", 200, "Account recovered.", [], {}
                             )
 
                         else:

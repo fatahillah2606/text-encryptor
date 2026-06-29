@@ -97,6 +97,15 @@ if (userProfile) {
     });
 }
 
+// Select option menu
+const moreSelectOpt = document.body.querySelector("#more-select-opt");
+const moreSelectMenu = document.body.querySelector("#more-select-menu");
+if (moreSelectOpt) {
+    moreSelectOpt.addEventListener("click", () => {
+        moreSelectMenu.open = !moreSelectMenu.open;
+    });
+}
+
 // Move page
 function movePage(uri) {
     location.href = uri;
