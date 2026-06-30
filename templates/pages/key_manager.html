@@ -661,20 +661,29 @@
         const isSelected = selectedKeyIds.includes(keysId);
 
         if (isSelectionMode) {
-            // Swap trailing icon to md-checkbox
-            menuContainer.innerHTML = `
-                <md-checkbox
-                    id="checkbox-${keysId}"
-                    ${isSelected ? "checked" : ""}
+            // Check if the checkbox already exists in the container
+            let checkbox = document.getElementById(`checkbox-${keysId}`);
+
+            if (!checkbox) {
+                // Create it once if it doesn't exist
+                menuContainer.innerHTML = `
+                <md-checkbox 
+                    id="checkbox-${keysId}" 
                     class="pointer-events-auto">
                 </md-checkbox>
             `;
+                checkbox = document.getElementById(`checkbox-${keysId}`);
 
-            // Bind checkbox click event directly
-            document.getElementById(`checkbox-${keysId}`).onclick = (e) => {
-                e.stopPropagation();
-                toggleKeySelection(keysId);
-            };
+                checkbox.onclick = (e) => {
+                    e.stopPropagation();
+                    togglePasswordSelection(keysId);
+                };
+            }
+
+            // Animate the property change smoothly instead of rebuilding the DOM
+            if (checkbox.checked !== isSelected) {
+                checkbox.checked = isSelected;
+            }
 
             // Apply M3 Selected State Colors
             if (isSelected) {
@@ -747,6 +756,39 @@
         }
     }
 
+    // Helper to check selection states and update the App Bar UI
+    function syncSelectAllButtonState() {
+        const filtered = getFilteredKeys();
+
+        // If no items are visible, don't try to sync
+        if (filtered.length === 0) return;
+
+        // Check if every single visible filtered item is in selection array
+        const areAllFilteredSelected = filtered.every((key) =>
+            selectedKeyIds.includes(key.key_id),
+        );
+
+        // Target select-all button
+        const selectAllButton = document.getElementById("select-all-btn");
+        const selectAllMenu = document.getElementById("select-all-menu");
+
+        if (!selectAllButton && !selectAllMenu) return;
+
+        if (areAllFilteredSelected) {
+            // Change button layout/text to Deselect All mode
+            selectAllButton.title = "Clear all";
+            selectAllButton.querySelector("md-icon").innerHTML = "deselect";
+
+            selectAllMenu.textContent = "Clear all";
+        } else {
+            // Fallback to standard Select All layout
+            selectAllButton.title = "Select all";
+            selectAllButton.querySelector("md-icon").innerHTML = "select_all";
+
+            selectAllMenu.textContent = "Select all";
+        }
+    }
+
     // Function to toggle selection states
     function toggleKeySelection(keysId) {
         const index = selectedKeyIds.indexOf(keysId);
@@ -770,6 +812,8 @@
             selectionCount.textContent = selectedKeyIds.length;
             updateRowSelectionVisuals(keysId);
         }
+
+        syncSelectAllButtonState();
     }
 
     // Enter selection mode globally
@@ -960,8 +1004,9 @@
             updateRowSelectionVisuals(id);
         });
 
-        // Update the selection count
+        // Update the selection count and select all button
         selectionCount.textContent = selectedKeyIds.length;
+        syncSelectAllButtonState();
     }
 
     // Clear all selections globally

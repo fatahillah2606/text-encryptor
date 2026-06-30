@@ -837,6 +837,10 @@
     --tw-ease: var(--ease-out);
     transition-timing-function: var(--ease-out);
   }
+  .select-all {
+    -webkit-user-select: all;
+    user-select: all;
+  }
   .ease-initial {
     --tw-ease: initial;
   }

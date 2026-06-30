@@ -96,6 +96,7 @@
                 <md-icon-button
                     title="Select all"
                     onclick="selectAllFiltered()"
+                    id="select-all-btn"
                 >
                     <md-icon>select_all</md-icon>
                 </md-icon-button>
@@ -123,8 +124,15 @@
                 </md-icon-button>
 
                 <!-- multi-select more option -->
-                <md-menu id="more-select-menu" anchor="more-select-opt">
-                    <md-menu-item onclick="selectAllFiltered()">
+                <md-menu
+                    id="more-select-menu"
+                    anchor="more-select-opt"
+                    style="--md-menu-container-min-width: 240px !important"
+                >
+                    <md-menu-item
+                        onclick="selectAllFiltered()"
+                        id="select-all-menu"
+                    >
                         Select all
                     </md-menu-item>
 
