@@ -218,7 +218,7 @@ class UserManager:
 
                         conn.commit()
 
-            return "success", "Password changed successfully"
+            return "success", "Password changed."
 
         except sqlite3.Error as err:
             return (
@@ -443,7 +443,7 @@ class UserManager:
                     )
 
                 conn.commit()
-                return "success", "Profile successfully deleted."
+                return "success", "Profile deleted."
 
         except sqlite3.Error as err:
             return (
@@ -703,7 +703,7 @@ class KeyManager:
 
                         conn.commit()
 
-            return "success", f"Successfully edited key: {keyName}"
+            return "success", f"{keyName} edited."
 
         except sqlite3.Error as err:
             return (
@@ -730,7 +730,7 @@ class KeyManager:
                     )
 
                 conn.commit()
-                return "success", "Key deleted successfully."
+                return "success", "Key deleted."
 
         except sqlite3.Error as err:
             return (
@@ -975,7 +975,7 @@ class PasswordManager:
 
                 conn.commit()
 
-                return "success", f"Successfully edited password: {serviceName}"
+                return "success", f"{serviceName} edited."
 
         except sqlite3.Error as err:
             return (
@@ -1002,7 +1002,7 @@ class PasswordManager:
                     )
 
                 conn.commit()
-                return "success", "Password deleted successfully."
+                return "success", "Password deleted."
 
         except sqlite3.Error as err:
             return (

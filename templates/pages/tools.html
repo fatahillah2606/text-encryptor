@@ -39,347 +39,399 @@
                 </md-tabs>
 
                 <!-- Panels -->
-                <!-- Text Encryptor -->
-                <div
-                    id="encryptor-panel"
-                    role="tabpanel"
-                    aria-labelledby="encryptor-tab"
-                >
+                <div class="w-full relative overflow-hidden">
                     <div
-                        class="rounded-2xl overflow-hidden flex flex-col gap-1 mb-8"
+                        id="slider"
+                        class="flex w-full h-full transition-transform duration-300 ease-in-out"
                     >
-                        <!-- title -->
-                        <div class="p-5 bg-md-surface-container rounded-md">
-                            <h2
-                                class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
-                            >
-                                Encrypt text
-                            </h2>
-                        </div>
-
-                        <!-- body -->
-                        <div class="p-5 bg-md-surface-container rounded-md">
-                            <form
-                                action=""
-                                method="post"
-                                name="encryption-form"
-                                id="encryption-form"
-                                class="flex flex-col gap-5"
-                            >
-                                <md-filled-text-field
-                                    type="textarea"
-                                    placeholder="Enter the text you want to encrypt"
-                                    rows="3"
-                                    class="resize-y"
-                                    name="unencrypted_text"
-                                    id="unencrypted_text"
-                                    required
-                                >
-                                </md-filled-text-field>
-                                <div>
-                                    <md-filled-tonal-button type="submit">
-                                        Encrypt
-                                        <md-icon slot="icon">lock</md-icon>
-                                    </md-filled-tonal-button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-
-                    <div
-                        class="rounded-2xl overflow-hidden flex flex-col gap-1"
-                    >
-                        <!-- title -->
+                        <!-- Text Encryptor -->
                         <div
-                            class="px-5 py-2.5 bg-md-surface-container rounded-md flex items-center justify-between"
+                            id="encryptor-panel"
+                            role="tabpanel"
+                            aria-labelledby="encryptor-tab"
+                            class="w-full shrink-0 h-full"
                         >
-                            <h2
-                                class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
+                            <div
+                                class="rounded-2xl overflow-hidden flex flex-col gap-1 mb-8"
                             >
-                                Encrypted text
-                            </h2>
-                            <md-text-button
-                                onclick="copyText('encrypt-result', this)"
-                            >
-                                Copy
-                            </md-text-button>
-                        </div>
-
-                        <!-- body -->
-                        <div class="p-5 bg-md-surface-container rounded-md">
-                            <md-filled-text-field
-                                type="textarea"
-                                placeholder="Encrypted text will shown here"
-                                rows="3"
-                                class="w-full resize-y"
-                                id="encrypt-result"
-                                name="encrypt-result"
-                                readonly
-                            >
-                            </md-filled-text-field>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Text Decryptor -->
-                <div
-                    id="decryptor-panel"
-                    role="tabpanel"
-                    aria-labelledby="decryptor-tab"
-                    hidden
-                >
-                    <div
-                        class="rounded-2xl overflow-hidden flex flex-col gap-1 mb-8"
-                    >
-                        <!-- title -->
-                        <div class="p-5 bg-md-surface-container rounded-md">
-                            <h2
-                                class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
-                            >
-                                Decrypt text
-                            </h2>
-                        </div>
-
-                        <!-- body -->
-                        <div class="p-5 bg-md-surface-container rounded-md">
-                            <form
-                                action=""
-                                method="post"
-                                name="decryption-form"
-                                id="decryption-form"
-                                class="flex flex-col gap-5"
-                            >
-                                <md-filled-text-field
-                                    type="textarea"
-                                    placeholder="Enter the text you want to Decrypt"
-                                    rows="3"
-                                    class="resize-y"
-                                    name="encrypted_text"
-                                    id="encrypted_text"
-                                    required
-                                >
-                                </md-filled-text-field>
-                                <div>
-                                    <md-filled-tonal-button type="submit">
-                                        Decrypt
-                                        <md-icon slot="icon"
-                                            >lock_open_right</md-icon
-                                        >
-                                    </md-filled-tonal-button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-
-                    <div
-                        class="rounded-2xl overflow-hidden flex flex-col gap-1"
-                    >
-                        <!-- title -->
-                        <div
-                            class="px-5 py-2.5 bg-md-surface-container rounded-md flex items-center justify-between"
-                        >
-                            <h2
-                                class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
-                            >
-                                Decrypted text
-                            </h2>
-                            <md-text-button
-                                onclick="copyText('decrypt-result', this)"
-                            >
-                                Copy
-                            </md-text-button>
-                        </div>
-
-                        <!-- body -->
-                        <div class="p-5 bg-md-surface-container rounded-md">
-                            <md-filled-text-field
-                                type="textarea"
-                                placeholder="Decrypted text will shown here"
-                                rows="3"
-                                class="w-full resize-y"
-                                id="decrypt-result"
-                                name="decrypt-result"
-                                readonly
-                            >
-                            </md-filled-text-field>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Password Generator -->
-                <div
-                    id="passgen-panel"
-                    role="tabpanel"
-                    aria-labelledby="passgen-tab"
-                    hidden
-                >
-                    <div
-                        class="rounded-2xl overflow-hidden flex flex-col gap-1 mb-8"
-                    >
-                        <!-- title -->
-                        <div class="p-5 bg-md-surface-container rounded-md">
-                            <h2
-                                class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
-                            >
-                                Create a password
-                            </h2>
-                        </div>
-
-                        <!-- body -->
-                        <div class="p-5 bg-md-surface-container rounded-md">
-                            <form
-                                action=""
-                                method="post"
-                                name="password_generator_form"
-                                id="password_generator_form"
-                            >
-                                <p
-                                    class="md-typescale-body-medium text-md-on-surface m-0"
-                                >
-                                    How long do you want the password to be?
-                                </p>
-
+                                <!-- title -->
                                 <div
-                                    class="my-2.5 relative flex items-center justify-center max-w-36 shadow-xs rounded-3xl border border-md-outline-variant overflow-hidden"
+                                    class="p-5 bg-md-surface-container rounded-md"
                                 >
-                                    <button
-                                        type="button"
-                                        class="relative px-3 h-10 cursor-pointer rounded-full"
-                                        onclick="
-                                            decreaseValue('password_length')
-                                        "
+                                    <h2
+                                        class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
                                     >
-                                        <span
-                                            class="material-symbols-rounded leading-10! text-xl! text-zinc-600 dark:text-zinc-300"
-                                        >
-                                            remove
-                                        </span>
-
-                                        <md-ripple></md-ripple>
-                                    </button>
-                                    <input
-                                        type="number"
-                                        name="password_length"
-                                        id="password_length"
-                                        class="h-10 w-full py-2.5 text-center text-zinc-600 dark:text-zinc-300 text-base"
-                                        placeholder="0"
-                                        value="0"
-                                        required=""
-                                    />
-                                    <button
-                                        type="button"
-                                        class="relative px-3 h-10 cursor-pointer rounded-full"
-                                        onclick="
-                                            increaseValue('password_length')
-                                        "
-                                    >
-                                        <span
-                                            class="material-symbols-rounded leading-10! text-xl! text-zinc-600 dark:text-zinc-300"
-                                        >
-                                            add
-                                        </span>
-
-                                        <md-ripple></md-ripple>
-                                    </button>
+                                        Encrypt text
+                                    </h2>
                                 </div>
 
-                                <p
-                                    class="md-typescale-body-small text-md-outline m-0"
-                                >
-                                    It is recommended to set the password length
-                                    to 8 digits.
-                                </p>
-
+                                <!-- body -->
                                 <div
-                                    class="flex items-center justify-start gap-4 my-5"
+                                    class="p-5 bg-md-surface-container rounded-md"
                                 >
-                                    <md-checkbox
-                                        id="encrypt_password"
-                                        touch-target="wrapper"
-                                        class="m-0"
-                                    ></md-checkbox>
-                                    <label
-                                        for="encrypt_password"
-                                        class="md-typescale-body-medium text-md-on-surface m-0"
-                                        >Encrypt the password</label
+                                    <form
+                                        action=""
+                                        method="post"
+                                        name="encryption-form"
+                                        id="encryption-form"
+                                        class="flex flex-col gap-5"
                                     >
+                                        <md-filled-text-field
+                                            type="textarea"
+                                            placeholder="Enter the text you want to encrypt"
+                                            rows="3"
+                                            class="resize-y"
+                                            name="unencrypted_text"
+                                            id="unencrypted_text"
+                                            required
+                                        >
+                                        </md-filled-text-field>
+                                        <div>
+                                            <md-filled-tonal-button
+                                                type="submit"
+                                            >
+                                                Encrypt
+                                                <md-icon slot="icon"
+                                                    >lock</md-icon
+                                                >
+                                            </md-filled-tonal-button>
+                                        </div>
+                                    </form>
                                 </div>
-
-                                <md-filled-tonal-button type="submit">
-                                    Generate
-                                    <md-icon slot="icon">wand_stars</md-icon>
-                                </md-filled-tonal-button>
-                            </form>
-                        </div>
-                    </div>
-
-                    <div
-                        class="rounded-2xl overflow-hidden flex flex-col gap-1"
-                    >
-                        <!-- title -->
-                        <div class="p-5 bg-md-surface-container rounded-md">
-                            <h2
-                                class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
-                            >
-                                Generated password
-                            </h2>
-                        </div>
-
-                        <!-- body -->
-                        <div class="p-5 bg-md-surface-container rounded-md">
-                            <!-- Generated password -->
-                            <div class="flex items-center justify-between">
-                                <p
-                                    class="md-typescale-body-medium text-md-on-surface m-0"
-                                >
-                                    Generated Password:
-                                </p>
-                                <md-text-button
-                                    onclick="
-                                        copyText('generated_password', this)
-                                    "
-                                >
-                                    Copy
-                                </md-text-button>
                             </div>
 
                             <div
-                                class="bg-md-background border border-md-outline rounded-3xl overflow-hidden p-2.5 mt-2.5 mb-5 min-h-10"
+                                class="rounded-2xl overflow-hidden flex flex-col gap-1"
                             >
-                                <span
-                                    class="md-typescale-body-medium text-md-on-surface m-0 wrap-break-word"
-                                    id="generated_password"
+                                <!-- title -->
+                                <div
+                                    class="px-5 py-2.5 bg-md-surface-container rounded-md flex items-center justify-between"
                                 >
-                                </span>
-                            </div>
+                                    <h2
+                                        class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
+                                    >
+                                        Encrypted text
+                                    </h2>
+                                    <md-text-button
+                                        onclick="
+                                            copyText('encrypt-result', this)
+                                        "
+                                    >
+                                        Copy
+                                    </md-text-button>
+                                </div>
 
-                            <!-- Encrypted generated password -->
-                            <div class="flex items-center justify-between">
-                                <p
-                                    class="md-typescale-body-medium text-md-on-surface m-0"
+                                <!-- body -->
+                                <div
+                                    class="p-5 bg-md-surface-container rounded-md"
                                 >
-                                    Encrypted password:
-                                </p>
-                                <md-text-button
-                                    onclick="
-                                        copyText(
-                                            'encrypted_generated_password',
-                                            this,
-                                        )
-                                    "
+                                    <md-filled-text-field
+                                        type="textarea"
+                                        placeholder="Encrypted text will shown here"
+                                        rows="3"
+                                        class="w-full resize-y"
+                                        id="encrypt-result"
+                                        name="encrypt-result"
+                                        readonly
+                                    >
+                                    </md-filled-text-field>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Text Decryptor -->
+                        <div
+                            id="decryptor-panel"
+                            role="tabpanel"
+                            aria-labelledby="decryptor-tab"
+                            class="w-full shrink-0 h-full"
+                        >
+                            <div
+                                class="rounded-2xl overflow-hidden flex flex-col gap-1 mb-8"
+                            >
+                                <!-- title -->
+                                <div
+                                    class="p-5 bg-md-surface-container rounded-md"
                                 >
-                                    Copy
-                                </md-text-button>
+                                    <h2
+                                        class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
+                                    >
+                                        Decrypt text
+                                    </h2>
+                                </div>
+
+                                <!-- body -->
+                                <div
+                                    class="p-5 bg-md-surface-container rounded-md"
+                                >
+                                    <form
+                                        action=""
+                                        method="post"
+                                        name="decryption-form"
+                                        id="decryption-form"
+                                        class="flex flex-col gap-5"
+                                    >
+                                        <md-filled-text-field
+                                            type="textarea"
+                                            placeholder="Enter the text you want to Decrypt"
+                                            rows="3"
+                                            class="resize-y"
+                                            name="encrypted_text"
+                                            id="encrypted_text"
+                                            required
+                                        >
+                                        </md-filled-text-field>
+                                        <div>
+                                            <md-filled-tonal-button
+                                                type="submit"
+                                            >
+                                                Decrypt
+                                                <md-icon slot="icon"
+                                                    >lock_open_right</md-icon
+                                                >
+                                            </md-filled-tonal-button>
+                                        </div>
+                                    </form>
+                                </div>
                             </div>
 
                             <div
-                                class="bg-md-background border border-md-outline rounded-3xl overflow-hidden p-2.5 mt-2.5 mb-5 min-h-10"
+                                class="rounded-2xl overflow-hidden flex flex-col gap-1"
                             >
-                                <span
-                                    class="md-typescale-body-medium text-md-on-surface m-0 wrap-break-word"
-                                    id="encrypted_generated_password"
+                                <!-- title -->
+                                <div
+                                    class="px-5 py-2.5 bg-md-surface-container rounded-md flex items-center justify-between"
                                 >
-                                </span>
+                                    <h2
+                                        class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
+                                    >
+                                        Decrypted text
+                                    </h2>
+                                    <md-text-button
+                                        onclick="
+                                            copyText('decrypt-result', this)
+                                        "
+                                    >
+                                        Copy
+                                    </md-text-button>
+                                </div>
+
+                                <!-- body -->
+                                <div
+                                    class="p-5 bg-md-surface-container rounded-md"
+                                >
+                                    <md-filled-text-field
+                                        type="textarea"
+                                        placeholder="Decrypted text will shown here"
+                                        rows="3"
+                                        class="w-full resize-y"
+                                        id="decrypt-result"
+                                        name="decrypt-result"
+                                        readonly
+                                    >
+                                    </md-filled-text-field>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Password Generator -->
+                        <div
+                            id="passgen-panel"
+                            role="tabpanel"
+                            aria-labelledby="passgen-tab"
+                            class="w-full shrink-0 h-full"
+                        >
+                            <div
+                                class="rounded-2xl overflow-hidden flex flex-col gap-1 mb-8"
+                            >
+                                <!-- title -->
+                                <div
+                                    class="p-5 bg-md-surface-container rounded-md"
+                                >
+                                    <h2
+                                        class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
+                                    >
+                                        Create a password
+                                    </h2>
+                                </div>
+
+                                <!-- body -->
+                                <div
+                                    class="p-5 bg-md-surface-container rounded-md"
+                                >
+                                    <form
+                                        action=""
+                                        method="post"
+                                        name="password_generator_form"
+                                        id="password_generator_form"
+                                    >
+                                        <p
+                                            class="md-typescale-body-medium text-md-on-surface m-0"
+                                        >
+                                            How long do you want the password to
+                                            be?
+                                        </p>
+
+                                        <div
+                                            class="my-2.5 relative flex items-center justify-center max-w-36 shadow-xs rounded-3xl border border-md-outline-variant overflow-hidden"
+                                        >
+                                            <button
+                                                type="button"
+                                                class="relative px-3 h-10 cursor-pointer rounded-full"
+                                                onclick="
+                                                    decreaseValue(
+                                                        'password_length',
+                                                    )
+                                                "
+                                            >
+                                                <span
+                                                    class="material-symbols-rounded leading-10! text-xl! text-zinc-600 dark:text-zinc-300"
+                                                >
+                                                    remove
+                                                </span>
+
+                                                <md-ripple></md-ripple>
+                                            </button>
+                                            <input
+                                                type="number"
+                                                name="password_length"
+                                                id="password_length"
+                                                class="h-10 w-full py-2.5 text-center text-zinc-600 dark:text-zinc-300 text-base"
+                                                placeholder="0"
+                                                value="0"
+                                                required=""
+                                            />
+                                            <button
+                                                type="button"
+                                                class="relative px-3 h-10 cursor-pointer rounded-full"
+                                                onclick="
+                                                    increaseValue(
+                                                        'password_length',
+                                                    )
+                                                "
+                                            >
+                                                <span
+                                                    class="material-symbols-rounded leading-10! text-xl! text-zinc-600 dark:text-zinc-300"
+                                                >
+                                                    add
+                                                </span>
+
+                                                <md-ripple></md-ripple>
+                                            </button>
+                                        </div>
+
+                                        <p
+                                            class="md-typescale-body-small text-md-outline m-0"
+                                        >
+                                            It is recommended to set the
+                                            password length to 8 digits.
+                                        </p>
+
+                                        <div
+                                            class="flex items-center justify-start gap-4 my-5"
+                                        >
+                                            <md-checkbox
+                                                id="encrypt_password"
+                                                touch-target="wrapper"
+                                                class="m-0"
+                                            ></md-checkbox>
+                                            <label
+                                                for="encrypt_password"
+                                                class="md-typescale-body-medium text-md-on-surface m-0"
+                                                >Encrypt the password</label
+                                            >
+                                        </div>
+
+                                        <md-filled-tonal-button type="submit">
+                                            Generate
+                                            <md-icon slot="icon"
+                                                >wand_stars</md-icon
+                                            >
+                                        </md-filled-tonal-button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <div
+                                class="rounded-2xl overflow-hidden flex flex-col gap-1"
+                            >
+                                <!-- title -->
+                                <div
+                                    class="p-5 bg-md-surface-container rounded-md"
+                                >
+                                    <h2
+                                        class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
+                                    >
+                                        Generated password
+                                    </h2>
+                                </div>
+
+                                <!-- body -->
+                                <div
+                                    class="p-5 bg-md-surface-container rounded-md"
+                                >
+                                    <!-- Generated password -->
+                                    <div
+                                        class="flex items-center justify-between"
+                                    >
+                                        <p
+                                            class="md-typescale-body-medium text-md-on-surface m-0"
+                                        >
+                                            Generated Password:
+                                        </p>
+                                        <md-text-button
+                                            onclick="
+                                                copyText(
+                                                    'generated_password',
+                                                    this,
+                                                )
+                                            "
+                                        >
+                                            Copy
+                                        </md-text-button>
+                                    </div>
+
+                                    <div
+                                        class="bg-md-background border border-md-outline rounded-3xl overflow-hidden p-2.5 mt-2.5 mb-5 min-h-10"
+                                    >
+                                        <span
+                                            class="md-typescale-body-medium text-md-on-surface m-0 wrap-break-word"
+                                            id="generated_password"
+                                        >
+                                        </span>
+                                    </div>
+
+                                    <!-- Encrypted generated password -->
+                                    <div
+                                        class="flex items-center justify-between"
+                                    >
+                                        <p
+                                            class="md-typescale-body-medium text-md-on-surface m-0"
+                                        >
+                                            Encrypted password:
+                                        </p>
+                                        <md-text-button
+                                            onclick="
+                                                copyText(
+                                                    'encrypted_generated_password',
+                                                    this,
+                                                )
+                                            "
+                                        >
+                                            Copy
+                                        </md-text-button>
+                                    </div>
+
+                                    <div
+                                        class="bg-md-background border border-md-outline rounded-3xl overflow-hidden p-2.5 mt-2.5 mb-5 min-h-10"
+                                    >
+                                        <span
+                                            class="md-typescale-body-medium text-md-on-surface m-0 wrap-break-word"
+                                            id="encrypted_generated_password"
+                                        >
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -399,13 +451,10 @@
     // Tabs switcher
     const toolsTab = document.getElementById("tools-tab");
     const tabPanel = document.querySelectorAll("[role='tabpanel']");
+    const slider = document.querySelector("#slider");
 
     function tabSwitcher(tabIndex) {
-        tabPanel.forEach((panel) => {
-            panel.setAttribute("hidden", "");
-        });
-
-        tabPanel[tabIndex].removeAttribute("hidden");
+        slider.style.transform = `translateX(-${tabIndex * 100}%)`;
     }
 
     // Switch tab based url #hash (only run once)

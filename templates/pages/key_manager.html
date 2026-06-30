@@ -52,10 +52,7 @@
 
                 <!-- Main -->
                 <div class="flex flex-col gap-8">
-                    <div
-                        class="rounded-2xl overflow-hidden flex flex-col gap-1"
-                        id="data_list"
-                    >
+                    <div class="flex flex-col gap-1" id="data_list">
                         <md-circular-progress
                             class="block m-auto"
                             indeterminate
@@ -240,6 +237,16 @@
         </md-filled-tonal-button>
     </div>
 </md-dialog>
+
+<!-- Progress Dialog -->
+<md-dialog id="progress-dialog">
+    <div slot="headline"></div>
+    <div slot="content" class="flex flex-col items-center justify-center">
+        <md-circular-progress indeterminate></md-circular-progress>
+        Please wait
+    </div>
+    <div slot="actions"></div>
+</md-dialog>
 {% endblock %}
 
 <!-- FABs -->
@@ -272,8 +279,8 @@
     // Confirm delete dialog
     const confirmDeleteDialog = document.getElementById("confirm-delete");
 
-    // Etc
-    const keyList = document.getElementById("data_list");
+    // Progress dialog
+    const progressDialog = document.getElementById("progress-dialog");
 
     /*
      ** For the process of adding key
@@ -398,7 +405,9 @@
         // Set the action button
         editKeyForm.reset_info.onclick = getKeyInfo;
         editKeyForm.cancle_editing.onclick = disableEditing;
-        editKeyForm.delete_key.onclick = deleteKey;
+        editKeyForm.delete_key.onclick = function () {
+            deleteKey(uri);
+        };
 
         // Show the modal
         openEditKeyModal(uri);
@@ -504,11 +513,8 @@
     });
 
     // Delete key
-    async function deleteKey() {
-        // Get key id api
-        const keyId = editKeyForm.dataset.keyId;
-
-        if (keyId && keyId.trim() !== "") {
+    async function deleteKey(keysId) {
+        if (keysId && keysId.trim() !== "") {
             // Wait for the response
             const choise = await confirmDialog(
                 "confirm-delete",
@@ -520,7 +526,7 @@
                 try {
                     // Send request
                     const result = await sendRequest(
-                        `${keyId}/delete`,
+                        `${keysId}/delete`,
                         {},
                         "DELETE",
                     );
@@ -541,13 +547,58 @@
         }
     }
 
+    // Delete selected keys
+    async function deleteSelected() {
+        const choise = await confirmDialog(
+            "confirm-delete",
+            `Delete ${selectedKeyIds.length} keys?`,
+            "You cannot undo this action.",
+        );
+
+        if (choise === "delete") {
+            await progressDialog.show();
+
+            try {
+                // Send request
+                const result = await sendRequest(
+                    "/api/user/key/delete_many",
+                    {
+                        selected_key: selectedKeyIds,
+                    },
+                    "PUT",
+                );
+
+                if (result.code === 200) {
+                    showSnackbar(result.message);
+
+                    // Deselect and Reinit keys
+                    deselectAll();
+                    loadKeys();
+                    await progressDialog.close();
+                }
+            } catch (error) {
+                showAlert("Failed to delete key", error.message);
+            }
+        }
+    }
+
     // Load keys
     let allKeys = [];
     let visibleKeyCount = 0;
     let keyAnimationTimeouts = [];
     let isKeyObserving = false;
     let keySearchQuery = ""; // Tracks the text input for keys
+    let isSelectionMode = false;
+    let selectedKeyIds = [];
 
+    // Keys list container
+    const keyList = document.getElementById("data_list");
+
+    // Selection appbar
+    const selectionAppbar = document.getElementById("selection-appbar");
+    const selectionCount = selectionAppbar.querySelector("#select-count");
+
+    // Load the keys
     async function loadKeys() {
         try {
             const result = await sendRequest(userKeysAPI, {}, "GET");
@@ -598,6 +649,222 @@
         appendNextKeyChunk(15);
     }
 
+    // Helper function to update the visual state of a row instantly based on selection
+    function updateRowSelectionVisuals(keysId) {
+        const itemWrapper = document.getElementById(`key-row-${keysId}`);
+        const menuContainer = document.getElementById(
+            `menu-container-${keysId}`,
+        );
+
+        if (!itemWrapper || !menuContainer) return;
+
+        const isSelected = selectedKeyIds.includes(keysId);
+
+        if (isSelectionMode) {
+            // Check if the checkbox already exists in the container
+            let checkbox = document.getElementById(`checkbox-${keysId}`);
+
+            if (!checkbox) {
+                // Create it once if it doesn't exist
+                menuContainer.innerHTML = `
+                <md-checkbox 
+                    id="checkbox-${keysId}" 
+                    class="pointer-events-auto">
+                </md-checkbox>
+            `;
+                checkbox = document.getElementById(`checkbox-${keysId}`);
+
+                checkbox.onclick = (e) => {
+                    e.stopPropagation();
+                    togglePasswordSelection(keysId);
+                };
+            }
+
+            // Animate the property change smoothly instead of rebuilding the DOM
+            if (checkbox.checked !== isSelected) {
+                checkbox.checked = isSelected;
+            }
+
+            // Apply M3 Selected State Colors
+            if (isSelected) {
+                itemWrapper.classList.remove("bg-md-surface-container");
+                itemWrapper.classList.add("bg-md-secondary-container");
+
+                // Switch icon style
+                itemWrapper
+                    .querySelector("md-icon")
+                    .classList.add("material-icon-fill");
+
+                // Switch text/icon color
+                itemWrapper
+                    .querySelectorAll(".text-md-on-surface")
+                    .forEach((el) => {
+                        el.classList.replace(
+                            "text-md-on-surface",
+                            "text-md-secondary",
+                        );
+                    });
+            } else {
+                itemWrapper.classList.remove("bg-md-secondary-container");
+                itemWrapper.classList.add("bg-md-surface-container");
+
+                itemWrapper
+                    .querySelector("md-icon")
+                    .classList.remove("material-icon-fill");
+
+                itemWrapper
+                    .querySelectorAll(".text-md-secondary")
+                    .forEach((el) => {
+                        el.classList.replace(
+                            "text-md-secondary",
+                            "text-md-on-surface",
+                        );
+                    });
+            }
+        } else {
+            // Restore default state
+            itemWrapper.classList.remove("bg-md-secondary-container");
+            itemWrapper.classList.add("bg-md-surface-container");
+
+            itemWrapper
+                .querySelector("md-icon")
+                .classList.remove("material-icon-fill");
+
+            itemWrapper.querySelectorAll(".text-md-secondary").forEach((el) => {
+                el.classList.replace("text-md-secondary", "text-md-on-surface");
+            });
+
+            menuContainer.innerHTML = `
+                <md-icon-button id="menu-${keysId}-anchor" class="text-md-on-surface-variant">
+                    <md-icon>more_vert</md-icon>
+                </md-icon-button>
+
+                <md-menu id="menu-${keysId}-menu" anchor="menu-${keysId}-anchor">
+                    <md-menu-item id="menu-${keysId}-select">
+                        <div slot="headline">Select</div>
+                    </md-menu-item>
+                    <md-menu-item id="menu-${keysId}-edit">
+                        <div slot="headline">Edit</div>
+                    </md-menu-item>
+                    <md-menu-item id="menu-${keysId}-delete">
+                        <div slot="headline">Delete</div>
+                    </md-menu-item>
+                </md-menu>
+            `;
+
+            bindMenuEvents(keysId);
+        }
+    }
+
+    // Helper to check selection states and update the App Bar UI
+    function syncSelectAllButtonState() {
+        const filtered = getFilteredKeys();
+
+        // If no items are visible, don't try to sync
+        if (filtered.length === 0) return;
+
+        // Check if every single visible filtered item is in selection array
+        const areAllFilteredSelected = filtered.every((key) =>
+            selectedKeyIds.includes(key.key_id),
+        );
+
+        // Target select-all button
+        const selectAllButton = document.getElementById("select-all-btn");
+        const selectAllMenu = document.getElementById("select-all-menu");
+
+        if (!selectAllButton && !selectAllMenu) return;
+
+        if (areAllFilteredSelected) {
+            // Change button layout/text to Deselect All mode
+            selectAllButton.title = "Clear all";
+            selectAllButton.querySelector("md-icon").innerHTML = "deselect";
+
+            selectAllMenu.textContent = "Clear all";
+        } else {
+            // Fallback to standard Select All layout
+            selectAllButton.title = "Select all";
+            selectAllButton.querySelector("md-icon").innerHTML = "select_all";
+
+            selectAllMenu.textContent = "Select all";
+        }
+    }
+
+    // Function to toggle selection states
+    function toggleKeySelection(keysId) {
+        const index = selectedKeyIds.indexOf(keysId);
+        if (index > -1) {
+            selectedKeyIds.splice(index, 1);
+        } else {
+            selectedKeyIds.push(keysId);
+        }
+
+        // If no items are left selected, exit selection mode automatically
+        if (selectedKeyIds.length === 0) {
+            isSelectionMode = false;
+            selectionAppbar.classList.add("hidden");
+
+            // Refresh all elements currently inside the DOM list
+            document.querySelectorAll('[id^="key-row-"]').forEach((row) => {
+                const id = parseInt(row.id.replace("key-row-", ""));
+                updateRowSelectionVisuals(id);
+            });
+        } else {
+            selectionCount.textContent = selectedKeyIds.length;
+            updateRowSelectionVisuals(keysId);
+        }
+
+        syncSelectAllButtonState();
+    }
+
+    // Enter selection mode globally
+    function enterSelectionMode(initialKeysId) {
+        isSelectionMode = true;
+        selectedKeyIds = [initialKeysId];
+        selectionAppbar.classList.remove("hidden");
+        selectionCount.textContent = selectedKeyIds.length;
+
+        // Switch every rendered item in the list into selection mode view state
+        document.querySelectorAll('[id^="key-row-"]').forEach((row) => {
+            const id = parseInt(row.id.replace("key-row-", ""));
+            updateRowSelectionVisuals(id);
+        });
+    }
+
+    // Helper to bind standard item menus
+    function bindMenuEvents(keysId) {
+        const anchor = document.getElementById(`menu-${keysId}-anchor`);
+        const menu = document.getElementById(`menu-${keysId}-menu`);
+
+        if (!anchor || !menu) return;
+
+        anchor.onclick = (e) => {
+            e.stopPropagation();
+            menu.open = !menu.open;
+        };
+
+        // Select option
+        document.getElementById(`menu-${keysId}-select`).onclick = (e) => {
+            e.stopPropagation();
+            menu.open = false;
+            enterSelectionMode(keysId);
+        };
+
+        // Edit option
+        document.getElementById(`menu-${keysId}-edit`).onclick = (e) => {
+            e.stopPropagation();
+            menu.open = false;
+            openExistingKey(`/api/user/key/${keysId}`);
+            enableEditing();
+        };
+
+        // Delete option
+        document.getElementById(`menu-${keysId}-delete`).onclick = (e) => {
+            e.stopPropagation();
+            menu.open = false;
+            deleteKey(`/api/user/key/${keysId}`);
+        };
+    }
+
     function appendNextKeyChunk(limit) {
         const filtered = getFilteredKeys();
         const start = visibleKeyCount;
@@ -611,23 +878,46 @@
             const key = filtered[i];
 
             const itemWrapper = document.createElement("div");
-            itemWrapper.className =
-                "relative py-5 px-5 bg-md-surface-container rounded-md flex items-center gap-5 cursor-pointer animate-showup";
+            itemWrapper.id = `key-row-${key.key_id}`;
 
-            itemWrapper.onclick = () =>
-                openExistingKey(`/api/user/key/${key.key_id}`);
+            // Material You curves
+            let radiusClasses = "rounded-none";
+
+            if (i === 0) {
+                radiusClasses = "rounded-t-2xl rounded-b-md";
+            } else if (i === filtered.length - 1) {
+                radiusClasses = "rounded-b-2xl rounded-t-md";
+            } else {
+                radiusClasses = "rounded-md";
+            }
+
+            itemWrapper.className = `relative py-5 px-5 max-h-16 bg-md-surface-container ${radiusClasses} flex items-center justify-between gap-5 cursor-pointer animate-showup`;
+
+            itemWrapper.onclick = () => {
+                if (isSelectionMode) {
+                    toggleKeySelection(key.key_id);
+                } else {
+                    openExistingKey(`/api/user/key/${key.key_id}`);
+                }
+            };
 
             itemWrapper.innerHTML = `
-                <md-icon class="text-md-on-surface">key_vertical</md-icon>
-                <div>
-                    <h2 class="md-typescale-title-medium text-md-on-surface font-bold! m-0">${key.key_name}</h2>
+                <div class="flex items-center gap-5 pointer-events-none">
+                    <md-icon class="text-md-on-surface">key_vertical</md-icon>
+                    <div>
+                        <h2 class="md-typescale-title-medium text-md-on-surface font-bold! m-0">${key.key_name}</h2>
+                    </div>
                 </div>
+
+                <div id="menu-container-${key.key_id}" class="relative flex items-center justify-center"></div>
                 <md-ripple></md-ripple>
             `;
 
             // Sequential DOM appending
             const tId = setTimeout(() => {
                 keyList.appendChild(itemWrapper);
+                // Setup internal components inside row based on active mode context
+                updateRowSelectionVisuals(key.key_id);
             }, localIndex * 30);
 
             keyAnimationTimeouts.push(tId);
@@ -669,6 +959,71 @@
 
         observer.observe(sentinel);
         isKeyObserving = true;
+    }
+
+    // Select all keys that match the current filter
+    function selectAllFiltered() {
+        // Ensure selection mode is globally active
+        isSelectionMode = true;
+
+        // Get the current filtered subset
+        const filtered = getFilteredKeys();
+
+        // Determine if ALL currently filtered keys are already selected
+        const areAllFilteredSelected = filtered.every((key) =>
+            selectedKeyIds.includes(key.key_id),
+        );
+
+        if (areAllFilteredSelected) {
+            // If all filtered keys are selected, deselect only these filtered ones
+            const filteredIds = filtered.map((key) => key.key_id);
+            selectedKeyIds = selectedKeyIds.filter(
+                (id) => !filteredIds.includes(id),
+            );
+
+            // If this leaves the global list completely clear, exit selection mode
+            if (selectedKeyIds.length === 0) {
+                isSelectionMode = false;
+
+                // Update selection count and hide selection appbar
+                selectionCount.textContent = selectedKeyIds.length;
+                selectionAppbar.classList.add("hidden");
+            }
+        } else {
+            // If none or only some are selected, select all remaining filtered ones
+            filtered.forEach((key) => {
+                if (!selectedKeyIds.includes(key.key_id)) {
+                    selectedKeyIds.push(key.key_id);
+                }
+            });
+        }
+
+        // Update the UI for all rendered rows inside the DOM list
+        document.querySelectorAll('[id^="key-row-"]').forEach((row) => {
+            const id = parseInt(row.id.replace("key-row-", ""));
+            updateRowSelectionVisuals(id);
+        });
+
+        // Update the selection count and select all button
+        selectionCount.textContent = selectedKeyIds.length;
+        syncSelectAllButtonState();
+    }
+
+    // Clear all selections globally
+    function deselectAll() {
+        // Reset state tracking
+        isSelectionMode = false;
+        selectedKeyIds = [];
+
+        // Refresh every rendered row back to default state (three-dots menu)
+        document.querySelectorAll('[id^="key-row-"]').forEach((row) => {
+            const id = parseInt(row.id.replace("key-row-", ""));
+            updateRowSelectionVisuals(id);
+        });
+
+        // Update selection count and hide selection appbar
+        selectionCount.textContent = selectedKeyIds.length;
+        selectionAppbar.classList.add("hidden");
     }
 
     // Initialization trigger

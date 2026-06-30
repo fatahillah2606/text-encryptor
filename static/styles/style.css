@@ -169,6 +169,19 @@ md-filled-button .button-progress-indicator md-circular-progress {
     -moz-appearance: textfield !important;
 }
 
+#selection-appbar > * {
+    animation: visible 0.3s linear;
+}
+
+@keyframes visible {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
 .rail-menu.active,
 .bar-menu.active {
     font-variation-settings: "FILL" 1;
