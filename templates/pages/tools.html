@@ -112,13 +112,20 @@
                                     >
                                         Encrypted text
                                     </h2>
-                                    <md-text-button
-                                        onclick="
-                                            copyText('encrypt-result', this)
-                                        "
-                                    >
-                                        Copy
-                                    </md-text-button>
+                                    <div class="flex items-center gap-2.5">
+                                        <md-text-button
+                                            onclick="
+                                                copyText('encrypt-result', this)
+                                            "
+                                        >
+                                            Copy
+                                        </md-text-button>
+                                        <md-filled-tonal-button
+                                            onclick="openShareModal()"
+                                        >
+                                            Share
+                                        </md-filled-tonal-button>
+                                    </div>
                                 </div>
 
                                 <!-- body -->
@@ -443,7 +450,89 @@
 {% endblock %}
 
 <!-- Modals -->
-{% block modals %} {% endblock %}
+{% block modals %}
+<!-- Modal for sharing text -->
+<md-dialog id="share-modal">
+    <div slot="headline">
+        <div class="flex flex-col gap-1 flex-1">
+            <span>Share</span>
+            <span class="md-typescale-body-medium">
+                Share encrypted text with others securely.
+            </span>
+        </div>
+        <md-icon-button
+            onclick="closeShareModal()"
+            value="close"
+            aria-label="Close dialog"
+        >
+            <md-icon>close</md-icon>
+        </md-icon-button>
+    </div>
+
+    <!-- Modal content -->
+    <form slot="content" id="share_form" name="share_form" method="post">
+        <div class="grid grid-cols-2 gap-4">
+            <md-filled-text-field
+                label="Text to share"
+                value=""
+                name="text_to_share"
+                id="text_to_share"
+                class="col-span-2 resize-y"
+                type="textarea"
+                rows="3"
+            >
+            </md-filled-text-field>
+
+            <div class="col-span-2">
+                <md-filled-tonal-button type="button" id="regenerate_btn">
+                    Generate
+                    <md-icon slot="icon">link_2</md-icon>
+                </md-filled-tonal-button>
+            </div>
+
+            <div class="col-span-2">
+                <div class="flex items-center justify-between">
+                    <p class="md-typescale-body-medium text-md-on-surface m-0">
+                        Generated link:
+                    </p>
+                    <md-text-button
+                        type="button"
+                        onclick="copyText('generated_link', this)"
+                    >
+                        Copy
+                    </md-text-button>
+                </div>
+
+                <div
+                    class="bg-md-background border border-md-outline rounded-xl overflow-hidden p-2.5 mt-2.5 mb-2.5 min-h-10"
+                >
+                    <span
+                        class="md-typescale-body-medium text-md-on-surface m-0 wrap-break-word"
+                        id="generated_link"
+                    >
+                    </span>
+                </div>
+            </div>
+
+            <div
+                class="p-4 rounded-xl bg-md-tertiary-container flex gap-3 items-start col-span-2"
+            >
+                <span
+                    class="material-symbols-rounded text-md-on-tertiary-container"
+                >
+                    info
+                </span>
+                <span
+                    class="md-typescale-body-small text-md-on-tertiary-container mt-1"
+                    id="link-span"
+                >
+                    The link is valid until .
+                </span>
+            </div>
+        </div>
+    </form>
+</md-dialog>
+{% endblock %}
 
 <!-- Script -->
 {% block script %}
@@ -529,6 +618,59 @@
     encryptionForm.addEventListener("submit", (event) => {
         event.preventDefault();
         encryptText();
+    });
+
+    // Share option
+    const shareModal = document.getElementById("share-modal");
+    const shareForm = document.getElementById("share_form");
+    const outputLink = document.getElementById("generated_link");
+    const regenerateBtn = document.getElementById("regenerate_btn");
+    const linkSpan = document.getElementById("link-span");
+
+    const generateLinkAPI = "/api/encryptor/generate_link";
+
+    // Generate link
+    async function generate_link(textToShare, targetElm, noticeBanner) {
+        data = { text_to_share: textToShare };
+        try {
+            const result = await sendRequest(generateLinkAPI, data, "POST");
+
+            if (targetElm.value !== undefined) {
+                targetElm.value = result.data.link;
+            } else {
+                targetElm.textContent = result.data.link;
+            }
+
+            const currentTime = new Date();
+            currentTime.setMinutes(currentTime.getMinutes() + 5);
+
+            let bannerText = `The link is valid until ${currentTime.getHours()}.${currentTime.getMinutes()}`;
+
+            noticeBanner.textContent = bannerText;
+
+            showSnackbar(result.message);
+        } catch (error) {
+            showAlert("Unable to generate link", error.message);
+        }
+    }
+
+    // Open share modal
+    async function openShareModal() {
+        shareForm.text_to_share.value = encryptionForm.unencrypted_text.value;
+        generate_link(shareForm.text_to_share.value, outputLink, linkSpan);
+
+        await shareModal.show();
+    }
+
+    // Close share modal
+    async function closeShareModal() {
+        shareForm.reset();
+        await shareModal.close();
+    }
+
+    // Re-generate link button
+    regenerateBtn.addEventListener("click", () => {
+        generate_link(shareForm.text_to_share.value, outputLink, linkSpan);
     });
 
     // Text Decryption

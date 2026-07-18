@@ -6,7 +6,7 @@ from flask import Blueprint, jsonify, request, session
 from src.data_io import DataExporter, DataImporter
 from src.data_manager import KeyManager, PasswordManager, Recovery, UserManager
 from src.encryptor import NewEncryption, generate_password
-from src.essentials import createLoginSession
+from src.essentials import createLoginSession, generate_share_link, decrypt_payload
 
 encryption_method = NewEncryption()
 
@@ -131,6 +131,32 @@ def encrypt_text():
         ), 500
 
 
+# Generate share link
+@api_route.route("/encryptor/generate_link", methods=["POST"])
+def generate_link():
+    try:
+        data = request.json
+        text = str(data.get("text_to_share"))
+        link = generate_share_link(text)
+
+        return api_response(
+            "success",
+            200,
+            "Successfully generated link.",
+            {"link": link},
+            {},
+        )
+
+    except Exception as err:
+        return api_response(
+            "error",
+            500,
+            f"An error occurred on the server. \nError message:{str(err)}",
+            [],
+            {},
+        ), 500
+
+
 # Decrypt text
 @api_route.route("/encryptor/decrypt_text", methods=["POST"])
 def decrypt_text():
@@ -172,6 +198,28 @@ def decrypt_text():
             [],
             {},
         ), 500
+
+
+# Decrypt shared link
+@api_route.route("/encryptor/decrypt_link", methods=["POST"])
+def decrypt_shared_link():
+    data = request.json
+    blob = data.get("blob")
+    key = data.get("key")
+
+    if not blob or not key:
+        return api_response("error", 400, "Invalid transmission format.", [], {}), 400
+
+
+    status, decrypted = decrypt_payload(blob, key)
+    if status == "success":
+        return api_response("success", 200, "Successfully decrypted the link", decrypted, {})
+
+    elif status == "expired":
+        return api_response("error", 410, "This shared session has expired (5-minute limit exceeded).", [], {}), 410
+
+    else:
+        return api_response("error", 400, "Decryption failed. The key or payload might be corrupted.", [], {}), 400
 
 
 # Password generator

@@ -5,9 +5,11 @@ from datetime import datetime, timezone
 from dotenv import load_dotenv
 from flask import Flask, redirect, session, url_for
 from flask.sansio.app import timedelta
+from flask.templating import render_template
 
 from routes.api import api_route
 from routes.pages import pages_route
+from src.data_manager import UserManager
 from src.db_manager import initialize_db
 
 load_dotenv()
@@ -54,6 +56,35 @@ def check_session():
 @app.route("/")
 def home():
     return redirect(url_for("pages.dashboard"))
+
+
+user = UserManager()
+
+
+@app.context_processor
+def inject_globals():
+    user_keys = []
+    if "username" in session:
+        user_keys = user.user_saved_keys(session.get("user_id"), session.get("key"))
+
+    return {
+        "name": session.get("name"),
+        "username": session.get("username"),
+        "key": session.get("key"),
+        "active_page": None,
+        "user_keys": user_keys,
+    }
+
+
+# Open shared link
+@app.route("/<shared_type>/<blob>")
+def share_page(shared_type, blob):
+    if shared_type == "t":
+        return render_template("pages/shared_text.html", blob=blob)
+    elif shared_type == "p":
+        return "<p></p>"
+    else:
+        return "<p>Unsupported shared link.</p>"
 
 
 if __name__ == "__main__":
