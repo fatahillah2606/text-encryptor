@@ -106,8 +106,7 @@
                                 <p
                                     class="md-typescale-body-medium text-md-secondary m-0"
                                 >
-                                    Acts as your master encryption key for this
-                                    session.
+                                    Acts as your master encryption key.
                                 </p>
                             </div>
                             <md-ripple></md-ripple>
@@ -129,8 +128,7 @@
                                 <p
                                     class="md-typescale-body-medium text-md-secondary m-0"
                                 >
-                                    End your current session and securely lock
-                                    your data.
+                                    End your current session.
                                 </p>
                             </div>
                             <md-ripple></md-ripple>
@@ -162,10 +160,9 @@
                                     </h2>
                                     <p
                                         class="md-typescale-body-medium text-md-secondary m-0"
-                                        id="your-name"
                                     >
-                                        Restore your encrypted database or
-                                        settings from a local backup file.
+                                        Restore your encrypted data from a local
+                                        backup file.
                                     </p>
                                 </div>
                                 <md-ripple></md-ripple>
@@ -186,10 +183,9 @@
                                     </h2>
                                     <p
                                         class="md-typescale-body-medium text-md-secondary m-0"
-                                        id="username"
                                     >
-                                        Create an encrypted backup of your
-                                        accounts and keys to save externally.
+                                        Create an encrypted backup of your keys
+                                        and passwords.
                                     </p>
                                 </div>
                                 <md-ripple></md-ripple>
@@ -223,8 +219,8 @@
                                     <p
                                         class="md-typescale-body-medium text-md-secondary m-0"
                                     >
-                                        Permanently wipe all local data and
-                                        master keys. This cannot be undone.
+                                        Permanently delete all your data. This
+                                        action cannot be undone.
                                     </p>
                                 </div>
                                 <md-ripple></md-ripple>
@@ -511,10 +507,10 @@
             <md-list class="rounded-xl overflow-hidden">
                 <!-- JSON Option -->
                 <md-list-item type="button" id="option-json" selected>
-                    <span slot="headline">Full Application Backup (.json)</span>
+                    <span slot="headline">Full Backup (.json)</span>
                     <span slot="supporting-text">
-                        Exports both Keys and Passwords. Highly secure, ideal
-                        for importing back into this Text Encryptor app.
+                        Exports both Keys and Passwords. Ideal for importing
+                        back into this Text Encryptor app.
                     </span>
                     <md-radio
                         slot="start"
@@ -528,9 +524,7 @@
 
                 <!-- CSV Option (Compatibility Mode) -->
                 <md-list-item type="button" id="option-csv">
-                    <span slot="headline">
-                        Browser Compatibility Mode (.csv)
-                    </span>
+                    <span slot="headline">Browser Compatibility (.csv) </span>
                     <span slot="supporting-text">
                         Exports passwords only. Unencrypted standard format
                         compatible with Excel, Chrome, or external managers.
@@ -584,8 +578,7 @@
                     <div class="flex flex-col gap-0.5">
                         <span class="font-medium!">Encrypt File Structure</span>
                         <span class="md-typescale-body-small">
-                            Protects your backup file with a master decryption
-                            key.
+                            Protects your backup file with a password.
                         </span>
                     </div>
                     <md-switch id="crypto-switch" icons></md-switch>
@@ -601,7 +594,7 @@
                         name="export_password"
                         label="Encryption Password"
                         type="password"
-                        supporting-text="Do not forget this key. The backup cannot be recovered without it."
+                        supporting-text="Make sure you don't forget your password."
                         error-text="Password is required when encryption is enabled"
                         class="w-full"
                     >
@@ -1151,7 +1144,7 @@
                 exportPassword.value = "";
                 exportPassword.required = false;
                 exportManifestDesc.innerHTML =
-                    "Generating <strong>plaintext .json backup</strong>. Contains <span class='underline font-medium'>keys and passwords</span> without secondary protection. Store safely.";
+                    "Generating <strong>plaintext .json backup</strong>. Contains <span class='underline font-medium'>keys and passwords</span> without secondary protection.";
             }
 
             csvWarning.classList.add("hidden");

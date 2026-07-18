@@ -235,7 +235,13 @@
                         saveKeyToSession(masterKey);
                         checkEncryptionKey();
                     } catch (error) {
-                        openKeyModal();
+                        // openKeyModal();
+
+                        // Auto generate key for guest mode
+                        const keyGenerated = await generateKey("#custom_key");
+                        if (keyGenerated) {
+                            setEncryptionKey(keySelectorForm.custom_key.value);
+                        }
                     }
                 }
             }

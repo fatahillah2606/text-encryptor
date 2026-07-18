@@ -1,0 +1,163 @@
+{% extends 'components/base.html' %}
+
+<!-- Title -->
+{% block title %}Shared text{% endblock %}
+
+<!-- Section -->
+{% block section %}
+<section class="main-section">
+    <div class="bg-md-background md:rounded-4xl overflow-auto p-5 h-full">
+        <div class="flex justify-center animate-showup">
+            <div class="w-full max-w-2xl">
+                <!-- Heading -->
+                <div
+                    class="flex items-center justify-start gap-2.5 bg-md-background z-10"
+                >
+                    <h1
+                        class="md-typescale-headline-small text-md-on-surface font-bold!"
+                    >
+                        Shared text
+                    </h1>
+                </div>
+
+                <!-- Loading -->
+                <div class="flex flex-col gap-2.5 my-5" id="decrypt-progress">
+                    <md-circular-progress
+                        class="block m-auto"
+                        indeterminate
+                    ></md-circular-progress>
+
+                    <span
+                        class="md-typescale-body-medium text-md-on-surface text-center"
+                    >
+                        Processing secure link...
+                    </span>
+                </div>
+
+                <!-- Quote if link expired -->
+                <blockquote
+                    class="flex items-start bg-md-error-container rounded-2xl w-full m-0 p-5 gap-2.5 animate-showup hidden"
+                    id="expired-quote"
+                >
+                    <md-icon class="text-md-on-error-container shrink-0"
+                        >warning</md-icon
+                    >
+                    <p
+                        class="md-typescale-body-large text-md-on-error-container italic! font-semibold! m-0"
+                    >
+                        "The transmission has faded. The 5-minute security
+                        window has passed, and the cryptographic payload has
+                        been completely cleared. We should head back to the
+                        workstation and regenerate the link if needed."
+                    </p>
+                </blockquote>
+
+                <!-- Decrypted text -->
+                <div
+                    class="rounded-2xl overflow-hidden flex flex-col gap-1 animate-showup hidden"
+                    id="decrypt-container"
+                >
+                    <!-- title -->
+                    <div
+                        class="px-5 py-2.5 bg-md-surface-container rounded-md flex items-center justify-between"
+                    >
+                        <h2
+                            class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
+                        >
+                            Decrypted text
+                        </h2>
+                        <md-text-button
+                            onclick="copyText('decrypt-result', this)"
+                        >
+                            Copy
+                        </md-text-button>
+                    </div>
+
+                    <!-- body -->
+                    <div class="p-5 bg-md-surface-container rounded-md">
+                        <md-filled-text-field
+                            type="textarea"
+                            placeholder="Decrypted text will shown here"
+                            rows="5"
+                            class="w-full resize-y"
+                            id="decrypt-result"
+                            name="decrypt-result"
+                            readonly
+                        >
+                        </md-filled-text-field>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+<!-- Modals -->
+{% block modals %} {% endblock %}
+
+<!-- Script -->
+{% block script %}
+<script>
+    const decryptProgress = document.getElementById("decrypt-progress");
+    const expiredQuote = document.getElementById("expired-quote");
+    const decryptContainer = document.getElementById("decrypt-container");
+    const decryptResult = document.getElementById("decrypt-result");
+
+    window.addEventListener("DOMContentLoaded", async () => {
+        // Extract the key from the hash fragment (#)
+        const key = window.location.hash.substring(1);
+        const blob = "{{ blob }}";
+
+        if (!key) {
+            decryptProgress.classList.add("hidden");
+            expiredQuote.querySelector("p").textContent =
+                "The transmission is fractured. The cryptographic structure doesn't align, meaning the payload or the key has been corrupted. We shouldn't trust this link—let's return to the workspace and verify the source.";
+
+            expiredQuote.classList.remove("hidden");
+
+            showAlert(
+                "Unable to decrypt message",
+                "The sharing key is missing from the URL. Please double-check the link and try again.",
+            );
+
+            return;
+        }
+
+        try {
+            // Deliver both parts safely via a POST payload
+            data = {
+                blob: blob,
+                key: key,
+            };
+
+            const result = await sendRequest(
+                "/api/encryptor/decrypt_link",
+                data,
+                "POST",
+            );
+
+            decryptResult.value = result.data;
+            decryptContainer.classList.remove("hidden");
+
+            // Remove unnecessary element
+            decryptProgress.classList.add("hidden");
+            expiredQuote.classList.add("hidden");
+        } catch (error) {
+            decryptProgress.classList.add("hidden");
+
+            if (error.code === 410) {
+                expiredQuote.querySelector("p").textContent =
+                    "The transmission has faded. The 5-minute security window has passed, and the cryptographic payload has been completely cleared. We should head back to the workstation and regenerate the link if needed.";
+
+                expiredQuote.classList.remove("hidden");
+            } else {
+                expiredQuote.querySelector("p").textContent =
+                    "The transmission is fractured. The cryptographic structure doesn't align, meaning the payload or the key has been corrupted. We shouldn't trust this link—let's return to the workspace and verify the source.";
+
+                expiredQuote.classList.remove("hidden");
+            }
+        }
+    });
+</script>
+{% endblock %}

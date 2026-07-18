@@ -3,7 +3,7 @@ from functools import wraps
 from flask import Blueprint, redirect, render_template, session, url_for
 
 from src.data_manager import Recovery, UserManager
-from src.encryptor import NewEncryption, OldEncryption
+from src.encryptor import NewEncryption
 
 # Get available users
 user = UserManager()
