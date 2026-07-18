@@ -502,20 +502,16 @@
                         Copy
                     </md-text-button>
                 </div>
-
-                <div
-                    class="bg-md-background border border-md-outline rounded-xl overflow-hidden p-2.5 mt-2.5 mb-2.5 min-h-10"
-                >
-                    <span
-                        class="md-typescale-body-medium text-md-on-surface m-0 wrap-break-word"
-                        id="generated_link"
-                    >
-                    </span>
-                </div>
             </div>
+            <md-outlined-text-field
+                class="col-span-2"
+                id="generated_link"
+                readonly
+            ></md-outlined-text-field>
 
             <div
-                class="p-4 rounded-xl bg-md-tertiary-container flex gap-3 items-start col-span-2"
+                class="p-4 rounded-xl bg-md-tertiary-container flex gap-3 items-start col-span-2 hidden"
+                id="link-span"
             >
                 <span
                     class="material-symbols-rounded text-md-on-tertiary-container"
@@ -524,9 +520,7 @@
                 </span>
                 <span
                     class="md-typescale-body-small text-md-on-tertiary-container mt-1"
-                    id="link-span"
                 >
-                    The link is valid until .
                 </span>
             </div>
         </div>
@@ -633,6 +627,7 @@
     async function generate_link(textToShare, targetElm, noticeBanner) {
         data = { text_to_share: textToShare };
         try {
+            // Get generated link
             const result = await sendRequest(generateLinkAPI, data, "POST");
 
             if (targetElm.value !== undefined) {
@@ -641,12 +636,21 @@
                 targetElm.textContent = result.data.link;
             }
 
+            // Link span
             const currentTime = new Date();
             currentTime.setMinutes(currentTime.getMinutes() + 5);
 
-            let bannerText = `The link is valid until ${currentTime.getHours()}.${currentTime.getMinutes()}`;
+            let hour = currentTime.getHours();
+            let minute = currentTime.getMinutes();
 
-            noticeBanner.textContent = bannerText;
+            hour = hour < 10 ? "0" + hour : hour;
+            minute = minute < 10 ? "0" + minute : minute;
+
+            let bannerText = `The link is valid until ${hour}.${minute}`;
+
+            noticeBanner.classList.remove("hidden");
+            noticeBanner.querySelector("span:nth-child(2)").textContent =
+                bannerText;
 
             showSnackbar(result.message);
         } catch (error) {
@@ -657,7 +661,7 @@
     // Open share modal
     async function openShareModal() {
         shareForm.text_to_share.value = encryptionForm.unencrypted_text.value;
-        generate_link(shareForm.text_to_share.value, outputLink, linkSpan);
+        // generate_link(shareForm.text_to_share.value, outputLink, linkSpan);
 
         await shareModal.show();
     }
@@ -665,6 +669,8 @@
     // Close share modal
     async function closeShareModal() {
         shareForm.reset();
+        linkSpan.classList.add("hidden");
+
         await shareModal.close();
     }
 
