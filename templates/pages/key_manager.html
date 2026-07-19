@@ -515,6 +515,8 @@
     // Delete key
     async function deleteKey(keysId) {
         if (keysId && keysId.trim() !== "") {
+            await editKeyModal.close();
+
             // Wait for the response
             const choise = await confirmDialog(
                 "confirm-delete",
@@ -541,6 +543,8 @@
                 } catch (error) {
                     showAlert("Unable to delete key", error.message);
                 }
+            } else {
+                openEditKeyModal(keysId);
             }
         } else {
             console.warn("Warning: 'data-key-id' is empty!");

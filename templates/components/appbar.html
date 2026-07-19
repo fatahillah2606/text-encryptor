@@ -120,6 +120,12 @@
                     <md-icon>delete</md-icon>
                 </md-icon-button>
                 {% endif %}
+                <!--  -->
+                {% if active_page == 'shared_passwords' %}
+                <md-icon-button title="Save" onclick="saveSelected()">
+                    <md-icon>save</md-icon>
+                </md-icon-button>
+                {% endif %}
             </div>
 
             <div class="md:hidden relative">
@@ -156,6 +162,12 @@
                     {% if not active_page == 'shared_passwords' %}
                     <md-menu-item onclick="deleteSelected()">
                         Delete
+                    </md-menu-item>
+                    {% endif %}
+                    <!--  -->
+                    {% if active_page == 'shared_passwords' %}
+                    <md-menu-item onclick="saveSelected()">
+                        Save all
                     </md-menu-item>
                     {% endif %}
                 </md-menu>

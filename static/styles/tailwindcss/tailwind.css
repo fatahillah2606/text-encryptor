@@ -3,6 +3,8 @@
 @layer theme, base, components, utilities;
 @layer theme {
   :root, :host {
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', Arial,
+    sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
     --color-red-300: oklch(80.8% 0.114 19.571);
     --color-red-900: oklch(39.6% 0.141 25.723);
     --color-yellow-300: oklch(90.5% 0.182 98.111);
@@ -273,6 +275,9 @@
   }
   .h-12 {
     height: calc(var(--spacing) * 12);
+  }
+  .h-14 {
+    height: calc(var(--spacing) * 14);
   }
   .h-16 {
     height: calc(var(--spacing) * 16);
@@ -575,6 +580,9 @@
   .p-5 {
     padding: calc(var(--spacing) * 5);
   }
+  .px-0 {
+    padding-inline: 0px;
+  }
   .px-2\.5 {
     padding-inline: calc(var(--spacing) * 2.5);
   }
@@ -583,6 +591,9 @@
   }
   .px-5 {
     padding-inline: calc(var(--spacing) * 5);
+  }
+  .px-6 {
+    padding-inline: calc(var(--spacing) * 6);
   }
   .py-1 {
     padding-block: var(--spacing);
@@ -856,6 +867,10 @@
   .select-all {
     -webkit-user-select: all;
     user-select: all;
+  }
+  .select-none {
+    -webkit-user-select: none;
+    user-select: none;
   }
   .ease-initial {
     --tw-ease: initial;
