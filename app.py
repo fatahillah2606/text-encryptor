@@ -3,7 +3,7 @@ import secrets
 from datetime import datetime, timezone
 
 from dotenv import load_dotenv
-from flask import Flask, redirect, session, url_for
+from flask import Flask, redirect, session, url_for, abort
 from flask.sansio.app import timedelta
 from flask.templating import render_template
 
@@ -53,6 +53,12 @@ def check_session():
         session["expired"] = (current_time + timedelta(minutes=5)).isoformat()
 
 
+# Error handler
+@app.errorhandler(404)
+def page_not_found(error):
+    return "Page not found", 404
+
+
 @app.route("/")
 def home():
     return redirect(url_for("pages.dashboard"))
@@ -80,11 +86,11 @@ def inject_globals():
 @app.route("/<shared_type>/<blob>")
 def share_page(shared_type, blob):
     if shared_type == "t":
-        return render_template("pages/shared_text.html", blob=blob)
+        return render_template("pages/shared_text.html", active_page="shared_text", blob=blob)
     elif shared_type == "p":
-        return "<p></p>"
+        return render_template("pages/shared_passwords.html", active_page="shared_passwords", blob=blob)
     else:
-        return "<p>Unsupported shared link.</p>"
+        abort(404, description="Invalid shared type")
 
 
 if __name__ == "__main__":

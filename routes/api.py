@@ -1,5 +1,6 @@
 import binascii
 from functools import wraps
+import json
 
 from flask import Blueprint, jsonify, request, session
 
@@ -137,7 +138,9 @@ def generate_link():
     try:
         data = request.json
         text = str(data.get("text_to_share"))
-        link = generate_share_link(text)
+
+        blob, one_time_key = generate_share_link(text)
+        link = f"http://127.0.0.1:5000/t/{blob}#{one_time_key}"
 
         return api_response(
             "success",
@@ -1104,8 +1107,50 @@ def editPassword(password_id):
         ), 500
 
 
+# Share password
+@api_route.route("/user/password/share", methods=["POST"])
+@logged_in_only_api
+def sharePassword():
+    try:
+        data = request.json
+        selectedPasswordIds = data.get("selected_password")
+
+        passwordList = []
+
+        # Get the passwords based on selected
+        for eachPw in selectedPasswordIds:
+            passwd = passwords.get_user_password(
+                eachPw, session["user_id"], session["key"]
+            )
+
+            passwordList.append(
+                {
+                    "password_id": passwd["password_id"],
+                    "name": passwd["service_name"],
+                    "url": passwd["service_url"],
+                    "username": passwd["username_account"],
+                    "password": passwd["decrypted_password"],
+                    "note": passwd["service_note"],
+                }
+            )
+
+        blob, one_time_key = generate_share_link(json.dumps(passwordList))
+        link = f"http://127.0.0.1:5000/p/{blob}#{one_time_key}"
+
+        return api_response("success", 200, "Successfully generated link.", {"link": link}, {})
+
+    except Exception as err:
+        return api_response(
+            "error",
+            500,
+            f"An error occurred on the server. \nError message:{str(err)}",
+            [],
+            {},
+        ), 500
+
+
 # Export password
-@api_route.route("user/password/export", methods=["POST"])
+@api_route.route("/user/password/export", methods=["POST"])
 @logged_in_only_api
 def exportPassword():
     try:

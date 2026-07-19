@@ -72,9 +72,7 @@ def generate_share_link(raw_text):
     # Convert ciphertext to a clean URL parameter
     blob = base64.urlsafe_b64encode(compressed).decode("utf-8")
 
-    # Assemble the definitive uniform link mapping
-    share_url = f"http://127.0.0.1:5000/t/{blob}#{one_time_key}"
-    return share_url
+    return blob, one_time_key
 
 
 # Decrypt payload
