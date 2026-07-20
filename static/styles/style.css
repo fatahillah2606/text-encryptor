@@ -282,3 +282,13 @@ md-tabs::part(divider) {
 #key-select {
     width: 100%;
 }
+
+/* Transition showup */
+.transition-showup-start {
+    transform: translateY(5%);
+    opacity: 0;
+}
+.transition-showup-end {
+    transform: translateY(0%);
+    opacity: 1;
+}

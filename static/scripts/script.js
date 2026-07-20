@@ -112,67 +112,85 @@ function movePage(uri) {
 }
 
 // Snackbar
-let autoDismis;
+let autoDismiss;
+
 function showSnackbar(message, action = null) {
-    clearTimeout(autoDismis);
     const snackbar = document.querySelector("#snackbar");
-    const fab = document.querySelector("md-fab");
+    if (!snackbar) {
+        console.error("Snackbar element not found on this page.");
+        return;
+    }
 
-    if (snackbar) {
-        // Check if a FAB exists and is visible
-        if (fab) {
-            snackbar.classList.add("bottom-40");
-        } else {
-            snackbar.classList.remove("bottom-40");
-        }
+    clearTimeout(autoDismiss);
 
-        const supportingText = snackbar.querySelector(
-            "#snackbar-supporting-text",
-        );
-        const snackbarAction = snackbar.querySelector("#snackbar-action");
-
-        supportingText.textContent = message;
-
-        if (action) {
-            try {
-                snackbarAction.textContent = action.title;
-                snackbarAction.setAttribute("onclick", action.action);
-
-                snackbarAction.classList.remove("hidden");
-            } catch (error) {
-                console.error("Action must have 'title' and 'action'");
-            }
-        }
-
-        // Animate showup
-        snackbar.classList.remove("hidden");
-        setTimeout(() => {
-            snackbar.classList.remove("translate-y-5");
-            snackbar.classList.remove("opacity-0");
-        }, 50);
-
-        autoDismis = setTimeout(() => {
-            dismissSnackbar();
-        }, 5000);
+    // If currently visible, dismiss it then display new one
+    if (!snackbar.classList.contains("hidden")) {
+        dismissSnackbar(() => {
+            renderAndShowSnackbar(snackbar, message, action);
+        });
     } else {
-        console.error("Snackbar element not found in this page!");
+        renderAndShowSnackbar(snackbar, message, action);
     }
 }
 
-function dismissSnackbar() {
+function renderAndShowSnackbar(snackbar, message, action) {
+    const fab = document.querySelector("md-fab");
+    if (fab) {
+        snackbar.classList.add("bottom-40");
+    } else {
+        snackbar.classList.remove("bottom-40");
+    }
+
+    const supportingText = snackbar.querySelector("#snackbar-supporting-text");
+    const snackbarAction = snackbar.querySelector("#snackbar-action");
+
+    supportingText.textContent = message;
+
+    if (action && action.title && action.action) {
+        snackbarAction.textContent = action.title;
+        snackbarAction.onclick =
+            typeof action.action === "function"
+                ? action.action
+                : new Function(action.action);
+        snackbarAction.classList.remove("hidden");
+    } else {
+        snackbarAction.classList.add("hidden");
+        snackbarAction.onclick = null;
+    }
+
+    // Un-hide the element while it is still invisible
+    snackbar.classList.remove("hidden");
+
+    // Force reflow so the browser acknowledges the "flex" before transitioning
+    void snackbar.offsetHeight;
+
+    // Trigger transition immediately on the next render cycle
+    snackbar.classList.remove("translate-y-5", "opacity-0");
+
+    autoDismiss = setTimeout(() => {
+        dismissSnackbar();
+    }, 5000);
+}
+
+function dismissSnackbar(callback = null) {
+    clearTimeout(autoDismiss);
     const snackbar = document.querySelector("#snackbar");
 
-    if (snackbar) {
-        // Animate dismis
-        snackbar.classList.add("translate-y-5");
-        snackbar.classList.add("opacity-0");
-        setTimeout(() => {
-            snackbar.classList.add("hidden");
-            snackbar.querySelector("#snackbar-action").classList.add("hidden");
-        }, 300);
-    } else {
-        console.error("Snackbar element not found in this page!");
+    if (!snackbar || snackbar.classList.contains("hidden")) {
+        if (callback) callback();
+        return;
     }
+
+    // Animate out
+    snackbar.classList.add("translate-y-5", "opacity-0");
+
+    setTimeout(() => {
+        snackbar.classList.add("hidden");
+        const snackbarAction = snackbar.querySelector("#snackbar-action");
+        if (snackbarAction) snackbarAction.classList.add("hidden");
+
+        if (callback) callback();
+    }, 150);
 }
 
 // Alert dialog

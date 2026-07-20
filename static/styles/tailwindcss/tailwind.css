@@ -3,8 +3,6 @@
 @layer theme, base, components, utilities;
 @layer theme {
   :root, :host {
-    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', Arial,
-    sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
     --color-red-300: oklch(80.8% 0.114 19.571);
     --color-red-900: oklch(39.6% 0.141 25.723);
     --color-yellow-300: oklch(90.5% 0.182 98.111);
@@ -89,6 +87,9 @@
   }
   .pointer-events-none {
     pointer-events: none;
+  }
+  .invisible {
+    visibility: hidden;
   }
   .visible {
     visibility: visible;
