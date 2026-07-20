@@ -1,5 +1,6 @@
 import binascii
 from functools import wraps
+import json
 
 from flask import Blueprint, jsonify, request, session
 
@@ -137,7 +138,9 @@ def generate_link():
     try:
         data = request.json
         text = str(data.get("text_to_share"))
-        link = generate_share_link(text)
+
+        blob, one_time_key = generate_share_link(text)
+        link = f"http://127.0.0.1:5000/t/{blob}#{one_time_key}"
 
         return api_response(
             "success",
@@ -1048,6 +1051,83 @@ def createPassword():
         ), 500
 
 
+# Save password from link
+@api_route.route("/user/password/save", methods=["POST"])
+@logged_in_only_api
+def savePassword():
+    try:
+        data = request.json
+        passwordList = data.get("passwords")
+        key = data.get("key")
+
+        user_id = session["user_id"]
+        session_key = session["key"]
+
+        success_status = []
+        error_list = []
+
+        for password in passwordList:
+            # Check serviceName and username length
+            if len(password["name"]) > 50:
+                success_status.append("error")
+                error_list.append(
+                    {
+                        "service_name": password["name"],
+                        "error_info": "The maximum length for service name is 50."
+                    }
+                )
+
+            if len(password["username"]) > 50:
+                success_status.append("error")
+                error_list.append(
+                    {
+                        "service_name": password["name"],
+                        "error_info": "The maximum length for username is 50."
+                    }
+                )
+
+
+            # Insert into db
+            status, result = passwords.create_user_password(
+                password["url"],
+                password["name"],
+                password["username"],
+                password["password"],
+                password["note"],
+                key,
+                user_id,
+                session_key,
+            )
+
+            if status == "error":
+                error_list.append(
+                    {
+                        "service_name": password["name"],
+                        "error_info": result
+                    }
+                )
+
+            success_status.append(status)
+
+        success_count = success_status.count("success")
+        error_count = success_status.count("error")
+
+        if error_count == len(success_status):
+            return api_response("error", 500, "Failed to save all passwords.", error_list, {}), 500
+        else:
+            return api_response("success", 200, f"{success_count} out of {len(success_status)} passwords were saved successfully.", error_list, {})
+
+
+    except Exception as err:
+        return api_response(
+            "error",
+            500,
+            f"An error occurred on the server. \nError message:{str(err)}",
+            [],
+            {},
+        ), 500
+
+
 # Edit password
 @api_route.route("/user/password/<password_id>/edit", methods=["PUT"])
 @logged_in_only_api
@@ -1104,8 +1184,50 @@ def editPassword(password_id):
         ), 500
 
 
+# Share password
+@api_route.route("/user/password/share", methods=["POST"])
+@logged_in_only_api
+def sharePassword():
+    try:
+        data = request.json
+        selectedPasswordIds = data.get("selected_password")
+
+        passwordList = []
+
+        # Get the passwords based on selected
+        for eachPw in selectedPasswordIds:
+            passwd = passwords.get_user_password(
+                eachPw, session["user_id"], session["key"]
+            )
+
+            passwordList.append(
+                {
+                    "password_id": passwd["password_id"],
+                    "name": passwd["service_name"],
+                    "url": passwd["service_url"],
+                    "username": passwd["username_account"],
+                    "password": passwd["decrypted_password"],
+                    "note": passwd["service_note"],
+                }
+            )
+
+        blob, one_time_key = generate_share_link(json.dumps(passwordList))
+        link = f"http://127.0.0.1:5000/p/{blob}#{one_time_key}"
+
+        return api_response("success", 200, "Successfully generated link.", {"link": link}, {})
+
+    except Exception as err:
+        return api_response(
+            "error",
+            500,
+            f"An error occurred on the server. \nError message:{str(err)}",
+            [],
+            {},
+        ), 500
+
+
 # Export password
-@api_route.route("user/password/export", methods=["POST"])
+@api_route.route("/user/password/export", methods=["POST"])
 @logged_in_only_api
 def exportPassword():
     try:

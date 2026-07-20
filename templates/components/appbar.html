@@ -103,19 +103,29 @@
 
                 {% if active_page == 'password_manager' %}
                 <md-icon-button
-                    title="Export selected"
-                    onclick="openExportMenu()"
+                    title="Share"
+                    id="share-icon-btn"
+                    onclick="openShareDialog()"
                 >
+                    <md-icon>share</md-icon>
+                </md-icon-button>
+
+                <md-icon-button title="Export" onclick="openExportMenu()">
                     <md-icon>upload</md-icon>
                 </md-icon-button>
                 {% endif %}
-
-                <md-icon-button
-                    title="Delete selected"
-                    onclick="deleteSelected()"
-                >
+                <!--  -->
+                {% if not active_page == 'shared_passwords' %}
+                <md-icon-button title="Delete" onclick="deleteSelected()">
                     <md-icon>delete</md-icon>
                 </md-icon-button>
+                {% endif %}
+                <!--  -->
+                {% if active_page == 'shared_passwords' %}
+                <md-icon-button title="Save" onclick="saveSelected()">
+                    <md-icon>save</md-icon>
+                </md-icon-button>
+                {% endif %}
             </div>
 
             <div class="md:hidden relative">
@@ -137,14 +147,29 @@
                     </md-menu-item>
 
                     {% if active_page == 'password_manager' %}
+                    <md-menu-item
+                        id="share-menu-item"
+                        onclick="openShareDialog()"
+                    >
+                        Share
+                    </md-menu-item>
+
                     <md-menu-item onclick="openExportMenu()">
                         Export
                     </md-menu-item>
                     {% endif %}
-
+                    <!--  -->
+                    {% if not active_page == 'shared_passwords' %}
                     <md-menu-item onclick="deleteSelected()">
                         Delete
                     </md-menu-item>
+                    {% endif %}
+                    <!--  -->
+                    {% if active_page == 'shared_passwords' %}
+                    <md-menu-item onclick="saveSelected()">
+                        Save all
+                    </md-menu-item>
+                    {% endif %}
                 </md-menu>
             </div>
         </div>

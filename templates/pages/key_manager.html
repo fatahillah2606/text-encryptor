@@ -515,6 +515,8 @@
     // Delete key
     async function deleteKey(keysId) {
         if (keysId && keysId.trim() !== "") {
+            await editKeyModal.close();
+
             // Wait for the response
             const choise = await confirmDialog(
                 "confirm-delete",
@@ -541,6 +543,8 @@
                 } catch (error) {
                     showAlert("Unable to delete key", error.message);
                 }
+            } else {
+                openEditKeyModal(keysId);
             }
         } else {
             console.warn("Warning: 'data-key-id' is empty!");
@@ -839,8 +843,26 @@
 
         anchor.onclick = (e) => {
             e.stopPropagation();
-            menu.open = !menu.open;
+
+            const isOpen = !menu.open;
+            menu.open = isOpen;
+
+            const row = document.getElementById(`key-row-${keysId}`);
+            if (row) {
+                if (isOpen) {
+                    // Elevate the active row above all other list rows
+                    row.style.zIndex = "50";
+                } else {
+                    // Reset z-index when closed
+                    row.style.zIndex = "";
+                }
+            }
         };
+
+        menu.addEventListener("closed", () => {
+            const row = document.getElementById(`key-row-${keysId}`);
+            if (row) row.style.zIndex = "";
+        });
 
         // Select option
         document.getElementById(`menu-${keysId}-select`).onclick = (e) => {
@@ -882,7 +904,6 @@
 
             // Material You curves
             let radiusClasses = "rounded-none";
-
             if (i === 0) {
                 radiusClasses = "rounded-t-2xl rounded-b-md";
             } else if (i === filtered.length - 1) {
@@ -891,7 +912,8 @@
                 radiusClasses = "rounded-md";
             }
 
-            itemWrapper.className = `relative py-5 px-5 max-h-16 bg-md-surface-container ${radiusClasses} flex items-center justify-between gap-5 cursor-pointer animate-showup`;
+            // Base classes + initial hidden transition state
+            itemWrapper.className = `relative py-5 px-5 max-h-16 bg-md-surface-container ${radiusClasses} flex items-center justify-between gap-5 cursor-pointer transition-all duration-300 ease-out transition-showup-start`;
 
             itemWrapper.onclick = () => {
                 if (isSelectionMode) {
@@ -913,14 +935,17 @@
                 <md-ripple></md-ripple>
             `;
 
-            // Sequential DOM appending
-            const tId = setTimeout(() => {
-                keyList.appendChild(itemWrapper);
-                // Setup internal components inside row based on active mode context
-                updateRowSelectionVisuals(key.key_id);
-            }, localIndex * 30);
+            // Append IMMEDIATELY to DOM in strict sequential order
+            keyList.appendChild(itemWrapper);
+            updateRowSelectionVisuals(key.key_id);
 
-            keyAnimationTimeouts.push(tId);
+            // Trigger transition stagger without delaying DOM insertion
+            const delay = localIndex * 35;
+            setTimeout(() => {
+                itemWrapper.classList.remove("transition-showup-start");
+                itemWrapper.classList.add("transition-showup-end");
+            }, delay);
+
             localIndex++;
         }
 
@@ -1024,6 +1049,7 @@
         // Update selection count and hide selection appbar
         selectionCount.textContent = selectedKeyIds.length;
         selectionAppbar.classList.add("hidden");
+        syncSelectAllButtonState();
     }
 
     // Initialization trigger
