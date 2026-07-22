@@ -3,7 +3,7 @@ import secrets
 from datetime import datetime, timezone
 
 from dotenv import load_dotenv
-from flask import Flask, redirect, session, url_for, abort
+from flask import Flask, redirect, session, url_for, abort, send_from_directory
 from flask.sansio.app import timedelta
 from flask.templating import render_template
 
@@ -15,8 +15,8 @@ from src.db_manager import initialize_db
 load_dotenv()
 
 
-SESSION_KEY = secrets.token_hex()
-# SESSION_KEY = os.getenv("SESSION_KEY") # for development, to prevent logged out when restarting
+# SESSION_KEY = secrets.token_hex()
+SESSION_KEY = os.getenv("SESSION_KEY") # for development, to prevent logged out when restarting
 
 
 # Check db
@@ -59,6 +59,13 @@ def page_not_found(error):
     return "Page not found", 404
 
 
+# Favicon
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
+
+
 @app.route("/")
 def home():
     return redirect(url_for("pages.dashboard"))
@@ -95,4 +102,4 @@ def share_page(shared_type, blob):
 
 if __name__ == "__main__":
     check_and_setup_db()
-    app.run(debug=False)
+    app.run(debug=True)

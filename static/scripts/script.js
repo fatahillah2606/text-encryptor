@@ -195,8 +195,11 @@ function dismissSnackbar(callback = null) {
 
 // Alert dialog
 async function showAlert(headline, content) {
-    const dialog = document.getElementById("alert-dialog");
+    // Close all dialog first
+    closeAllOpenDialogs();
 
+    // Create and show alert dialog
+    const dialog = document.getElementById("alert-dialog");
     if (dialog) {
         dialog.querySelector('[slot="headline"]').innerText = headline;
         dialog.querySelector("form").innerText = content;
@@ -480,4 +483,31 @@ function tempoaryUrl(blob, nameFile, fileType) {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+}
+
+// Check session
+async function checkSession() {
+    try {
+        const apiUri = "/api/auth/whoami";
+        const response = await sendRequest(apiUri);
+
+        if (response) {
+            return true;
+        }
+    } catch (error) {
+        return false;
+    }
+}
+
+// Close all opened dialog
+function closeAllOpenDialogs() {
+    const openDialogs = document.querySelectorAll("md-dialog[open]");
+
+    openDialogs.forEach((dialog) => {
+        const dialogForm = document.querySelector("form");
+
+        dialogForm.reset();
+        dialog.returnValue = "";
+        dialog.close();
+    });
 }

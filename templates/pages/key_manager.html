@@ -288,13 +288,15 @@
 
     // Show/Close new key modal
     async function openNewKeyModal() {
+        // Clear the form first
+        newKeyForm.reset;
+        newKeyForm.add_btn.disabled = true;
+
         await newKeyModal.show();
     }
 
     async function closeNewKeyModal() {
         await newKeyModal.close();
-        newKeyForm.reset();
-        newKeyForm.add_btn.disabled = true;
     }
 
     // Generate key
@@ -353,6 +355,11 @@
 
     // Show/Close edit key modal
     async function openEditKeyModal(uri) {
+        // Reset everything first
+        editKeyForm.dataset.keyId = "";
+        editKeyForm.reset();
+        editKeyForm.save_btn.disabled = true;
+
         // Set keyId with API url
         editKeyForm.dataset.keyId = uri;
 
@@ -360,12 +367,7 @@
     }
 
     async function closeEditKeyModal() {
-        // Reset keyId
-        editKeyForm.dataset.keyId = "";
-
         await editKeyModal.close();
-        editKeyForm.reset();
-        editKeyForm.save_btn.disabled = true;
     }
 
     // Generate key
@@ -402,16 +404,25 @@
 
     // Open existing account
     async function openExistingKey(uri) {
-        // Set the action button
-        editKeyForm.reset_info.onclick = getKeyInfo;
-        editKeyForm.cancle_editing.onclick = disableEditing;
-        editKeyForm.delete_key.onclick = function () {
-            deleteKey(uri);
-        };
+        const available = await checkSession();
 
-        // Show the modal
-        openEditKeyModal(uri);
-        getKeyInfo();
+        if (available) {
+            // Set the action button
+            editKeyForm.reset_info.onclick = getKeyInfo;
+            editKeyForm.cancle_editing.onclick = disableEditing;
+            editKeyForm.delete_key.onclick = function () {
+                deleteKey(uri, true);
+            };
+
+            // Show the modal
+            openEditKeyModal(uri);
+            getKeyInfo();
+        } else {
+            showAlert(
+                "Failed to retrieve key information",
+                "Your session has expired. Please log in again.",
+            );
+        }
     }
 
     // Set to readonly
@@ -439,15 +450,24 @@
     }
 
     // Disable editing
-    function disableEditing() {
-        // Reset the info
-        getKeyInfo();
+    async function disableEditing() {
+        const available = await checkSession();
 
-        editModalHeadline.textContent = "Key info";
-        setToReadonly();
+        if (available) {
+            // Reset the info
+            getKeyInfo();
 
-        editModalOption.classList.remove("hidden");
-        editModalAction.classList.add("hidden");
+            editModalHeadline.textContent = "Key info";
+            setToReadonly();
+
+            editModalOption.classList.remove("hidden");
+            editModalAction.classList.add("hidden");
+        } else {
+            showAlert(
+                "Failed to retrieve key information",
+                "Your session has expired. Please log in again.",
+            );
+        }
     }
 
     // Prevents dialogs from remaining in edit mode when closed.
@@ -492,7 +512,6 @@
                 }
             } catch (error) {
                 progressIndicator.classList.add("hidden!");
-
                 showAlert("Unable to edit key", error.message);
             }
         } else {
@@ -513,9 +532,9 @@
     });
 
     // Delete key
-    async function deleteKey(keysId) {
+    async function deleteKey(keysId, state_backed = false) {
         if (keysId && keysId.trim() !== "") {
-            await editKeyModal.close();
+            closeEditKeyModal();
 
             // Wait for the response
             const choise = await confirmDialog(
@@ -544,7 +563,7 @@
                     showAlert("Unable to delete key", error.message);
                 }
             } else {
-                openEditKeyModal(keysId);
+                state_backed ? openExistingKey(keysId) : "";
             }
         } else {
             console.warn("Warning: 'data-key-id' is empty!");
@@ -630,8 +649,8 @@
 
         if (allKeys.length === 0) {
             keyList.innerHTML = `
-                <blockquote class="flex items-start bg-md-tertiary-container rounded-2xl w-full m-0 p-5 gap-2.5">
-                    <md-icon class="text-md-on-tertiary-container shrink-0">info</md-icon>
+                <blockquote class="flex items-start bg-md-tertiary-container rounded-2xl w-full m-0 p-5 gap-2.5 animate-showup">
+                    <md-icon class="material-icon-fill text-md-on-tertiary-container shrink-0">info</md-icon>
                     <p class="md-typescale-body-large text-md-on-tertiary-container italic! font-semibold! m-0">
                         "The gateway is locked. No encryption keys have been established here yet. Let's register a new key first."
                     </p>
@@ -640,8 +659,8 @@
             return;
         } else if (filtered.length === 0) {
             keyList.innerHTML = `
-                <blockquote class="flex items-start bg-md-tertiary-container rounded-2xl w-full m-0 p-5 gap-2.5">
-                    <md-icon class="text-md-on-tertiary-container shrink-0">info</md-icon>
+                <blockquote class="flex items-start bg-md-tertiary-container rounded-2xl w-full m-0 p-5 gap-2.5 animate-showup">
+                    <md-icon class="material-icon-fill text-md-on-tertiary-container shrink-0">info</md-icon>
                     <p class="md-typescale-body-large text-md-on-tertiary-container italic! font-semibold! m-0">
                         "Search returned zero results. No keys match that name. Check the spelling or typos, precision is key"
                     </p>
