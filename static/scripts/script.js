@@ -504,7 +504,7 @@ function closeAllOpenDialogs() {
     const openDialogs = document.querySelectorAll("md-dialog[open]");
 
     openDialogs.forEach((dialog) => {
-        const dialogForm = document.querySelector("form");
+        const dialogForm = dialog.querySelector("form");
 
         dialogForm.reset();
         dialog.returnValue = "";
