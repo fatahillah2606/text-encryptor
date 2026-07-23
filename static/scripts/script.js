@@ -378,6 +378,10 @@ function logout() {
 // Confirm dialog
 async function confirmDialog(dialogId, headline, content) {
     const dialog = document.getElementById(dialogId);
+
+    // Reset the returnValue first
+    dialog.returnValue = "";
+
     dialog.querySelector('[slot="headline"]').innerText = headline;
     dialog.querySelector("form").innerText = content;
 
