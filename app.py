@@ -15,8 +15,8 @@ from src.db_manager import initialize_db
 load_dotenv()
 
 
-# SESSION_KEY = secrets.token_hex()
-SESSION_KEY = os.getenv("SESSION_KEY") # for development, to prevent logged out when restarting
+SESSION_KEY = secrets.token_hex()
+# SESSION_KEY = os.getenv("SESSION_KEY") # for development, to prevent logged out when restarting
 
 
 # Check db
@@ -102,4 +102,4 @@ def share_page(shared_type, blob):
 
 if __name__ == "__main__":
     check_and_setup_db()
-    app.run(debug=True)
+    app.run(debug=False)
