@@ -258,9 +258,22 @@
             >
             </md-filled-text-field>
 
+            <!-- For password only -->
+            <md-filled-text-field
+                name="retype_password"
+                id="retype_password"
+                class="col-span-2 hidden"
+                type="password"
+                placeholder="Retype password"
+                disabled
+            >
+            </md-filled-text-field>
+
             <div
-                class="hidden col-span-2 flex items-center justify-start gap-4 my-2.5"
-                onclick="showPw('show_password', ['edit_account'])"
+                class="col-span-2 flex items-center justify-start gap-4 my-2.5 hidden"
+                onclick="
+                    showPw('show_password', ['edit_account', 'retype_password'])
+                "
                 id="show_password_container"
             >
                 <md-checkbox
@@ -429,7 +442,7 @@
                 class="p-4 rounded-xl bg-md-tertiary-container flex gap-3 items-start col-span-2"
             >
                 <span
-                    class="material-symbols-rounded text-md-on-tertiary-container mt-0.5"
+                    class="material-symbols-rounded material-icon-fill text-md-on-tertiary-container mt-0.5"
                 >
                     inventory_2
                 </span>
@@ -626,7 +639,7 @@
             class="p-4 rounded-xl bg-md-tertiary-container flex gap-3 items-start"
         >
             <span
-                class="material-symbols-rounded text-md-on-tertiary-container mt-0.5"
+                class="material-symbols-rounded material-icon-fill text-md-on-tertiary-container mt-0.5"
             >
                 inventory_2
             </span>
@@ -722,18 +735,25 @@
             // Set value of field
             dialogForm.edit_account.value = "";
 
+            // Enable required element
+            dialogForm.retype_password.classList.remove("hidden");
             showPasswordContainer.classList.remove("hidden");
+            dialogForm.retype_password.disabled = false;
             dialogForm.show_password.disabled = false;
         } else {
             // Set value of field
             dialogForm.edit_account.value =
                 name === "name" ? userdata.name : userdata.username;
 
+            // Disable unecessary element
+            dialogForm.retype_password.classList.add("hidden");
             showPasswordContainer.classList.add("hidden");
+            dialogForm.retype_password.disabled = true;
             dialogForm.show_password.disabled = true;
         }
 
         // Show the dialog
+        loadRequired();
         await dialogElm.show();
     }
 
@@ -746,6 +766,7 @@
     dialogElm.addEventListener("close", () => {
         dialogForm.save_changes.disabled = true;
         hideSupportText(dialogForm.edit_account);
+        hideSupportText(dialogForm.retype_password);
     });
 
     // Dialog action button
@@ -762,44 +783,70 @@
 
     // Change bio
     async function changeBio(theForm) {
-        try {
-            let formData = new FormData(theForm);
+        const available = await checkSession();
+        if (available) {
+            try {
+                let formData = new FormData(theForm);
 
-            // Set the route based on what name field is.
-            let accountUpdateAPI = "/api/account/update";
-            let requestMethod = "PATCH";
-            if (theForm.edit_account.name === "password") {
-                accountUpdateAPI = "/api/account/change-password";
-                requestMethod = "PUT";
-            }
+                // Set the route based on what name field is.
+                let accountUpdateAPI = "/api/account/update";
+                let requestMethod = "PATCH";
 
-            formData = Object.fromEntries(formData.entries());
+                if (theForm.edit_account.name === "password") {
+                    accountUpdateAPI = "/api/account/change-password";
+                    requestMethod = "PUT";
 
-            // Send request
-            const result = await sendRequest(
-                accountUpdateAPI,
-                formData,
-                requestMethod,
-            );
-
-            if (result.code === 200) {
-                // Reload user data
-                const reload = await loadUserData();
-
-                if (reload) {
-                    yourname.textContent = userdata.name;
-                    username.textContent = userdata.username;
+                    // Check the password
+                    if (
+                        dialogForm.edit_account.value !==
+                        dialogForm.retype_password.value
+                    ) {
+                        progressIndicator.classList.add("hidden!");
+                        showSupportText(
+                            dialogForm.retype_password,
+                            "The password does not match. Please try again.",
+                        );
+                        return;
+                    }
                 }
 
-                progressIndicator.classList.add("hidden!");
-                dialogForm.save_changes.disabled = true;
+                formData = Object.fromEntries(formData.entries());
 
-                closeDialog();
-                showSnackbar(result.message);
+                // Send request
+                const result = await sendRequest(
+                    accountUpdateAPI,
+                    formData,
+                    requestMethod,
+                );
+
+                if (result.code === 200) {
+                    // Reload user data
+                    const reload = await loadUserData();
+
+                    if (reload) {
+                        yourname.textContent = userdata.name;
+                        username.textContent = userdata.username;
+                    }
+
+                    progressIndicator.classList.add("hidden!");
+                    dialogForm.save_changes.disabled = true;
+
+                    closeDialog();
+                    showSnackbar(result.message);
+                }
+            } catch (error) {
+                progressIndicator.classList.add("hidden!");
+
+                if (error.code && error.code !== 500) {
+                    showSupportText(dialogForm.edit_account, error.message);
+                }
             }
-        } catch (error) {
+        } else {
             progressIndicator.classList.add("hidden!");
-            showSupportText(dialogForm.edit_account, error.message);
+            showAlert(
+                "Unable to edit profile information",
+                "Your session has expired. Please log in again.",
+            );
         }
     }
 
@@ -977,50 +1024,30 @@
 
     // Trigger Import
     async function importData(theForm) {
-        const theFile = theForm.file_input.files[0];
-        const importAPI = "/api/account/import";
+        const available = await checkSession();
+        if (available) {
+            const theFile = theForm.file_input.files[0];
+            const importAPI = "/api/account/import";
 
-        const formData = new FormData(theForm);
-        const payload = Object.fromEntries(formData.entries());
-        const readerFile = new FileReader();
+            const formData = new FormData(theForm);
+            const payload = Object.fromEntries(formData.entries());
+            const readerFile = new FileReader();
 
-        // List of supported file type
-        let itsCsvFile =
-            theFile.name.endsWith(".csv") && theFile.type === "text/csv";
+            // List of supported file type
+            let itsCsvFile =
+                theFile.name.endsWith(".csv") && theFile.type === "text/csv";
 
-        let itsJsonFile =
-            theFile.name.endsWith(".json") &&
-            theFile.type === "application/json";
+            let itsJsonFile =
+                theFile.name.endsWith(".json") &&
+                theFile.type === "application/json";
 
-        // Check file type, then proceed to import
-        readerFile.onload = (e) => {
-            if (itsCsvFile) {
-                // If it was .csv
-                const csvContent = e.target.result;
-                payload.data_sheet = csvContent;
-                payload.type_file = "csv";
-
-                sendRequest(importAPI, payload, "POST")
-                    .then((response) => {
-                        showSnackbar(response.message, {
-                            title: "View",
-                            action: "movePage('/pages/password_manager')",
-                        });
-
-                        importBtnIndicator.classList.add("hidden!");
-                        closeImportMenu();
-                    })
-                    .catch((error) => {
-                        showAlert("Unable to import data", error.message);
-
-                        importBtnIndicator.classList.add("hidden!");
-                    });
-            } else if (itsJsonFile) {
-                // If it was .json
-                try {
-                    const jsonObject = JSON.parse(e.target.result);
-                    payload.json_data = jsonObject;
-                    payload.type_file = "json";
+            // Check file type, then proceed to import
+            readerFile.onload = (e) => {
+                if (itsCsvFile) {
+                    // If it was .csv
+                    const csvContent = e.target.result;
+                    payload.data_sheet = csvContent;
+                    payload.type_file = "csv";
 
                     sendRequest(importAPI, payload, "POST")
                         .then((response) => {
@@ -1033,39 +1060,68 @@
                             closeImportMenu();
                         })
                         .catch((error) => {
-                            if (error.code === 403) {
-                                showSupportText(
-                                    importForm.file_password,
-                                    error.message,
-                                );
-                            } else {
-                                showAlert(
-                                    "Unable to import data",
-                                    error.message,
-                                );
-                            }
+                            showAlert("Unable to import data", error.message);
 
                             importBtnIndicator.classList.add("hidden!");
                         });
-                } catch (err) {
-                    showAlert(
-                        "Unable to import data",
-                        `The selected file is corrupted or unsupported. Ensure the file is not corrupted and comes from Text Encryptor. \nError: ${err}`,
-                    );
+                } else if (itsJsonFile) {
+                    // If it was .json
+                    try {
+                        const jsonObject = JSON.parse(e.target.result);
+                        payload.json_data = jsonObject;
+                        payload.type_file = "json";
 
+                        sendRequest(importAPI, payload, "POST")
+                            .then((response) => {
+                                showSnackbar(response.message, {
+                                    title: "View",
+                                    action: "movePage('/pages/password_manager')",
+                                });
+
+                                importBtnIndicator.classList.add("hidden!");
+                                closeImportMenu();
+                            })
+                            .catch((error) => {
+                                if (error.code === 403) {
+                                    showSupportText(
+                                        importForm.file_password,
+                                        error.message,
+                                    );
+                                } else {
+                                    showAlert(
+                                        "Unable to import data",
+                                        error.message,
+                                    );
+                                }
+
+                                importBtnIndicator.classList.add("hidden!");
+                            });
+                    } catch (err) {
+                        showAlert(
+                            "Unable to import data",
+                            `The selected file is corrupted or unsupported. Ensure the file is not corrupted and comes from Text Encryptor. \nError: ${err}`,
+                        );
+
+                        importBtnIndicator.classList.add("hidden!");
+                    }
+                } else {
+                    // if none of them
+                    showAlert(
+                        "Unsupported file format",
+                        "The selected file could not be recognized. Please upload a valid backup file with a .json or .csv extension.",
+                    );
                     importBtnIndicator.classList.add("hidden!");
                 }
-            } else {
-                // if none of them
-                showAlert(
-                    "Unsupported file format",
-                    "The selected file could not be recognized. Please upload a valid backup file with a .json or .csv extension.",
-                );
-                importBtnIndicator.classList.add("hidden!");
-            }
-        };
+            };
 
-        readerFile.readAsText(theFile);
+            readerFile.readAsText(theFile);
+        } else {
+            importBtnIndicator.classList.add("hidden!");
+            showAlert(
+                "Unable to import data",
+                "Your session has expired. Please log in again.",
+            );
+        }
     }
 
     // Import action button
@@ -1269,13 +1325,13 @@
     loadUserData();
 
     // for enable/disable submit btn
-    document.addEventListener("DOMContentLoaded", () => {
+    function loadRequired() {
         const targetField = document.querySelectorAll(
-            "#edit_account_form md-filled-text-field",
+            "#edit_account_form md-filled-text-field:not([disabled])",
         );
         const submitBtn = dialogForm.save_changes;
 
         requireAllFields(targetField, submitBtn);
-    });
+    }
 </script>
 {% endblock %}

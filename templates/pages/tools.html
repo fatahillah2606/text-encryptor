@@ -514,7 +514,7 @@
                 id="link-span"
             >
                 <span
-                    class="material-symbols-rounded text-md-on-tertiary-container"
+                    class="material-symbols-rounded material-icon-fill text-md-on-tertiary-container"
                 >
                     info
                 </span>
@@ -646,7 +646,7 @@
             hour = hour < 10 ? "0" + hour : hour;
             minute = minute < 10 ? "0" + minute : minute;
 
-            let bannerText = `The link is valid until ${hour}.${minute}`;
+            let bannerText = `The link is valid until ${hour}:${minute}`;
 
             noticeBanner.classList.remove("hidden");
             noticeBanner.querySelector("span:nth-child(2)").textContent =
@@ -660,22 +660,32 @@
 
     // Open share modal
     async function openShareModal() {
-        shareForm.text_to_share.value = encryptionForm.unencrypted_text.value;
+        // Reset everything first
+        shareForm.reset();
+        linkSpan.classList.add("hidden");
+        hideSupportText(shareForm.text_to_share);
 
+        shareForm.text_to_share.value = encryptionForm.unencrypted_text.value;
         await shareModal.show();
     }
 
     // Close share modal
     async function closeShareModal() {
-        shareForm.reset();
-        linkSpan.classList.add("hidden");
-
         await shareModal.close();
     }
 
-    // Re-generate link button
+    // Generate link button
     regenerateBtn.addEventListener("click", () => {
-        generate_link(shareForm.text_to_share.value, outputLink, linkSpan);
+        hideSupportText(shareForm.text_to_share);
+
+        if (shareForm.text_to_share.value.trim() !== "") {
+            generate_link(shareForm.text_to_share.value, outputLink, linkSpan);
+        } else {
+            showSupportText(
+                shareForm.text_to_share,
+                "Enter the text you want to share.",
+            );
+        }
     });
 
     // Text Decryption

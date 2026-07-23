@@ -33,7 +33,7 @@
                 class="w-12 h-12 flex items-center justify-center m-0 p-0 bg-md-primary rounded-xl"
             >
                 <span
-                    class="material-symbols-rounded text-4xl! text-md-on-primary!"
+                    class="material-symbols-rounded material-icon-fill text-4xl! text-md-on-primary!"
                 >
                     encrypted
                 </span>
@@ -56,11 +56,11 @@
                     <div
                         class="p-4 rounded-xl bg-md-tertiary-container flex gap-3 items-start mt-2.5"
                     >
-                        <span
-                            class="material-symbols-rounded text-md-on-tertiary-container mt-0.5"
+                        <md-icon
+                            class="material-icon-fill text-md-on-tertiary-container mt-0.5"
                         >
                             info
-                        </span>
+                        </md-icon>
                         <div class="flex flex-col">
                             <span
                                 id="export-manifest-desc"
@@ -72,6 +72,7 @@
                             </span>
                             <div class="mt-4" style="direction: rtl">
                                 <md-filled-button
+                                    class="md-color-tertiary"
                                     onclick="movePage('/pages/recovery')"
                                 >
                                     Recover

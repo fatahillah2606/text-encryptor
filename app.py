@@ -3,7 +3,7 @@ import secrets
 from datetime import datetime, timezone
 
 from dotenv import load_dotenv
-from flask import Flask, redirect, session, url_for, abort
+from flask import Flask, redirect, session, url_for, abort, send_from_directory
 from flask.sansio.app import timedelta
 from flask.templating import render_template
 
@@ -57,6 +57,13 @@ def check_session():
 @app.errorhandler(404)
 def page_not_found(error):
     return "Page not found", 404
+
+
+# Favicon
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
 
 
 @app.route("/")

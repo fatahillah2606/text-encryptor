@@ -159,6 +159,49 @@ md-filled-button .button-progress-indicator md-circular-progress {
     --md-sys-color-primary: var(--md-sys-color-on-primary);
 }
 
+/* MD Buttons */
+/* Secondary Color Role */
+.md-color-secondary {
+    --md-filled-button-container-color: var(--md-sys-color-secondary);
+    --md-filled-button-label-text-color: var(--md-sys-color-on-secondary);
+
+    --md-filled-tonal-button-container-color: var(
+        --md-sys-color-secondary-container
+    );
+    --md-filled-tonal-button-label-text-color: var(
+        --md-sys-color-on-secondary-container
+    );
+
+    --md-outlined-button-label-text-color: var(--md-sys-color-secondary);
+    --md-outlined-button-outline-color: var(--md-sys-color-secondary);
+
+    --md-text-button-label-text-color: var(--md-sys-color-secondary);
+    --md-elevated-button-container-color: var(
+        --md-sys-color-secondary-container
+    );
+}
+
+/* Tertiary Color Role */
+.md-color-tertiary {
+    --md-filled-button-container-color: var(--md-sys-color-tertiary);
+    --md-filled-button-label-text-color: var(--md-sys-color-on-tertiary);
+
+    --md-filled-tonal-button-container-color: var(
+        --md-sys-color-tertiary-container
+    );
+    --md-filled-tonal-button-label-text-color: var(
+        --md-sys-color-on-tertiary-container
+    );
+
+    --md-outlined-button-label-text-color: var(--md-sys-color-tertiary);
+    --md-outlined-button-outline-color: var(--md-sys-color-tertiary);
+
+    --md-text-button-label-text-color: var(--md-sys-color-tertiary);
+    --md-elevated-button-container-color: var(
+        --md-sys-color-tertiary-container
+    );
+}
+
 .remove-arrow::-webkit-inner-spin-button,
 .remove-arrow::-webkit-outer-spin-button {
     -webkit-appearance: none !important;
