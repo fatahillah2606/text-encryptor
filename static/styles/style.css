@@ -9,6 +9,17 @@
         format("woff");
 }
 
+/* Plus Jakarta Sans font */
+@font-face {
+    font-family: "Plus Jakarta Sans";
+    src: url("/static/fonts/Plus_Jakarta_Sans/PlusJakartaSans-VariableFont_wght.ttf");
+}
+
+@font-face {
+    font-family: "Plus Jakarta Sans Italic";
+    src: url("/static/fonts/Plus_Jakarta_Sans/PlusJakartaSans-Italic-VariableFont_wght.ttf");
+}
+
 :root {
     font-family: Inter, sans-serif;
     font-feature-settings:
@@ -143,6 +154,7 @@ md-icon {
     justify-content: center;
 }
 
+/* MD Progress button */
 md-filled-button .button-progress-indicator {
     background-color: var(--md-sys-color-primary);
 }
@@ -334,4 +346,13 @@ md-tabs::part(divider) {
 .transition-showup-end {
     transform: translateY(0%);
     opacity: 1;
+}
+
+.sunako-appbar-title {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-weight: 600;
+
+    font-size: var(--md-sys-typescale-title-large-size, 1.375rem);
+    line-height: var(--md-sys-typescale-title-large-line-height, 1.75rem);
+    letter-spacing: var(--md-sys-typescale-title-large-tracking, 0);
 }

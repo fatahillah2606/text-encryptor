@@ -131,7 +131,7 @@ class DataImporter:
         if not reader.fieldnames:
             return (
                 "error",
-                "CSV format is not supported. Make sure the CSV file you select is from a Chromium-based browser, Firefox, or Text Encryptor.",
+                "CSV format is not supported. Make sure the CSV file you select is from a Chromium-based browser, Firefox, or Sunako.",
             )
 
         parsed_passwords = []
@@ -165,7 +165,7 @@ class DataImporter:
         else:
             return (
                 "error",
-                "CSV format is not supported. Make sure the CSV file you select is from a Chromium-based browser, Firefox, or Text Encryptor.",
+                "CSV format is not supported. Make sure the CSV file you select is from a Chromium-based browser, Firefox, or Sunako.",
             )
 
         return "success", parsed_passwords

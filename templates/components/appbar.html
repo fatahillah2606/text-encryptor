@@ -3,12 +3,19 @@
 >
     <!-- Icon and lable -->
     <div class="flex items-center justify-start">
+        <!-- Logo and menu icon -->
         <div class="w-24 flex items-center justify-center">
-            <md-icon
-                class="material-icon-fill text-center w-12 h-12 rounded-xl bg-md-secondary-container text-md-on-secondary-container! block md:hidden"
+            <div
+                class="flex items-center justify-center m-0 p-1 w-12 h-12 rounded-xl bg-md-secondary-container text-md-on-secondary-container! md:hidden"
             >
-                encrypted
-            </md-icon>
+                <svg
+                    class="text-md-on-secondary-container"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 100 100"
+                >
+                    {% include 'components/logo.html' %}
+                </svg>
+            </div>
 
             <md-icon-button
                 class="cursor-pointer hidden md:flex"
@@ -21,12 +28,25 @@
             </md-icon-button>
         </div>
 
-        <!-- The lable -->
-        <span
-            class="md-typescale-title-large text-md-on-secondary-container hidden sm:block"
-        >
-            Text Encryptor
-        </span>
+        <!-- Label -->
+        <div class="flex items-center gap-2.5">
+            <div
+                class="w-10 h-10 flex items-center justify-center m-0 p-1 bg-md-secondary-container rounded-xl hidden"
+            >
+                <svg
+                    class="text-md-on-secondary-container"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 100 100"
+                >
+                    {% include 'components/logo.html' %}
+                </svg>
+            </div>
+            <span
+                class="sunako-appbar-title text-md-on-secondary-container hidden sm:block"
+            >
+                Sunako
+            </span>
+        </div>
     </div>
 
     <!-- User profile -->

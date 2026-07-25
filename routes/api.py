@@ -608,7 +608,7 @@ def importData():
                 return api_response(
                     "error",
                     400,
-                    "The selected file is corrupted or unsupported. Ensure the file is not corrupted and comes from Text Encryptor.",
+                    "The selected file is corrupted or unsupported. Ensure the file is not corrupted and comes from Sunako.",
                     [],
                     {},
                 ), 400

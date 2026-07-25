@@ -11,7 +11,7 @@ if %errorlevel% neq 0 (
     echo.
 )
 
-echo Starting Text Encryptor...
+echo Starting Sunako...
 python run.py
 
 pause

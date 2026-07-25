@@ -36,10 +36,12 @@
     --text-4xl--line-height: calc(2.5 / 2.25);
     --text-6xl: 3.75rem;
     --text-6xl--line-height: 1;
+    --font-weight-thin: 100;
     --font-weight-normal: 400;
     --font-weight-medium: 500;
     --font-weight-semibold: 600;
     --font-weight-bold: 700;
+    --font-weight-black: 900;
     --tracking-wide: 0.025em;
     --tracking-wider: 0.05em;
     --leading-relaxed: 1.625;
@@ -79,6 +81,7 @@
         --md-sys-color-surface-container-high
     );
     --animate-showup: showup 0.5s ease;
+    --font-plus-jakarta-sans: "Plus Jakarta Sans", sans-serif;
   }
 }
 @layer utilities {
@@ -566,6 +569,9 @@
   .p-0 {
     padding: 0px;
   }
+  .p-1 {
+    padding: var(--spacing);
+  }
   .p-2 {
     padding: calc(var(--spacing) * 2);
   }
@@ -729,8 +735,8 @@
   .text-md-on-error-container {
     color: var(--color-md-on-error-container);
   }
-  .text-md-on-primary\! {
-    color: var(--color-md-on-primary) !important;
+  .text-md-on-primary {
+    color: var(--color-md-on-primary);
   }
   .text-md-on-primary-container {
     color: var(--color-md-on-primary-container);

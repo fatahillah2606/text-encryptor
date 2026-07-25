@@ -47,7 +47,7 @@ def wait_for_flask(url, timeout=15):
 
 # Start the program
 def start_app():
-    print("[*] Launching Text Encryptor...")
+    print("[*] Launching Sunako...")
     target_url = "http://127.0.0.1:5000"
     try:
         # Start Flask as a background process

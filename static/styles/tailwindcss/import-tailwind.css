@@ -88,4 +88,8 @@
             opacity: 1;
         }
     }
+
+    /* Custom fonts */
+    --font-plus-jakarta-sans: "Plus Jakarta Sans", sans-serif;
+    --font-plus-jakarta-italic: "Plus Jakarta Sans Italic", sans-serif;
 }
