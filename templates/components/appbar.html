@@ -4,34 +4,20 @@
     <!-- Icon and lable -->
     <div class="flex items-center justify-start">
         <!-- Logo and menu icon -->
-        <div class="w-24 flex items-center justify-center">
-            <div
-                class="flex items-center justify-center m-0 p-1 w-12 h-12 rounded-xl bg-md-secondary-container text-md-on-secondary-container! md:hidden"
-            >
-                <svg
-                    class="text-md-on-secondary-container"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 100 100"
-                >
-                    {% include 'components/logo.html' %}
-                </svg>
-            </div>
-
+        <div class="hidden w-24 md:flex items-center justify-center">
             <md-icon-button
                 class="cursor-pointer hidden md:flex"
                 id="menu-btn"
                 title="Menu"
             >
-                <md-icon class="text-md-on-secondary-container!">
-                    menu
-                </md-icon>
+                <md-icon>menu</md-icon>
             </md-icon-button>
         </div>
 
         <!-- Label -->
-        <div class="flex items-center gap-2.5">
+        <div class="flex items-center gap-1.5 ml-5 md:ml-0">
             <div
-                class="w-10 h-10 flex items-center justify-center m-0 p-1 bg-md-secondary-container rounded-xl hidden"
+                class="w-10 h-10 flex items-center justify-center rounded-xl md:hidden"
             >
                 <svg
                     class="text-md-on-secondary-container"
@@ -41,9 +27,7 @@
                     {% include 'components/logo.html' %}
                 </svg>
             </div>
-            <span
-                class="sunako-appbar-title text-md-on-secondary-container hidden sm:block"
-            >
+            <span class="sunako-appbar-title text-md-on-surface block">
                 Sunako
             </span>
         </div>
@@ -56,13 +40,17 @@
         </md-icon-button>
         {% if 'username' in session %}
         <div
-            class="flex items-center justify-center bg-md-primary-container cursor-pointer rounded-full w-11 h-11 ml-1"
+            class="cursor-pointer w-12 h-12 p-1"
             title="Account information"
             id="user-profile"
         >
-            <span class="text-md-on-primary-container text-lg">
-                {{ name[0] }}
-            </span>
+            <div
+                class="w-full h-full rounded-full bg-md-primary flex items-center justify-center"
+            >
+                <span class="text-md-on-primary text-lg font-semibold">
+                    {{ name[0] }}
+                </span>
+            </div>
         </div>
 
         <!-- Profile menu -->
@@ -96,16 +84,12 @@
                     onclick="deselectAll()"
                     title="Cancel selection"
                 >
-                    <md-icon class="text-md-on-secondary-container!">
-                        close
-                    </md-icon>
+                    <md-icon>close</md-icon>
                 </md-icon-button>
             </div>
 
             <!-- The lable -->
-            <span
-                class="md-typescale-title-medium text-md-on-secondary-container"
-            >
+            <span class="md-typescale-title-medium text-md-on-surface-variant">
                 <span id="select-count">0</span> selected
             </span>
         </div>

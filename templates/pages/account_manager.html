@@ -6,7 +6,9 @@
 <!-- Section -->
 {% block section %}
 <section class="main-section">
-    <div class="bg-md-background md:rounded-4xl overflow-auto p-5 h-full">
+    <div
+        class="bg-md-background md:rounded-4xl overflow-auto p-5 pt-0 md:pt-5 h-full"
+    >
         <div class="flex justify-center">
             <div class="w-full max-w-2xl animate-showup">
                 <!-- Heading -->
@@ -46,7 +48,7 @@
                                     Your Name
                                 </h2>
                                 <p
-                                    class="md-typescale-body-medium text-md-secondary m-0"
+                                    class="md-typescale-body-medium text-md-on-surface-variant m-0"
                                     id="your-name"
                                 >
                                     {{ name }}
@@ -74,7 +76,7 @@
                                     Username
                                 </h2>
                                 <p
-                                    class="md-typescale-body-medium text-md-secondary m-0"
+                                    class="md-typescale-body-medium text-md-on-surface-variant m-0"
                                     id="username"
                                 >
                                     {{ username }}
@@ -104,7 +106,7 @@
                                     Password
                                 </h2>
                                 <p
-                                    class="md-typescale-body-medium text-md-secondary m-0"
+                                    class="md-typescale-body-medium text-md-on-surface-variant m-0"
                                 >
                                     Acts as your master encryption key.
                                 </p>
@@ -126,7 +128,7 @@
                                     Log out
                                 </h2>
                                 <p
-                                    class="md-typescale-body-medium text-md-secondary m-0"
+                                    class="md-typescale-body-medium text-md-on-surface-variant m-0"
                                 >
                                     End your current session.
                                 </p>
@@ -159,7 +161,7 @@
                                         Import
                                     </h2>
                                     <p
-                                        class="md-typescale-body-medium text-md-secondary m-0"
+                                        class="md-typescale-body-medium text-md-on-surface-variant m-0"
                                     >
                                         Restore your encrypted data from a local
                                         backup file.
@@ -182,7 +184,7 @@
                                         Export
                                     </h2>
                                     <p
-                                        class="md-typescale-body-medium text-md-secondary m-0"
+                                        class="md-typescale-body-medium text-md-on-surface-variant m-0"
                                     >
                                         Create an encrypted backup of your keys
                                         and passwords.
@@ -217,7 +219,7 @@
                                         Delete your account
                                     </h2>
                                     <p
-                                        class="md-typescale-body-medium text-md-secondary m-0"
+                                        class="md-typescale-body-medium text-md-on-surface-variant m-0"
                                     >
                                         Permanently delete all your data. This
                                         action cannot be undone.
@@ -389,8 +391,9 @@
                     <label
                         for="import_show_password"
                         class="md-typescale-body-medium text-md-on-surface m-0"
-                        >Show password</label
                     >
+                        Show password
+                    </label>
                 </div>
             </div>
 
@@ -557,7 +560,7 @@
             id="csv-warning"
         >
             <span
-                class="material-symbols-rounded text-md-on-error-container mt-0.5"
+                class="material-symbols-rounded material-icon-fill text-md-on-error-container mt-0.5"
             >
                 warning
             </span>

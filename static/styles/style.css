@@ -251,9 +251,9 @@ md-filled-button .button-progress-indicator md-circular-progress {
     font-variation-settings: "FILL" 1;
 }
 
-md-tabs::part(divider) {
+/* md-tabs::part(divider) {
     display: none;
-}
+} */
 
 #snackbar md-text-button {
     --md-sys-color-primary: var(--md-sys-color-inverse-primary);

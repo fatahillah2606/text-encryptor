@@ -6,14 +6,16 @@
 <!-- Section -->
 {% block section %}
 <section class="main-section">
-    <div class="bg-md-background md:rounded-4xl overflow-auto p-5 h-full">
+    <div
+        class="bg-md-background md:rounded-4xl overflow-auto p-5 pt-0 md:pt-5 h-full"
+    >
         <div class="flex flex-col gap-5 relative animate-showup">
             <div
                 class="flex items-center justify-start md:justify-center md:flex-col gap-2.5 md:gap-2 my-2.5"
             >
                 <!-- Profile picture -->
                 <div
-                    class="w-20 h-20 md:w-28 md:h-28 bg-md-primary-container rounded-full flex items-center justify-center"
+                    class="w-20 h-20 md:w-28 md:h-28 bg-md-primary-container rounded-full flex items-center justify-center shrink-0"
                 >
                     {% if 'username' in session %}
                     <span
@@ -35,7 +37,9 @@
                     >
                         {{ name if name else 'Guest' }}
                     </h2>
-                    <p class="text-md-on-surface text-left md:text-center m-0">
+                    <p
+                        class="text-md-on-surface-variant text-left md:text-center m-0"
+                    >
                         {{ username if username else 'guest'}}
                     </p>
                 </div>
@@ -98,7 +102,7 @@
                             <h4 class="text-md-on-surface m-0 mb-1.5 font-bold">
                                 Account Manager
                             </h4>
-                            <p class="text-sm text-md-secondary m-0">
+                            <p class="text-sm text-md-on-surface-variant m-0">
                                 Update your profile, handle and security
                                 credentials.
                             </p>
@@ -121,7 +125,7 @@
                             <h4 class="text-md-on-surface m-0 mb-1.5 font-bold">
                                 Key Manager
                             </h4>
-                            <p class="text-sm text-md-secondary m-0">
+                            <p class="text-sm text-md-on-surface-variant m-0">
                                 Securely organize and manage your encryption
                                 keys.
                             </p>
@@ -142,7 +146,7 @@
                             <h4 class="text-md-on-surface m-0 mb-1.5 font-bold">
                                 Password Manager
                             </h4>
-                            <p class="text-sm text-md-secondary m-0">
+                            <p class="text-sm text-md-on-surface-variant m-0">
                                 A vault for all your saved login credentials.
                             </p>
                         </div>
@@ -165,7 +169,7 @@
                             <h4 class="text-md-on-surface m-0 mb-1.5 font-bold">
                                 Password Generator
                             </h4>
-                            <p class="text-sm text-md-secondary m-0">
+                            <p class="text-sm text-md-on-surface-variant m-0">
                                 Create complex, high-entropy passwords
                                 instantly.
                             </p>
@@ -188,7 +192,7 @@
                             <h4 class="text-md-on-surface m-0 mb-1.5 font-bold">
                                 Text Encryptor
                             </h4>
-                            <p class="text-sm text-md-secondary m-0">
+                            <p class="text-sm text-md-on-surface-variant m-0">
                                 Transform your messages into secure, unreadable
                                 code.
                             </p>
@@ -209,7 +213,7 @@
                             <h4 class="text-md-on-surface m-0 mb-1.5 font-bold">
                                 Text Decryptor
                             </h4>
-                            <p class="text-sm text-md-secondary m-0">
+                            <p class="text-sm text-md-on-surface-variant m-0">
                                 Restore encrypted text back to its original
                                 form.
                             </p>
