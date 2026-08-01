@@ -356,3 +356,15 @@ md-filled-button .button-progress-indicator md-circular-progress {
     line-height: var(--md-sys-typescale-title-large-line-height, 1.75rem);
     letter-spacing: var(--md-sys-typescale-title-large-tracking, 0);
 }
+
+.default-textarea {
+    background: none;
+    border: none;
+    outline: none;
+    padding: 14px;
+    width: 100%;
+    min-height: calc(160px - 40px);
+    resize: none;
+    font-family: Inter, sans-serif;
+    color: var(--md-sys-color-on-surface-variant);
+}

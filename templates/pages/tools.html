@@ -10,7 +10,7 @@
         class="bg-md-background md:rounded-4xl overflow-auto px-0 md:px-5 pt-0 md:pt-5 pb-5 h-full"
     >
         <div class="flex justify-center animate-showup">
-            <div class="w-full max-w-2xl">
+            <div class="w-full max-w-7xl">
                 <!-- Tabs -->
                 <md-tabs
                     class="sticky top-0 md:-top-5 z-10"
@@ -20,16 +20,9 @@
                     <md-primary-tab
                         id="encryptor-tab"
                         aria-controls="encryptor-panel"
-                        onclick="movePage('#text_encryptor')"
+                        onclick="movePage('#encryptor')"
                     >
                         Encryptor
-                    </md-primary-tab>
-                    <md-primary-tab
-                        id="decryptor-tab"
-                        aria-controls="decryptor-panel"
-                        onclick="movePage('#text_decryptor')"
-                    >
-                        Decryptor
                     </md-primary-tab>
                     <md-primary-tab
                         id="passgen-tab"
@@ -48,14 +41,14 @@
                         id="slider"
                         class="flex w-full h-full transition-transform duration-300 ease-in-out"
                     >
-                        <!-- Text Encryptor -->
+                        <!-- Encryptor -->
                         <div
                             id="encryptor-panel"
                             role="tabpanel"
                             aria-labelledby="encryptor-tab"
                             class="w-full shrink-0 h-full"
                         >
-                            <md-tabs class="mb-5">
+                            <md-tabs class="mb-5" id="encryptor-tab-switcher">
                                 <md-secondary-tab>
                                     Text Encryptor
                                 </md-secondary-tab>
@@ -63,198 +56,130 @@
                                     File Encryptor
                                 </md-secondary-tab>
                             </md-tabs>
-                            <div class="px-5">
-                                <div
-                                    class="rounded-2xl overflow-hidden flex flex-col gap-1 mb-8"
-                                >
-                                    <!-- title -->
-                                    <div
-                                        class="p-5 bg-md-surface-container rounded-md"
-                                    >
-                                        <h2
-                                            class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
-                                        >
-                                            Encrypt text
-                                        </h2>
-                                    </div>
 
-                                    <!-- body -->
+                            <div class="w-full relative overflow-hidden">
+                                <div
+                                    id="encryptor-slider"
+                                    class="flex w-full h-full transition-transform duration-300 ease-in-out"
+                                >
+                                    <!-- Text encryptor -->
                                     <div
-                                        class="p-5 bg-md-surface-container rounded-md"
+                                        class="px-5 md:px-0 w-full shrink-0 h-full"
                                     >
-                                        <form
-                                            action=""
-                                            method="post"
-                                            name="encryption-form"
-                                            id="encryption-form"
-                                            class="flex flex-col gap-5"
+                                        <div
+                                            class="flex items-center justify-between h-12"
                                         >
-                                            <md-filled-text-field
-                                                type="textarea"
-                                                placeholder="Enter the text you want to encrypt"
-                                                rows="3"
-                                                class="resize-y"
-                                                name="unencrypted_text"
-                                                id="unencrypted_text"
-                                                required
+                                            <span
+                                                class="md-typescale-title-small text-md-on-surface w-full pl-0 sm:pl-2 text-center sm:text-left"
+                                                id="encryptor-from-label"
                                             >
-                                            </md-filled-text-field>
-                                            <div>
-                                                <md-filled-tonal-button
-                                                    type="submit"
-                                                >
-                                                    Encrypt
-                                                    <md-icon slot="icon">
-                                                        lock
-                                                    </md-icon>
-                                                </md-filled-tonal-button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-
-                                <div
-                                    class="rounded-2xl overflow-hidden flex flex-col gap-1"
-                                >
-                                    <!-- title -->
-                                    <div
-                                        class="px-5 py-2.5 bg-md-surface-container rounded-md flex items-center justify-between"
-                                    >
-                                        <h2
-                                            class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
-                                        >
-                                            Encrypted text
-                                        </h2>
-                                        <div class="flex items-center gap-2.5">
-                                            <md-text-button
+                                                Plain text
+                                            </span>
+                                            <md-icon-button
+                                                title="Switch"
+                                                class="shrink-0"
+                                                id="encryptor-switch-btn"
                                                 onclick="
-                                                    copyText(
-                                                        'encrypt-result',
-                                                        this,
-                                                    )
+                                                    switchEncryptionState()
                                                 "
                                             >
-                                                Copy
-                                            </md-text-button>
-                                            <md-filled-tonal-button
-                                                onclick="openShareModal()"
+                                                <md-icon>swap_horiz</md-icon>
+                                            </md-icon-button>
+                                            <span
+                                                class="md-typescale-title-small text-md-on-surface w-full pl-0 sm:pl-2 text-center sm:text-left"
+                                                id="encryptor-to-label"
                                             >
-                                                Share
-                                            </md-filled-tonal-button>
+                                                Encrypted text
+                                            </span>
                                         </div>
-                                    </div>
-
-                                    <!-- body -->
-                                    <div
-                                        class="p-5 bg-md-surface-container rounded-md"
-                                    >
-                                        <md-filled-text-field
-                                            type="textarea"
-                                            placeholder="Encrypted text will shown here"
-                                            rows="3"
-                                            class="w-full resize-y"
-                                            id="encrypt-result"
-                                            name="encrypt-result"
-                                            readonly
-                                        >
-                                        </md-filled-text-field>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Text Decryptor -->
-                        <div
-                            id="decryptor-panel"
-                            role="tabpanel"
-                            aria-labelledby="decryptor-tab"
-                            class="w-full shrink-0 h-full"
-                        >
-                            <div class="px-5">
-                                <div
-                                    class="rounded-2xl overflow-hidden flex flex-col gap-1 mb-8"
-                                >
-                                    <!-- title -->
-                                    <div
-                                        class="p-5 bg-md-surface-container rounded-md"
-                                    >
-                                        <h2
-                                            class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
-                                        >
-                                            Decrypt text
-                                        </h2>
-                                    </div>
-
-                                    <!-- body -->
-                                    <div
-                                        class="p-5 bg-md-surface-container rounded-md"
-                                    >
-                                        <form
-                                            action=""
-                                            method="post"
-                                            name="decryption-form"
-                                            id="decryption-form"
-                                            class="flex flex-col gap-5"
-                                        >
-                                            <md-filled-text-field
-                                                type="textarea"
-                                                placeholder="Enter the text you want to Decrypt"
-                                                rows="3"
-                                                class="resize-y"
-                                                name="encrypted_text"
-                                                id="encrypted_text"
-                                                required
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <div
+                                                class="rounded-xl border border-md-outline-variant overflow-hidden flex flex-col gap-1 col-span-2 sm:col-span-1"
                                             >
-                                            </md-filled-text-field>
-                                            <div>
-                                                <md-filled-tonal-button
-                                                    type="submit"
+                                                <div
+                                                    class="h-full min-h-40 flex flex-col"
                                                 >
-                                                    Decrypt
-                                                    <md-icon slot="icon">
-                                                        lock_open_right
-                                                    </md-icon>
-                                                </md-filled-tonal-button>
+                                                    <form
+                                                        action=""
+                                                        method="post"
+                                                        name="encryption-form"
+                                                        id="encryption-form"
+                                                        class="flex h-full"
+                                                    >
+                                                        <textarea
+                                                            type="textarea"
+                                                            class="default-textarea text-base sm:text-xl pr-0!"
+                                                            name="encryptor_input_text"
+                                                            id="encryptor_input_text"
+                                                            required
+                                                        ></textarea>
+                                                        <md-icon-button
+                                                            type="reset"
+                                                            name="encryptor_reset_input"
+                                                            id="encryptor_reset_input"
+                                                            class="shrink-0 m-2 hidden!"
+                                                        >
+                                                            <md-icon
+                                                                >close</md-icon
+                                                            >
+                                                        </md-icon-button>
+                                                    </form>
+                                                    <div
+                                                        class="flex items-center gap-2 justify-end m-2.5"
+                                                    >
+                                                        <md-filled-tonal-button
+                                                            onclick="
+                                                                openShareModal()
+                                                            "
+                                                        >
+                                                            Share
+                                                            <md-icon
+                                                                slot="icon"
+                                                            >
+                                                                share
+                                                            </md-icon>
+                                                        </md-filled-tonal-button>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </form>
-                                    </div>
-                                </div>
 
-                                <div
-                                    class="rounded-2xl overflow-hidden flex flex-col gap-1"
-                                >
-                                    <!-- title -->
-                                    <div
-                                        class="px-5 py-2.5 bg-md-surface-container rounded-md flex items-center justify-between"
-                                    >
-                                        <h2
-                                            class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
-                                        >
-                                            Decrypted text
-                                        </h2>
-                                        <md-text-button
-                                            onclick="
-                                                copyText('decrypt-result', this)
-                                            "
-                                        >
-                                            Copy
-                                        </md-text-button>
-                                    </div>
-
-                                    <!-- body -->
-                                    <div
-                                        class="p-5 bg-md-surface-container rounded-md"
-                                    >
-                                        <md-filled-text-field
-                                            type="textarea"
-                                            placeholder="Decrypted text will shown here"
-                                            rows="3"
-                                            class="w-full resize-y"
-                                            id="decrypt-result"
-                                            name="decrypt-result"
-                                            readonly
-                                        >
-                                        </md-filled-text-field>
+                                            <div
+                                                class="rounded-2xl overflow-hidden h-full col-span-2 sm:col-span-1"
+                                            >
+                                                <div
+                                                    class="bg-md-surface-container rounded-xl flex flex-col h-full min-h-40"
+                                                >
+                                                    <textarea
+                                                        type="textarea"
+                                                        placeholder="Encrypted text will shown here"
+                                                        class="w-full h-full default-textarea resize-none text-base sm:text-xl"
+                                                        id="encryptor-result"
+                                                        name="encryptor-result"
+                                                        readonly
+                                                    ></textarea>
+                                                    <div
+                                                        class="flex items-center gap-2 justify-end m-2.5"
+                                                    >
+                                                        <md-icon-button
+                                                            slot="trailing-icon"
+                                                            id="encryptor-copy-btn"
+                                                            class="hidden!"
+                                                            onclick="
+                                                                copyTextIconBtn(
+                                                                    'encryptor-result',
+                                                                    this,
+                                                                    event,
+                                                                )
+                                                            "
+                                                        >
+                                                            <md-icon>
+                                                                content_copy
+                                                            </md-icon>
+                                                        </md-icon-button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -267,9 +192,9 @@
                             aria-labelledby="passgen-tab"
                             class="w-full shrink-0 h-full"
                         >
-                            <div class="px-5">
+                            <div class="px-5 md:px-0 grid grid-cols-2 gap-3">
                                 <div
-                                    class="rounded-2xl overflow-hidden flex flex-col gap-1 mb-8"
+                                    class="rounded-2xl overflow-hidden flex flex-col gap-1 col-span-2 sm:col-span-1"
                                 >
                                     <!-- title -->
                                     <div
@@ -284,7 +209,7 @@
 
                                     <!-- body -->
                                     <div
-                                        class="p-5 bg-md-surface-container rounded-md"
+                                        class="p-5 bg-md-surface-container rounded-md h-full"
                                     >
                                         <form
                                             action=""
@@ -383,7 +308,7 @@
                                 </div>
 
                                 <div
-                                    class="rounded-2xl overflow-hidden flex flex-col gap-1"
+                                    class="rounded-2xl overflow-hidden flex flex-col gap-1 col-span-2 sm:col-span-1"
                                 >
                                     <!-- title -->
                                     <div
@@ -398,7 +323,7 @@
 
                                     <!-- body -->
                                     <div
-                                        class="p-5 bg-md-surface-container rounded-md"
+                                        class="p-5 bg-md-surface-container rounded-md h-full"
                                     >
                                         <!-- Generated password -->
                                         <div
@@ -557,7 +482,6 @@
 <script>
     // Tabs switcher
     const toolsTab = document.getElementById("tools-tab");
-    const tabPanel = document.querySelectorAll("[role='tabpanel']");
     const slider = document.querySelector("#slider");
 
     function tabSwitcher(tabIndex) {
@@ -573,24 +497,17 @@
 
     document.body.onload = () => {
         switch (location.hash) {
-            case "#text_encryptor":
+            case "#encryptor":
                 tabSwitcher(0);
                 unActiveTab();
                 toolsTab.tabs[0].active = true;
 
                 break;
 
-            case "#text_decryptor":
+            case "#password_generator":
                 tabSwitcher(1);
                 unActiveTab();
                 toolsTab.tabs[1].active = true;
-
-                break;
-
-            case "#password_generator":
-                tabSwitcher(2);
-                unActiveTab();
-                toolsTab.tabs[2].active = true;
 
                 break;
 
@@ -604,11 +521,84 @@
     });
 
     // Text Encryption
-    const encryptionForm = document.getElementById("encryption-form");
-    const encryptResult = document.getElementById("encrypt-result");
-    const encrypt_api = "/api/encryptor/encrypt_text";
+    let currentState = "encryption";
+    const encryptorFromLabel = document.getElementById("encryptor-from-label");
+    const encryptorToLabel = document.getElementById("encryptor-to-label");
+    const encryptorSwitchBtn = document.getElementById("encryptor-switch-btn");
 
-    async function encryptText() {
+    // Input form
+    const encryptionForm = document.getElementById("encryption-form");
+    const encryptorTextInput = encryptionForm.encryptor_input_text;
+    const encryptorResetInput = encryptionForm.encryptor_reset_input;
+
+    // Result form
+    const encryptResult = document.getElementById("encryptor-result");
+    const encryptorCopyBtn = document.getElementById("encryptor-copy-btn");
+    let encryptor_api = "/api/encryptor/encrypt_text";
+
+    // Encryptor tab switcher
+    const encryptorTab = document.getElementById("encryptor-tab-switcher");
+    const encryptorSlider = document.querySelector("#encryptor-slider");
+
+    function encryptorTabSwitcher(tabIndex) {
+        encryptorSlider.style.transform = `translateX(-${tabIndex * 100}%)`;
+    }
+
+    encryptorTab.addEventListener("change", (event) => {
+        encryptorTabSwitcher(event.target.activeTabIndex);
+    });
+
+    // Switch encryption state
+    function switchEncryptionState() {
+        // Disable the switch button
+        encryptorSwitchBtn.disabled = true;
+
+        // Change the state
+        if (currentState === "encryption") {
+            currentState = "decryption";
+            encryptor_api = "/api/encryptor/decrypt_text";
+
+            encryptorFromLabel.textContent = "Encrypted text";
+            encryptorToLabel.textContent = "Plain text";
+            encryptResult.placeholder = "Decrypted text will shown here";
+
+            encryptorTextInput.value = encryptResult.value;
+        } else {
+            currentState = "encryption";
+            encryptor_api = "/api/encryptor/encrypt_text";
+
+            encryptorFromLabel.textContent = "Plain text";
+            encryptorToLabel.textContent = "Encrypted text";
+            encryptResult.placeholder = "Encrypted text will shown here";
+
+            encryptorTextInput.value = encryptResult.value;
+        }
+
+        // Readjust the encryptorTextInput
+        adjustFontSize(encryptorTextInput);
+        autoResizeTextarea(encryptorTextInput);
+
+        // reprocess the encryption
+        proceedEncryption();
+
+        // Wait for a while to re-enable the switch button
+        setTimeout(() => {
+            encryptorSwitchBtn.disabled = false;
+        }, 500);
+    }
+
+    // Encrypt function
+    async function proceedEncryption() {
+        if (encryptorTextInput.value.trim()) {
+            encryptorResetInput.classList.remove("hidden!");
+            encryptorCopyBtn.classList.remove("hidden!");
+        } else {
+            encryptResult.value = "";
+            encryptorResetInput.classList.add("hidden!");
+            encryptorCopyBtn.classList.add("hidden!");
+            return;
+        }
+
         let encryptionKey = sessionStorage.getItem("encryption_key");
         encryptionKey = JSON.parse(encryptionKey);
 
@@ -619,13 +609,18 @@
 
             // send request
             try {
-                const result = await sendRequest(encrypt_api, formData, "POST");
-
-                encryptResult.value = result.data.encrypted_text;
-
-                showSnackbar(result.message);
+                const result = await sendRequest(
+                    encryptor_api,
+                    formData,
+                    "POST",
+                );
+                if (result.code === 200) {
+                    encryptResult.value = result.data.result_text;
+                    adjustFontSize(encryptResult);
+                    autoResizeTextarea(encryptResult);
+                }
             } catch (error) {
-                showAlert("Unable to encrypt", error.message);
+                encryptResult.value = error.message;
             }
         } else {
             // Trigger encryption key modal
@@ -633,10 +628,33 @@
         }
     }
 
-    encryptionForm.addEventListener("submit", (event) => {
-        event.preventDefault();
-        encryptText();
-    });
+    // Reset input state
+    function encryptorResetInputState() {
+        resetTextarea(encryptorTextInput);
+        resetTextarea(encryptResult);
+
+        encryptorResetInput.classList.add("hidden!");
+        proceedEncryption();
+    }
+
+    if (encryptorTextInput) {
+        const debouncedState = debounce(proceedEncryption, 300);
+        encryptorTextInput.addEventListener("input", debouncedState);
+
+        encryptorTextInput.addEventListener("input", (e) => {
+            adjustFontSize(e.target);
+            autoResizeTextarea(e.target);
+        });
+
+        // Run once on load in case there is pre-filled text
+        adjustFontSize(encryptorTextInput);
+        autoResizeTextarea(encryptorTextInput);
+
+        adjustFontSize(encryptResult);
+        autoResizeTextarea(encryptResult);
+    }
+
+    encryptorResetInput.addEventListener("click", encryptorResetInputState);
 
     // Share option
     const shareModal = document.getElementById("share-modal");
@@ -689,7 +707,8 @@
         linkSpan.classList.add("hidden");
         hideSupportText(shareForm.text_to_share);
 
-        shareForm.text_to_share.value = encryptionForm.unencrypted_text.value;
+        shareForm.text_to_share.value =
+            encryptionForm.encryptor_input_text.value;
         await shareModal.show();
     }
 
@@ -710,41 +729,6 @@
                 "Enter the text you want to share.",
             );
         }
-    });
-
-    // Text Decryption
-    const decryptionForm = document.getElementById("decryption-form");
-    const decryptResult = document.getElementById("decrypt-result");
-    const decrypt_api = "/api/encryptor/decrypt_text";
-
-    async function decryptText() {
-        let encryptionKey = sessionStorage.getItem("encryption_key");
-        encryptionKey = JSON.parse(encryptionKey);
-
-        if (encryptionKey) {
-            let formData = new FormData(decryptionForm);
-            formData.append("key", encryptionKey.key);
-            formData = Object.fromEntries(formData.entries());
-
-            // send request
-            try {
-                const result = await sendRequest(decrypt_api, formData, "POST");
-
-                decryptResult.value = result.data.decrypted_text;
-
-                showSnackbar(result.message);
-            } catch (error) {
-                showAlert("Unable to decrypt", error.message);
-            }
-        } else {
-            // Trigger encryption key modal
-            checkEncryptionKey();
-        }
-    }
-
-    decryptionForm.addEventListener("submit", (event) => {
-        event.preventDefault();
-        decryptText();
     });
 
     // Password Generator

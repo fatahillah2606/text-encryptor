@@ -515,3 +515,43 @@ function closeAllOpenDialogs() {
         dialog.close();
     });
 }
+
+// Debounce helper function
+function debounce(func, delay = 300) {
+    let timeoutId;
+    return function (...args) {
+        clearTimeout(timeoutId);
+
+        timeoutId = setTimeout(() => {
+            func.apply(this, args);
+        }, delay);
+    };
+}
+
+// For textarea on tools page
+// Auto-resize textarea height
+function autoResizeTextarea(textarea) {
+    textarea.style.height = "auto";
+    if (textarea.scrollHeight <= 320) {
+        textarea.style.height = `${textarea.scrollHeight}px`;
+    } else {
+        textarea.style.height = "320px";
+    }
+}
+
+// Dynamic font scaling based on character length
+function adjustFontSize(textarea) {
+    const length = textarea.value.length;
+
+    if (length > 300) {
+        textarea.classList.remove("sm:text-xl");
+    } else {
+        textarea.classList.add("sm:text-xl");
+    }
+}
+
+function resetTextarea(textarea) {
+    textarea.value = "";
+    textarea.style.height = "auto";
+    textarea.classList.add("sm:text-xl");
+}

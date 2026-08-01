@@ -95,7 +95,7 @@ def encrypt_text():
     try:
         data = request.json
         key = str(data.get("key"))
-        text = str(data.get("unencrypted_text"))
+        text = str(data.get("encryptor_input_text"))
 
         # Check if the key is available to prevent get_valid_key auto generated key
         if not key or key == "":
@@ -118,7 +118,7 @@ def encrypt_text():
             "success",
             200,
             "Successfully encrypted text",
-            {"encrypted_text": encrypted_text},
+            {"result_text": encrypted_text},
             {},
         )
 
@@ -166,7 +166,7 @@ def decrypt_text():
     try:
         data = request.json
         key = str(data.get("key"))
-        text = str(data.get("encrypted_text"))
+        text = str(data.get("encryptor_input_text"))
 
         # Check if the key is available to prevent get_valid_key auto generated key
         if not key or key == "":
@@ -189,7 +189,7 @@ def decrypt_text():
             "success",
             200,
             "Successfully decrypted text",
-            {"decrypted_text": decrypted_text},
+            {"result_text": decrypted_text},
             {},
         )
 
