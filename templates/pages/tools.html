@@ -31,7 +31,13 @@
                     >
                         PassGen
                     </md-primary-tab>
-                    <md-primary-tab>Converter</md-primary-tab>
+                    <md-primary-tab
+                        id="converter-tab"
+                        aria-controls="converter-panel"
+                        onclick="movePage('#converter')"
+                    >
+                        Converter
+                    </md-primary-tab>
                     <md-primary-tab>Steganography</md-primary-tab>
                 </md-tabs>
 
@@ -79,9 +85,6 @@
                                                 title="Switch"
                                                 class="shrink-0"
                                                 id="encryptor-switch-btn"
-                                                onclick="
-                                                    switchEncryptionState()
-                                                "
                                             >
                                                 <md-icon>swap_horiz</md-icon>
                                             </md-icon-button>
@@ -390,6 +393,156 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Text converter -->
+                        <div
+                            id="converter-panel"
+                            role="tabpanel"
+                            aria-labelledby="converter-tab"
+                            class="w-full h-full shrink-0"
+                        >
+                            <div class="px-5 md:px-0 w-full h-full">
+                                <div
+                                    class="flex items-center justify-between h-12"
+                                    id="converter-labels"
+                                >
+                                    <div
+                                        class="w-full pl-0 sm:pl-2 flex items-center justify-center sm:justify-start"
+                                        id="converter-from-label"
+                                    >
+                                        <span
+                                            class="md-typescale-title-small text-md-on-surface text-center"
+                                        >
+                                            Plain text
+                                        </span>
+                                    </div>
+                                    <md-icon-button
+                                        title="Switch"
+                                        class="shrink-0"
+                                        id="converter-switch-btn"
+                                    >
+                                        <md-icon>swap_horiz</md-icon>
+                                    </md-icon-button>
+                                    <div
+                                        class="w-full pl-0 sm:pl-2 flex items-center justify-center sm:justify-start"
+                                        id="converter-to-label"
+                                    >
+                                        <md-outlined-select
+                                            class="converter-md-outline-select"
+                                            style="direction: ltr"
+                                            name="convert_to_option"
+                                            id="convert_to_option"
+                                            form="converter-form"
+                                        >
+                                            <md-select-option
+                                                selected
+                                                value="binary"
+                                            >
+                                                <div slot="headline">
+                                                    Binary
+                                                </div>
+                                            </md-select-option>
+                                            <md-select-option value="morse">
+                                                <div slot="headline">Morse</div>
+                                            </md-select-option>
+                                            <md-select-option value="hexa">
+                                                <div slot="headline">
+                                                    Hexadecimal
+                                                </div>
+                                            </md-select-option>
+                                            <md-select-option value="caesar">
+                                                <div slot="headline">
+                                                    Caesar
+                                                </div>
+                                            </md-select-option>
+                                            <md-select-option value="atbash">
+                                                <div slot="headline">
+                                                    Atbash
+                                                </div>
+                                            </md-select-option>
+                                            <md-select-option value="A1Z26">
+                                                <div slot="headline">A1Z26</div>
+                                            </md-select-option>
+                                            <md-select-option value="base64">
+                                                <div slot="headline">
+                                                    Base64
+                                                </div>
+                                            </md-select-option>
+                                        </md-outlined-select>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div
+                                        class="rounded-xl border border-md-outline-variant overflow-hidden flex flex-col gap-1 col-span-2 sm:col-span-1"
+                                    >
+                                        <div
+                                            class="h-full min-h-40 flex flex-col"
+                                        >
+                                            <form
+                                                action=""
+                                                method="post"
+                                                name="converter-form"
+                                                id="converter-form"
+                                                class="flex h-full"
+                                            >
+                                                <textarea
+                                                    type="textarea"
+                                                    class="default-textarea text-base sm:text-xl pr-0!"
+                                                    name="converter_input_text"
+                                                    id="converter_input_text"
+                                                    required
+                                                ></textarea>
+                                                <md-icon-button
+                                                    type="button"
+                                                    name="converter_reset_input"
+                                                    id="converter_reset_input"
+                                                    class="shrink-0 m-2 hidden!"
+                                                >
+                                                    <md-icon>close</md-icon>
+                                                </md-icon-button>
+                                            </form>
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        class="rounded-2xl overflow-hidden h-full col-span-2 sm:col-span-1"
+                                    >
+                                        <div
+                                            class="bg-md-surface-container rounded-xl flex flex-col h-full min-h-40"
+                                        >
+                                            <textarea
+                                                type="textarea"
+                                                placeholder="Encoded"
+                                                class="w-full h-full default-textarea resize-none text-base sm:text-xl"
+                                                id="converter-result"
+                                                name="converter-result"
+                                                readonly
+                                            ></textarea>
+                                            <div
+                                                class="flex items-center gap-2 justify-end m-2.5"
+                                            >
+                                                <md-icon-button
+                                                    slot="trailing-icon"
+                                                    id="converter-copy-btn"
+                                                    class="hidden!"
+                                                    onclick="
+                                                        copyTextIconBtn(
+                                                            'converter-result',
+                                                            this,
+                                                            event,
+                                                        )
+                                                    "
+                                                >
+                                                    <md-icon>
+                                                        content_copy
+                                                    </md-icon>
+                                                </md-icon-button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -511,6 +664,13 @@
 
                 break;
 
+            case "#converter":
+                tabSwitcher(2);
+                unActiveTab();
+                toolsTab.tabs[2].active = true;
+
+                break;
+
             default:
                 break;
         }
@@ -553,6 +713,9 @@
         // Disable the switch button
         encryptorSwitchBtn.disabled = true;
 
+        // Move the value from result to input text
+        encryptorTextInput.value = encryptResult.value;
+
         // Change the state
         if (currentState === "encryption") {
             currentState = "decryption";
@@ -561,8 +724,6 @@
             encryptorFromLabel.textContent = "Encrypted text";
             encryptorToLabel.textContent = "Plain text";
             encryptResult.placeholder = "Decrypted text will shown here";
-
-            encryptorTextInput.value = encryptResult.value;
         } else {
             currentState = "encryption";
             encryptor_api = "/api/encryptor/encrypt_text";
@@ -570,8 +731,6 @@
             encryptorFromLabel.textContent = "Plain text";
             encryptorToLabel.textContent = "Encrypted text";
             encryptResult.placeholder = "Encrypted text will shown here";
-
-            encryptorTextInput.value = encryptResult.value;
         }
 
         // Readjust the encryptorTextInput
@@ -586,6 +745,8 @@
             encryptorSwitchBtn.disabled = false;
         }, 500);
     }
+
+    encryptorSwitchBtn.addEventListener("click", switchEncryptionState);
 
     // Encrypt function
     async function proceedEncryption() {
@@ -621,6 +782,8 @@
                 }
             } catch (error) {
                 encryptResult.value = error.message;
+                adjustFontSize(encryptResult);
+                autoResizeTextarea(encryptResult);
             }
         } else {
             // Trigger encryption key modal
@@ -639,9 +802,9 @@
 
     if (encryptorTextInput) {
         const debouncedState = debounce(proceedEncryption, 300);
-        encryptorTextInput.addEventListener("input", debouncedState);
-
         encryptorTextInput.addEventListener("input", (e) => {
+            debouncedState();
+
             adjustFontSize(e.target);
             autoResizeTextarea(e.target);
         });
@@ -652,8 +815,14 @@
 
         adjustFontSize(encryptResult);
         autoResizeTextarea(encryptResult);
+
+        if (encryptorTextInput.value.trim()) {
+            encryptorResetInput.classList.remove("hidden!");
+            encryptorCopyBtn.classList.remove("hidden!");
+        }
     }
 
+    // The X button
     encryptorResetInput.addEventListener("click", encryptorResetInputState);
 
     // Share option
@@ -784,6 +953,132 @@
     passwordGeneratorForm.addEventListener("submit", (event) => {
         event.preventDefault();
         generatePassword();
+    });
+
+    // Text Converter
+    let reverseConvert = false;
+
+    const converterLabelParent = document.getElementById("converter-labels");
+    const converterLabels = document.querySelectorAll(
+        "#converter-labels > div",
+    );
+    const converterSwitchBtn = document.getElementById("converter-switch-btn");
+
+    // Input form
+    const converterForm = document.getElementById("converter-form");
+    const converterTextInput = converterForm.converter_input_text;
+    const converterResetInput = converterForm.converter_reset_input;
+
+    // Result form
+    const converterResult = document.getElementById("converter-result");
+    const converterCopyBtn = document.getElementById("converter-copy-btn");
+    let converter_api = "/api/converter";
+
+    // Reverse convertion
+    function reverseConvertion() {
+        converterSwitchBtn.disabled = true;
+        converterTextInput.value = converterResult.value;
+
+        if (reverseConvert) {
+            converterLabelParent.style.direction = "ltr";
+
+            converterLabels.forEach((label) => {
+                label.classList.remove("sm:justify-end");
+                label.classList.add("sm:justify-start");
+            });
+
+            reverseConvert = false;
+        } else {
+            converterLabelParent.style.direction = "rtl";
+
+            converterLabels.forEach((label) => {
+                label.classList.add("sm:justify-end");
+                label.classList.remove("sm:justify-start");
+            });
+
+            reverseConvert = true;
+        }
+
+        proceedConverter();
+
+        setTimeout(() => {
+            converterSwitchBtn.disabled = false;
+        }, 500);
+    }
+
+    converterSwitchBtn.addEventListener("click", reverseConvertion);
+
+    // Convert function
+    async function proceedConverter() {
+        if (converterTextInput.value.trim()) {
+            converterResetInput.classList.remove("hidden!");
+            converterCopyBtn.classList.remove("hidden!");
+        } else {
+            converterResult.value = "";
+            converterResetInput.classList.add("hidden!");
+            converterCopyBtn.classList.add("hidden!");
+            return;
+        }
+
+        let formData = new FormData(converterForm);
+        formData.append("reverse_convert", reverseConvert);
+        formData = Object.fromEntries(formData.entries());
+
+        // Send request
+        try {
+            const result = await sendRequest(converter_api, formData, "POST");
+            if (result.code === 200) {
+                converterResult.value = result.data.result_text;
+                adjustFontSize(converterResult);
+                autoResizeTextarea(converterResult);
+            }
+        } catch (error) {
+            converterResult.value = error.message;
+            adjustFontSize(converterResult);
+            autoResizeTextarea(converterResult);
+        }
+    }
+
+    // Reset input state
+    function converterResetInputState() {
+        converterTextInput.value = "";
+
+        resetTextarea(converterTextInput);
+        resetTextarea(converterResult);
+
+        converterResetInput.classList.add("hidden!");
+        proceedConverter();
+    }
+
+    if (converterTextInput) {
+        const debouncedState = debounce(proceedConverter, 300);
+        converterTextInput.addEventListener("input", (e) => {
+            debouncedState();
+
+            adjustFontSize(e.target);
+            autoResizeTextarea(e.target);
+        });
+
+        // Run once on load in case there is pre-filled text
+        adjustFontSize(converterTextInput);
+        autoResizeTextarea(converterTextInput);
+
+        adjustFontSize(converterResult);
+        autoResizeTextarea(converterResult);
+
+        if (converterTextInput.value.trim()) {
+            converterResetInput.classList.remove("hidden!");
+            converterCopyBtn.classList.remove("hidden!");
+        }
+    }
+
+    // The X button on textfield
+    converterResetInput.addEventListener("click", converterResetInputState);
+
+    // Start convertion on option change
+    converterForm.convert_to_option.addEventListener("change", () => {
+        const debouncedState = debounce(proceedConverter, 300);
+        debouncedState();
     });
 </script>
 {% endblock %}

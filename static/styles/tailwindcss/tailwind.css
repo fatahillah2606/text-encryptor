@@ -923,6 +923,12 @@
       --tw-translate-x: 0px;
       translate: var(--tw-translate-x) var(--tw-translate-y);
     }
+    .sm\:justify-end {
+      justify-content: flex-end;
+    }
+    .sm\:justify-start {
+      justify-content: flex-start;
+    }
     .sm\:pl-2 {
       padding-left: calc(var(--spacing) * 2);
     }

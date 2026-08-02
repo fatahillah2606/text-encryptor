@@ -1,15 +1,17 @@
 import binascii
-from functools import wraps
 import json
+from functools import wraps
 
 from flask import Blueprint, jsonify, request, session
 
+from src.converter import TextConverter
 from src.data_io import DataExporter, DataImporter
 from src.data_manager import KeyManager, PasswordManager, Recovery, UserManager
 from src.encryptor import NewEncryption, generate_password
-from src.essentials import createLoginSession, generate_share_link, decrypt_payload
+from src.essentials import createLoginSession, decrypt_payload, generate_share_link
 
 encryption_method = NewEncryption()
+text_converter = TextConverter()
 
 
 # API Response
@@ -198,7 +200,9 @@ def decrypt_text():
             "error",
             500,
             "The text is corrupted, incomplete, or the wrong key was used. Check your key, and ensure you copied the entire encrypted text block.",
-            [],
+            {
+                "result_text": "The text is corrupted, incomplete, or the wrong key was used. Check your key, and ensure you copied the entire encrypted text block."
+            },
             {},
         ), 500
 
@@ -213,16 +217,29 @@ def decrypt_shared_link():
     if not blob or not key:
         return api_response("error", 400, "Invalid transmission format.", [], {}), 400
 
-
     status, decrypted = decrypt_payload(blob, key)
     if status == "success":
-        return api_response("success", 200, "Successfully decrypted the link", decrypted, {})
+        return api_response(
+            "success", 200, "Successfully decrypted the link", decrypted, {}
+        )
 
     elif status == "expired":
-        return api_response("error", 410, "This shared session has expired (5-minute limit exceeded).", [], {}), 410
+        return api_response(
+            "error",
+            410,
+            "This shared session has expired (5-minute limit exceeded).",
+            [],
+            {},
+        ), 410
 
     else:
-        return api_response("error", 400, "Decryption failed. The key or payload might be corrupted.", [], {}), 400
+        return api_response(
+            "error",
+            400,
+            "Decryption failed. The key or payload might be corrupted.",
+            [],
+            {},
+        ), 400
 
 
 # Password generator
@@ -266,6 +283,91 @@ def password_generator():
 
     except ValueError as err:
         return api_response("error", 400, str(err), [], {}), 400
+
+    except Exception as err:
+        return api_response(
+            "error",
+            500,
+            f"An error occurred on the server. \nError message:{str(err)}",
+            [],
+            {},
+        ), 500
+
+
+# Text Converter
+@api_route.route("/converter", methods=["POST"])
+def converter_text():
+    try:
+        data = request.json
+        convert_to_option = str(data.get("convert_to_option"))
+        converter_input_text = str(data.get("converter_input_text"))
+        reverse_convert = bool(1 if data.get("reverse_convert") == "true" else 0)
+
+        # Convert to morse code
+        if convert_to_option == "morse":
+            result = (
+                text_converter.from_morse(converter_input_text)
+                if reverse_convert
+                else text_converter.to_morse(converter_input_text)
+            )
+            return api_response("success", 200, "Ok", {"result_text": result}, {})
+
+        # Convert to binary
+        elif convert_to_option == "binary":
+            result = (
+                text_converter.from_binary(converter_input_text)
+                if reverse_convert
+                else text_converter.to_binary(converter_input_text)
+            )
+            return api_response("success", 200, "Ok", {"result_text": result}, {})
+
+        # Convert to Hexadecimal
+        elif convert_to_option == "hexa":
+            result = (
+                text_converter.from_hex(converter_input_text)
+                if reverse_convert
+                else text_converter.to_hex(converter_input_text)
+            )
+            return api_response("success", 200, "Ok", {"result_text": result}, {})
+
+        # Convert to Caesar Cipher
+        elif convert_to_option == "caesar":
+            result = (
+                text_converter.from_rot13(converter_input_text)
+                if reverse_convert
+                else text_converter.to_rot13(converter_input_text)
+            )
+            return api_response("success", 200, "Ok", {"result_text": result}, {})
+
+        # Convert to Atbash Cipher
+        elif convert_to_option == "atbash":
+            result = (
+                text_converter.from_atbash(converter_input_text)
+                if reverse_convert
+                else text_converter.to_atbash(converter_input_text)
+            )
+            return api_response("success", 200, "Ok", {"result_text": result}, {})
+
+        # Convert to A1Z26
+        elif convert_to_option == "A1Z26":
+            result = (
+                text_converter.from_a1z26(converter_input_text)
+                if reverse_convert
+                else text_converter.to_a1z26(converter_input_text)
+            )
+            return api_response("success", 200, "Ok", {"result_text": result}, {})
+
+        # Convert to Base64
+        elif convert_to_option == "base64":
+            result = (
+                text_converter.from_base64(converter_input_text)
+                if reverse_convert
+                else text_converter.to_base64(converter_input_text)
+            )
+            return api_response("success", 200, "Ok", {"result_text": result}, {})
+
+        else:
+            return api_response("error", 503, "Feature unavailable", [], {}), 503
 
     except Exception as err:
         return api_response(
@@ -1073,7 +1175,7 @@ def savePassword():
                 error_list.append(
                     {
                         "service_name": password["name"],
-                        "error_info": "The maximum length for service name is 50."
+                        "error_info": "The maximum length for service name is 50.",
                     }
                 )
 
@@ -1082,10 +1184,9 @@ def savePassword():
                 error_list.append(
                     {
                         "service_name": password["name"],
-                        "error_info": "The maximum length for username is 50."
+                        "error_info": "The maximum length for username is 50.",
                     }
                 )
-
 
             # Insert into db
             status, result = passwords.create_user_password(
@@ -1101,10 +1202,7 @@ def savePassword():
 
             if status == "error":
                 error_list.append(
-                    {
-                        "service_name": password["name"],
-                        "error_info": result
-                    }
+                    {"service_name": password["name"], "error_info": result}
                 )
 
             success_status.append(status)
@@ -1113,10 +1211,17 @@ def savePassword():
         error_count = success_status.count("error")
 
         if error_count == len(success_status):
-            return api_response("error", 500, "Failed to save all passwords.", error_list, {}), 500
+            return api_response(
+                "error", 500, "Failed to save all passwords.", error_list, {}
+            ), 500
         else:
-            return api_response("success", 200, f"{success_count} out of {len(success_status)} passwords were saved successfully.", error_list, {})
-
+            return api_response(
+                "success",
+                200,
+                f"{success_count} out of {len(success_status)} passwords were saved successfully.",
+                error_list,
+                {},
+            )
 
     except Exception as err:
         return api_response(
@@ -1214,7 +1319,9 @@ def sharePassword():
         blob, one_time_key = generate_share_link(json.dumps(passwordList))
         link = f"http://127.0.0.1:5000/p/{blob}#{one_time_key}"
 
-        return api_response("success", 200, "Successfully generated link.", {"link": link}, {})
+        return api_response(
+            "success", 200, "Successfully generated link.", {"link": link}, {}
+        )
 
     except Exception as err:
         return api_response(

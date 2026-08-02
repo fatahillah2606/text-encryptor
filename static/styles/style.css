@@ -88,6 +88,18 @@ md-dialog ::-webkit-scrollbar-thumb:hover {
     background-color: var(--md-sys-color-primary-fixed-dim) !important;
 }
 
+/* Remove scrollbar */
+md-tabs,
+.rm-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+md-tabs::-webkit-scrollbar,
+.rm-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
 /* Main content */
 * {
     box-sizing: border-box;
@@ -255,6 +267,10 @@ md-filled-button .button-progress-indicator md-circular-progress {
     display: none;
 } */
 
+.rm-divider::part(divider) {
+    display: none;
+}
+
 #snackbar md-text-button {
     --md-sys-color-primary: var(--md-sys-color-inverse-primary);
 }
@@ -367,4 +383,17 @@ md-filled-button .button-progress-indicator md-circular-progress {
     resize: none;
     font-family: Inter, sans-serif;
     color: var(--md-sys-color-on-surface-variant);
+}
+
+.reverse-convert {
+    direction: rtl;
+}
+
+.converter-md-outline-select {
+    min-width: unset;
+    --md-outlined-select-text-field-input-text-size: 14px;
+    --md-outlined-field-outline-color: transparent;
+    --md-outlined-field-focus-outline-color: transparent;
+    --md-outlined-field-hover-outline-color: transparent;
+    --md-outlined-field-outline-width: 0px;
 }
