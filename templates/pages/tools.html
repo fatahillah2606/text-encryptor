@@ -154,7 +154,7 @@
                                                 >
                                                     <textarea
                                                         type="textarea"
-                                                        placeholder="Encrypted text will shown here"
+                                                        placeholder="Encrypted"
                                                         class="w-full h-full default-textarea resize-none text-base sm:text-xl"
                                                         id="encryptor-result"
                                                         name="encryptor-result"
@@ -180,6 +180,292 @@
                                                             </md-icon>
                                                         </md-icon-button>
                                                     </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- File encryptor -->
+                                    <div
+                                        class="px-5 md:px-0 w-full shrink-0 h-full"
+                                    >
+                                        <div
+                                            class="px-5 md:px-0 grid grid-cols-2 gap-3"
+                                        >
+                                            <!-- Left Container: File Encryption -->
+                                            <div
+                                                class="rounded-2xl overflow-hidden flex flex-col gap-1 col-span-2 sm:col-span-1"
+                                            >
+                                                <!-- Title -->
+                                                <div
+                                                    class="p-5 bg-md-surface-container rounded-md"
+                                                >
+                                                    <h2
+                                                        class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
+                                                    >
+                                                        Encrypt File
+                                                    </h2>
+                                                </div>
+
+                                                <!-- Body -->
+                                                <div
+                                                    class="p-5 bg-md-surface-container rounded-md h-full flex flex-col justify-between"
+                                                >
+                                                    <form
+                                                        action=""
+                                                        method="post"
+                                                        name="file_encrypt_form"
+                                                        id="file_encrypt_form"
+                                                        class="flex flex-col gap-4"
+                                                    >
+                                                        <p
+                                                            class="md-typescale-body-medium text-md-on-surface m-0"
+                                                        >
+                                                            Select a file to
+                                                            encrypt.
+                                                        </p>
+
+                                                        <!-- File input -->
+                                                        <div
+                                                            class="upload-container col-span-2"
+                                                        >
+                                                            <div
+                                                                class="drop-zone"
+                                                                id="encryptor-drop-zone"
+                                                            >
+                                                                <md-icon>
+                                                                    upload_file
+                                                                </md-icon>
+                                                                <p>
+                                                                    Drag and
+                                                                    drop your
+                                                                    file here
+                                                                </p>
+                                                                <span>or</span>
+                                                                <md-filled-button
+                                                                    type="button"
+                                                                    id="encryptor-browse-btn"
+                                                                >
+                                                                    Choose File
+                                                                </md-filled-button>
+                                                                <input
+                                                                    type="file"
+                                                                    id="encryptor_file_input"
+                                                                    style="
+                                                                        display: none;
+                                                                    "
+                                                                />
+                                                            </div>
+
+                                                            <div
+                                                                id="encryptor-file-info"
+                                                                class="file-info"
+                                                                style="
+                                                                    display: none;
+                                                                "
+                                                            >
+                                                                <div
+                                                                    class="file-details"
+                                                                >
+                                                                    <md-icon>
+                                                                        insert_drive_file
+                                                                    </md-icon>
+                                                                    <span
+                                                                        id="encryptor-file-name"
+                                                                    >
+                                                                        filename.json
+                                                                    </span>
+                                                                </div>
+                                                                <md-icon-button
+                                                                    type="button"
+                                                                    id="encryptor-clear-file-btn"
+                                                                    aria-label="Clear selected file"
+                                                                >
+                                                                    <md-icon>
+                                                                        close
+                                                                    </md-icon>
+                                                                </md-icon-button>
+                                                            </div>
+                                                        </div>
+
+                                                        <div
+                                                            id="encryptor-next-step"
+                                                            class="hidden"
+                                                        >
+                                                            <!-- Secret Key / Password -->
+                                                            <div
+                                                                class="flex flex-col gap-1.5"
+                                                            >
+                                                                <md-outlined-text-field
+                                                                    type="password"
+                                                                    id="encrypt_key_input"
+                                                                    name="encrypt_key"
+                                                                    label="Key / Password"
+                                                                    required
+                                                                ></md-outlined-text-field>
+                                                                <p
+                                                                    class="md-typescale-body-small text-md-outline m-0"
+                                                                >
+                                                                    Without this
+                                                                    key, the
+                                                                    file cannot
+                                                                    be
+                                                                    recovered.
+                                                                </p>
+                                                            </div>
+
+                                                            <div class="pt-2">
+                                                                <md-filled-tonal-button
+                                                                    type="submit"
+                                                                >
+                                                                    Encrypt File
+                                                                    <md-icon
+                                                                        slot="icon"
+                                                                    >
+                                                                        lock
+                                                                    </md-icon>
+                                                                </md-filled-tonal-button>
+                                                            </div>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+
+                                            <!-- Right Container: File Decryption -->
+                                            <div
+                                                class="rounded-2xl overflow-hidden flex flex-col gap-1 col-span-2 sm:col-span-1"
+                                            >
+                                                <!-- Title -->
+                                                <div
+                                                    class="p-5 bg-md-surface-container rounded-md"
+                                                >
+                                                    <h2
+                                                        class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
+                                                    >
+                                                        Decrypt File
+                                                    </h2>
+                                                </div>
+
+                                                <!-- Body -->
+                                                <div
+                                                    class="p-5 bg-md-surface-container rounded-md h-full flex flex-col justify-between"
+                                                >
+                                                    <form
+                                                        action=""
+                                                        method="post"
+                                                        name="file_decrypt_form"
+                                                        id="file_decrypt_form"
+                                                        class="flex flex-col gap-4"
+                                                    >
+                                                        <p
+                                                            class="md-typescale-body-medium text-md-on-surface m-0"
+                                                        >
+                                                            Select an encrypted
+                                                            file to restore.
+                                                        </p>
+
+                                                        <!-- File input -->
+                                                        <div
+                                                            class="upload-container col-span-2"
+                                                        >
+                                                            <div
+                                                                class="drop-zone"
+                                                                id="decryptor-drop-zone"
+                                                            >
+                                                                <md-icon>
+                                                                    upload_file
+                                                                </md-icon>
+                                                                <p>
+                                                                    Drag and
+                                                                    drop your
+                                                                    file here
+                                                                </p>
+                                                                <span>or</span>
+                                                                <md-filled-button
+                                                                    type="button"
+                                                                    id="decryptor-browse-btn"
+                                                                >
+                                                                    Choose File
+                                                                </md-filled-button>
+                                                                <input
+                                                                    type="file"
+                                                                    id="decryptor_file_input"
+                                                                    style="
+                                                                        display: none;
+                                                                    "
+                                                                />
+                                                            </div>
+
+                                                            <div
+                                                                id="decryptor-file-info"
+                                                                class="file-info"
+                                                                style="
+                                                                    display: none;
+                                                                "
+                                                            >
+                                                                <div
+                                                                    class="file-details"
+                                                                >
+                                                                    <md-icon>
+                                                                        insert_drive_file
+                                                                    </md-icon>
+                                                                    <span
+                                                                        id="decryptor-file-name"
+                                                                    >
+                                                                        filename.json
+                                                                    </span>
+                                                                </div>
+                                                                <md-icon-button
+                                                                    type="button"
+                                                                    id="decryptor-clear-file-btn"
+                                                                    aria-label="Clear selected file"
+                                                                >
+                                                                    <md-icon>
+                                                                        close
+                                                                    </md-icon>
+                                                                </md-icon-button>
+                                                            </div>
+                                                        </div>
+
+                                                        <div
+                                                            id="decryptor-next-step"
+                                                            class="hidden"
+                                                        >
+                                                            <!-- Secret Key / Password -->
+                                                            <div
+                                                                class="flex flex-col gap-1.5"
+                                                            >
+                                                                <md-outlined-text-field
+                                                                    type="password"
+                                                                    id="decrypt_key_input"
+                                                                    name="decrypt_key"
+                                                                    label="Key / Password"
+                                                                    required
+                                                                ></md-outlined-text-field>
+                                                                <p
+                                                                    class="md-typescale-body-small text-md-outline m-0"
+                                                                >
+                                                                    Enter the
+                                                                    key used
+                                                                    during
+                                                                    encryption.
+                                                                </p>
+                                                            </div>
+
+                                                            <div class="pt-2">
+                                                                <md-filled-tonal-button
+                                                                    type="submit"
+                                                                >
+                                                                    Decrypt File
+                                                                    <md-icon
+                                                                        slot="icon"
+                                                                    >
+                                                                        lock_open
+                                                                    </md-icon>
+                                                                </md-filled-tonal-button>
+                                                            </div>
+                                                        </div>
+                                                    </form>
                                                 </div>
                                             </div>
                                         </div>
@@ -723,14 +1009,14 @@
 
             encryptorFromLabel.textContent = "Encrypted text";
             encryptorToLabel.textContent = "Plain text";
-            encryptResult.placeholder = "Decrypted text will shown here";
+            encryptResult.placeholder = "Decrypted";
         } else {
             currentState = "encryption";
             encryptor_api = "/api/encryptor/encrypt_text";
 
             encryptorFromLabel.textContent = "Plain text";
             encryptorToLabel.textContent = "Encrypted text";
-            encryptResult.placeholder = "Encrypted text will shown here";
+            encryptResult.placeholder = "Encrypted";
         }
 
         // Readjust the encryptorTextInput
@@ -900,6 +1186,167 @@
         }
     });
 
+    // File Encryptor
+
+    // Show file card, hide drop zone
+    function showFileState(file, fileName, dropZone, fileInfo, nextStep) {
+        if (!file) return;
+
+        // Display the file name
+        fileName.textContent = `${file.name} (${formatFileSize(file.size)})`;
+        dropZone.style.display = "none";
+        fileInfo.style.display = "flex";
+
+        // Display the next step
+        nextStep.classList.remove("hidden");
+    }
+
+    // Reset back to upload drop zone state
+    function resetFileState(fileInput, fileInfo, dropZone, nextStep) {
+        fileInput.value = ""; // Clear file buffer
+        fileInfo.style.display = "none";
+        dropZone.style.display = "flex";
+        nextStep.classList.add("hidden");
+    }
+
+    // For encryption
+    const encryptorBrowseBtn = document.getElementById("encryptor-browse-btn");
+    const encryptorFileInput = document.getElementById("encryptor_file_input");
+    const encryptorDropZone = document.getElementById("encryptor-drop-zone");
+    const encryptorFileInfo = document.getElementById("encryptor-file-info");
+    const encryptorFileNameSpan = document.getElementById(
+        "encryptor-file-name",
+    );
+    const encryptorClearFileBtn = document.getElementById(
+        "encryptor-clear-file-btn",
+    );
+    const encryptorNextStep = document.getElementById("encryptor-next-step");
+
+    // Native trigger
+    encryptorBrowseBtn.addEventListener("click", () =>
+        encryptorFileInput.click(),
+    );
+
+    encryptorFileInput.addEventListener("change", (e) => {
+        if (e.target.files.length > 0) {
+            showFileState(
+                e.target.files[0],
+                encryptorFileNameSpan,
+                encryptorDropZone,
+                encryptorFileInfo,
+                encryptorNextStep,
+            );
+        }
+    });
+
+    // Clear selection click event
+    encryptorClearFileBtn.addEventListener("click", () => {
+        resetFileState(
+            encryptorFileInput,
+            encryptorFileInfo,
+            encryptorDropZone,
+            encryptorNextStep,
+        );
+    });
+
+    // Drag-and-drop handles
+    encryptorDropZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        encryptorDropZone.classList.add("drag-over");
+    });
+
+    encryptorDropZone.addEventListener("dragleave", () => {
+        encryptorDropZone.classList.remove("drag-over");
+    });
+
+    encryptorDropZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        encryptorDropZone.classList.remove("drag-over");
+
+        if (e.dataTransfer.files.length > 0) {
+            const droppedFile = e.dataTransfer.files[0];
+            const extension = droppedFile.name.split(".").pop().toLowerCase();
+
+            encryptorFileInput.files = e.dataTransfer.files;
+            showFileState(
+                droppedFile,
+                encryptorFileNameSpan,
+                encryptorDropZone,
+                encryptorFileInfo,
+                encryptorNextStep,
+            );
+        }
+    });
+
+    // For decryption
+    const decryptorBrowseBtn = document.getElementById("decryptor-browse-btn");
+    const decryptorFileInput = document.getElementById("decryptor_file_input");
+    const decryptorDropZone = document.getElementById("decryptor-drop-zone");
+    const decryptorFileInfo = document.getElementById("decryptor-file-info");
+    const decryptorFileNameSpan = document.getElementById(
+        "decryptor-file-name",
+    );
+    const decryptorClearFileBtn = document.getElementById(
+        "decryptor-clear-file-btn",
+    );
+    const decryptorNextStep = document.getElementById("decryptor-next-step");
+
+    // Native trigger
+    decryptorBrowseBtn.addEventListener("click", () =>
+        decryptorFileInput.click(),
+    );
+
+    decryptorFileInput.addEventListener("change", (e) => {
+        if (e.target.files.length > 0) {
+            showFileState(
+                e.target.files[0],
+                decryptorFileNameSpan,
+                decryptorDropZone,
+                decryptorFileInfo,
+                decryptorNextStep,
+            );
+        }
+    });
+
+    // Clear selection click event
+    decryptorClearFileBtn.addEventListener("click", () => {
+        resetFileState(
+            decryptorFileInput,
+            decryptorFileInfo,
+            decryptorDropZone,
+            decryptorNextStep,
+        );
+    });
+
+    // Drag-and-drop handles
+    decryptorDropZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        decryptorDropZone.classList.add("drag-over");
+    });
+
+    decryptorDropZone.addEventListener("dragleave", () => {
+        decryptorDropZone.classList.remove("drag-over");
+    });
+
+    decryptorDropZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        decryptorDropZone.classList.remove("drag-over");
+
+        if (e.dataTransfer.files.length > 0) {
+            const droppedFile = e.dataTransfer.files[0];
+            const extension = droppedFile.name.split(".").pop().toLowerCase();
+
+            decryptorFileInput.files = e.dataTransfer.files;
+            showFileState(
+                droppedFile,
+                decryptorFileNameSpan,
+                decryptorDropZone,
+                decryptorFileInfo,
+                decryptorNextStep,
+            );
+        }
+    });
+
     // Password Generator
     const passwordGeneratorForm = document.getElementById(
         "password_generator_form",
@@ -987,6 +1434,7 @@
                 label.classList.add("sm:justify-start");
             });
 
+            converterResult.placeholder = "Encoded";
             reverseConvert = false;
         } else {
             converterLabelParent.style.direction = "rtl";
@@ -996,6 +1444,7 @@
                 label.classList.remove("sm:justify-start");
             });
 
+            converterResult.placeholder = "Decoded";
             reverseConvert = true;
         }
 
