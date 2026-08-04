@@ -3,87 +3,86 @@ import codecs
 
 
 class TextConverter:
-    MORSE_CODE_DICT = {
-        # Letters
-        "A": ".-",
-        "B": "-...",
-        "C": "-.-.",
-        "D": "-..",
-        "E": ".",
-        "F": "..-.",
-        "G": "--.",
-        "H": "....",
-        "I": "..",
-        "J": ".---",
-        "K": "-.-",
-        "L": ".-..",
-        "M": "--",
-        "N": "-.",
-        "O": "---",
-        "P": ".--.",
-        "Q": "--.-",
-        "R": ".-.",
-        "S": "...",
-        "T": "-",
-        "U": "..-",
-        "V": "...-",
-        "W": ".--",
-        "X": "-..-",
-        "Y": "-.--",
-        "Z": "--..",
-        # Numbers
-        "0": "-----",
-        "1": ".----",
-        "2": "..---",
-        "3": "...--",
-        "4": "....-",
-        "5": ".....",
-        "6": "-....",
-        "7": "--...",
-        "8": "---..",
-        "9": "----.",
-        # Standard Punctuation
-        ".": ".-.-.-",
-        ",": "--..--",
-        "?": "..--..",
-        "'": ".----.",
-        "!": "-.-.--",
-        "/": "-..-.",
-        "(": "-.--.",
-        ")": "-.--.-",
-        "&": ".-...",
-        ":": "---...",
-        ";": "-.-.-.",
-        "=": "-...-",
-        "+": ".-.-.",
-        "-": "-....-",
-        "_": "..--.-",
-        '"': ".-..-.",
-        "$": "...-..-",
-        "@": ".--.-.",
-    }
+    def __init__(self):
+        self.MORSE_CODE_DICT = {
+            # Letters
+            "A": ".-",
+            "B": "-...",
+            "C": "-.-.",
+            "D": "-..",
+            "E": ".",
+            "F": "..-.",
+            "G": "--.",
+            "H": "....",
+            "I": "..",
+            "J": ".---",
+            "K": "-.-",
+            "L": ".-..",
+            "M": "--",
+            "N": "-.",
+            "O": "---",
+            "P": ".--.",
+            "Q": "--.-",
+            "R": ".-.",
+            "S": "...",
+            "T": "-",
+            "U": "..-",
+            "V": "...-",
+            "W": ".--",
+            "X": "-..-",
+            "Y": "-.--",
+            "Z": "--..",
+            # Numbers
+            "0": "-----",
+            "1": ".----",
+            "2": "..---",
+            "3": "...--",
+            "4": "....-",
+            "5": ".....",
+            "6": "-....",
+            "7": "--...",
+            "8": "---..",
+            "9": "----.",
+            # Standard Punctuation
+            ".": ".-.-.-",
+            ",": "--..--",
+            "?": "..--..",
+            "'": ".----.",
+            "!": "-.-.--",
+            "/": "-..-.",
+            "(": "-.--.",
+            ")": "-.--.-",
+            "&": ".-...",
+            ":": "---...",
+            ";": "-.-.-.",
+            "=": "-...-",
+            "+": ".-.-.",
+            "-": "-....-",
+            "_": "..--.-",
+            '"': ".-..-.",
+            "$": "...-..-",
+            "@": ".--.-.",
+        }
 
-    REVERSE_MORSE = {v: k for k, v in MORSE_CODE_DICT.items()}
+        self.REVERSE_MORSE = {v: k for k, v in self.MORSE_CODE_DICT.items()}
 
     # Morse code
-    @classmethod
-    def to_morse(cls, text: str) -> str:
+    def to_morse(self, text: str) -> str:
         result = []
         for char in text.upper():
-            if char in cls.MORSE_CODE_DICT:
-                result.append(cls.MORSE_CODE_DICT[char])
+            if char in self.MORSE_CODE_DICT:
+                result.append(self.MORSE_CODE_DICT[char])
             elif char == " ":
                 result.append("/")
         return " ".join(result)
 
-    @classmethod
-    def from_morse(cls, morse_str: str) -> str:
+    def from_morse(self, morse_str: str) -> str:
         words = morse_str.split(" / ")
         decoded_words = []
         for word in words:
             letters = word.split()
             decoded_words.append(
-                "".join(cls.REVERSE_MORSE.get(code, "") for code in letters)
+                "".join(self.REVERSE_MORSE.get(code, "") for code in letters)
             )
         return " ".join(decoded_words)
 

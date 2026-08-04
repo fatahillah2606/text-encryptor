@@ -7,11 +7,12 @@ from flask import Blueprint, jsonify, request, session
 from src.converter import TextConverter
 from src.data_io import DataExporter, DataImporter
 from src.data_manager import KeyManager, PasswordManager, Recovery, UserManager
-from src.encryptor import NewEncryption, generate_password
+from src.encryptor import FileEncryptor, NewEncryption, generate_password
 from src.essentials import createLoginSession, decrypt_payload, generate_share_link
 
 encryption_method = NewEncryption()
 text_converter = TextConverter()
+file_encryptor = FileEncryptor()
 
 
 # API Response
@@ -237,6 +238,80 @@ def decrypt_shared_link():
             "error",
             400,
             "Decryption failed. The key or payload might be corrupted.",
+            [],
+            {},
+        ), 400
+
+
+# File encryption
+@api_route.route("/encryptor/encrypt_file", methods=["POST"])
+def proceed_file_encryption():
+    if "file" not in request.files:
+        return api_response(
+            "error",
+            400,
+            "No files provided, make sure you select the files you want to encrypt and try again.",
+            [],
+            {},
+        ), 400
+
+    file = request.files["file"]
+    password = request.form.get("key")
+
+    if not file or not password:
+        return api_response(
+            "error",
+            400,
+            "Failed to receive file and encryption key. Please try again.",
+            [],
+            {},
+        ), 400
+
+    status, result = file_encryptor.encrypt_file(file, password)
+    if status == "success":
+        return result
+    else:
+        return api_response(
+            "error",
+            400,
+            str(result),
+            [],
+            {},
+        ), 400
+
+
+# File decryption
+@api_route.route("/encryptor/decrypt_file", methods=["POST"])
+def proceed_file_decryption():
+    if "file" not in request.files:
+        return api_response(
+            "error",
+            400,
+            "No files provided, make sure you select the files you want to decrypt and try again.",
+            [],
+            {},
+        ), 400
+
+    file = request.files["file"]
+    password = request.form.get("key")
+
+    if not file or not password:
+        return api_response(
+            "error",
+            400,
+            "Failed to receive file and decryption key. Please try again.",
+            [],
+            {},
+        ), 400
+
+    status, result = file_encryptor.decrypt_file(file, password)
+    if status == "success":
+        return result
+    else:
+        return api_response(
+            "error",
+            400,
+            str(result),
             [],
             {},
         ), 400

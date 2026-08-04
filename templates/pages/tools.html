@@ -189,9 +189,7 @@
                                     <div
                                         class="px-5 md:px-0 w-full shrink-0 h-full"
                                     >
-                                        <div
-                                            class="px-5 md:px-0 grid grid-cols-2 gap-3"
-                                        >
+                                        <div class="grid grid-cols-2 gap-3">
                                             <!-- Left Container: File Encryption -->
                                             <div
                                                 class="rounded-2xl overflow-hidden flex flex-col gap-1 col-span-2 sm:col-span-1"
@@ -209,7 +207,7 @@
 
                                                 <!-- Body -->
                                                 <div
-                                                    class="p-5 bg-md-surface-container rounded-md h-full flex flex-col justify-between"
+                                                    class="p-5 bg-md-surface-container rounded-md h-full"
                                                 >
                                                     <form
                                                         action=""
@@ -236,7 +234,9 @@
                                                                 <md-icon>
                                                                     upload_file
                                                                 </md-icon>
-                                                                <p>
+                                                                <p
+                                                                    class="md-typescale-body-medium text-md-on-surface m-0"
+                                                                >
                                                                     Drag and
                                                                     drop your
                                                                     file here
@@ -251,6 +251,7 @@
                                                                 <input
                                                                     type="file"
                                                                     id="encryptor_file_input"
+                                                                    name="encryptor_file_input"
                                                                     style="
                                                                         display: none;
                                                                     "
@@ -272,6 +273,7 @@
                                                                     </md-icon>
                                                                     <span
                                                                         id="encryptor-file-name"
+                                                                        class="md-typescale-body-medium text-md-on-surface m-0"
                                                                     >
                                                                         filename.json
                                                                     </span>
@@ -298,7 +300,7 @@
                                                             >
                                                                 <md-outlined-text-field
                                                                     type="password"
-                                                                    id="encrypt_key_input"
+                                                                    id="encrypt_key"
                                                                     name="encrypt_key"
                                                                     label="Key / Password"
                                                                     required
@@ -314,9 +316,50 @@
                                                                 </p>
                                                             </div>
 
-                                                            <div class="pt-2">
-                                                                <md-filled-tonal-button
+                                                            <div
+                                                                class="flex items-center justify-start gap-4 my-2.5"
+                                                                onclick="
+                                                                    showPw(
+                                                                        'encryptor_show_key',
+                                                                        [
+                                                                            'encrypt_key',
+                                                                        ],
+                                                                    )
+                                                                "
+                                                            >
+                                                                <md-checkbox
+                                                                    id="encryptor_show_key"
+                                                                    touch-target="wrapper"
+                                                                    class="m-0"
+                                                                ></md-checkbox>
+                                                                <label
+                                                                    for="encryptor_show_key"
+                                                                    class="md-typescale-body-medium text-md-on-surface m-0"
+                                                                >
+                                                                    Show
+                                                                    password
+                                                                </label>
+                                                            </div>
+
+                                                            <div
+                                                                class="pt-2 flex items-center justify-end gap-2"
+                                                            >
+                                                                <md-outlined-button
+                                                                    type="button"
+                                                                    class="hidden"
+                                                                    id="download-encrypted"
+                                                                >
+                                                                    Download
+                                                                    <md-icon
+                                                                        slot="icon"
+                                                                    >
+                                                                        download
+                                                                    </md-icon>
+                                                                </md-outlined-button>
+                                                                <md-filled-button
                                                                     type="submit"
+                                                                    id="encrypt_submit_btn"
+                                                                    class="relative overflow-hidden"
                                                                 >
                                                                     Encrypt File
                                                                     <md-icon
@@ -324,7 +367,14 @@
                                                                     >
                                                                         lock
                                                                     </md-icon>
-                                                                </md-filled-tonal-button>
+                                                                    <div
+                                                                        class="button-progress-indicator hidden!"
+                                                                    >
+                                                                        <md-circular-progress
+                                                                            indeterminate
+                                                                        ></md-circular-progress>
+                                                                    </div>
+                                                                </md-filled-button>
                                                             </div>
                                                         </div>
                                                     </form>
@@ -375,7 +425,9 @@
                                                                 <md-icon>
                                                                     upload_file
                                                                 </md-icon>
-                                                                <p>
+                                                                <p
+                                                                    class="md-typescale-body-medium text-md-on-surface m-0"
+                                                                >
                                                                     Drag and
                                                                     drop your
                                                                     file here
@@ -389,7 +441,9 @@
                                                                 </md-filled-button>
                                                                 <input
                                                                     type="file"
+                                                                    accept=".sunako"
                                                                     id="decryptor_file_input"
+                                                                    name="decryptor_file_input"
                                                                     style="
                                                                         display: none;
                                                                     "
@@ -411,6 +465,7 @@
                                                                     </md-icon>
                                                                     <span
                                                                         id="decryptor-file-name"
+                                                                        class="md-typescale-body-medium text-md-on-surface m-0"
                                                                     >
                                                                         filename.json
                                                                     </span>
@@ -437,7 +492,7 @@
                                                             >
                                                                 <md-outlined-text-field
                                                                     type="password"
-                                                                    id="decrypt_key_input"
+                                                                    id="decrypt_key"
                                                                     name="decrypt_key"
                                                                     label="Key / Password"
                                                                     required
@@ -452,9 +507,50 @@
                                                                 </p>
                                                             </div>
 
-                                                            <div class="pt-2">
-                                                                <md-filled-tonal-button
+                                                            <div
+                                                                class="flex items-center justify-start gap-4 my-2.5"
+                                                                onclick="
+                                                                    showPw(
+                                                                        'decryptor_show_key',
+                                                                        [
+                                                                            'decrypt_key',
+                                                                        ],
+                                                                    )
+                                                                "
+                                                            >
+                                                                <md-checkbox
+                                                                    id="decryptor_show_key"
+                                                                    touch-target="wrapper"
+                                                                    class="m-0"
+                                                                ></md-checkbox>
+                                                                <label
+                                                                    for="decryptor_show_key"
+                                                                    class="md-typescale-body-medium text-md-on-surface m-0"
+                                                                >
+                                                                    Show
+                                                                    password
+                                                                </label>
+                                                            </div>
+
+                                                            <div
+                                                                class="pt-2 flex items-center justify-end gap-2"
+                                                            >
+                                                                <md-outlined-button
+                                                                    type="button"
+                                                                    class="hidden"
+                                                                    id="download-decrypted"
+                                                                >
+                                                                    Download
+                                                                    <md-icon
+                                                                        slot="icon"
+                                                                    >
+                                                                        download
+                                                                    </md-icon>
+                                                                </md-outlined-button>
+                                                                <md-filled-button
                                                                     type="submit"
+                                                                    id="decrypt_submit_btn"
+                                                                    class="relative overflow-hidden"
                                                                 >
                                                                     Decrypt File
                                                                     <md-icon
@@ -462,7 +558,14 @@
                                                                     >
                                                                         lock_open
                                                                     </md-icon>
-                                                                </md-filled-tonal-button>
+                                                                    <div
+                                                                        class="button-progress-indicator hidden!"
+                                                                    >
+                                                                        <md-circular-progress
+                                                                            indeterminate
+                                                                        ></md-circular-progress>
+                                                                    </div>
+                                                                </md-filled-button>
                                                             </div>
                                                         </div>
                                                     </form>
@@ -1187,6 +1290,143 @@
     });
 
     // File Encryptor
+    let currentDownloadUrl = null;
+
+    function encryptorSendFile(
+        uploadAPI,
+        fileInput,
+        keyInput,
+        progressIndicator,
+        downloadButton,
+    ) {
+        // Remove supporting text on keyInput
+        hideSupportText(keyInput);
+
+        // Check file and key input
+        if (!fileInput.files[0] || !keyInput.value) return;
+
+        const circularProgress = progressIndicator.querySelector(
+            "md-circular-progress",
+        );
+
+        // Clean up previous blob URL if the user is processing a new file and hide download button during process
+        if (currentDownloadUrl) {
+            window.URL.revokeObjectURL(currentDownloadUrl);
+            currentDownloadUrl = null;
+
+            encryptorDownloadButton.classList.add("hidden");
+            decryptorDownloadButton.classList.add("hidden");
+        }
+
+        const formData = new FormData();
+        formData.append("file", fileInput.files[0]);
+        formData.append("key", keyInput.value);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", uploadAPI, true);
+
+        // handle binary file download
+        xhr.responseType = "blob";
+
+        // Track upload progress
+        xhr.upload.onprogress = function (e) {
+            if (e.lengthComputable) {
+                const percentComplete = (e.loaded / e.total) * 100;
+                circularProgress.removeAttribute("indeterminate");
+                circularProgress.setAttribute("value", percentComplete / 100);
+            }
+        };
+
+        // Switch the progress indicator to indeterminate mode
+        xhr.upload.onload = function () {
+            circularProgress.removeAttribute("value");
+            circularProgress.setAttribute("indeterminate", "");
+        };
+
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                // Extract filename sent from backend Content-Disposition header
+                let downloadName = fileInput.files[0].name; // Fallback
+                const disposition = xhr.getResponseHeader(
+                    "Content-Disposition",
+                );
+
+                if (disposition) {
+                    // Try RFC 5987 encoding (filename*=UTF-8''...)
+                    const utf8Matches = /filename\*=UTF-8''([^;\n]*)/i.exec(
+                        disposition,
+                    );
+                    if (utf8Matches && utf8Matches[1]) {
+                        downloadName = decodeURIComponent(utf8Matches[1]);
+                    } else {
+                        // Fall back to standard filename="..."
+                        const standardMatches = /filename="?([^";\n]*)"?/i.exec(
+                            disposition,
+                        );
+                        if (standardMatches && standardMatches[1]) {
+                            downloadName = standardMatches[1];
+                        }
+                    }
+                }
+
+                // Create a temporary link to trigger file download
+                const blob = xhr.response;
+                currentDownloadUrl = window.URL.createObjectURL(blob);
+
+                // Attach to the Download button
+                downloadButton.classList.remove("hidden");
+                downloadButton.onclick = function () {
+                    const a = document.createElement("a");
+                    a.href = currentDownloadUrl;
+                    a.download = downloadName;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                };
+
+                // Success feedback
+                showSnackbar("The process was successfully completed.");
+                resetUploadButton();
+            } else {
+                const reader = new FileReader();
+
+                reader.onload = function () {
+                    try {
+                        const responseJson = JSON.parse(reader.result);
+                        const errorMessage =
+                            responseJson.message ||
+                            "An unknown error occurred. Please try again";
+
+                        showSupportText(keyInput, errorMessage);
+                    } catch (e) {
+                        showAlert(
+                            "Unable to process file",
+                            "Process failed. Please try again.",
+                        );
+                    }
+                    resetUploadButton();
+                };
+
+                // Read binary blob response
+                reader.readAsText(xhr.response);
+            }
+        };
+
+        xhr.onerror = function () {
+            showAlert(
+                "Unable to upload file",
+                "Network error occurred. Please try again.",
+            );
+            resetUploadButton();
+        };
+
+        xhr.send(formData);
+
+        function resetUploadButton() {
+            progressIndicator.classList.add("hidden!");
+            circularProgress.value = 0;
+        }
+    }
 
     // Show file card, hide drop zone
     function showFileState(file, fileName, dropZone, fileInfo, nextStep) {
@@ -1202,14 +1442,31 @@
     }
 
     // Reset back to upload drop zone state
-    function resetFileState(fileInput, fileInfo, dropZone, nextStep) {
+    function resetFileState(
+        fileInput,
+        keyInput,
+        fileInfo,
+        dropZone,
+        nextStep,
+        downloadButton,
+    ) {
         fileInput.value = ""; // Clear file buffer
         fileInfo.style.display = "none";
         dropZone.style.display = "flex";
         nextStep.classList.add("hidden");
+        downloadButton.classList.add("hidden");
+
+        hideSupportText(keyInput);
+        keyInput.value = "";
+
+        if (currentDownloadUrl) {
+            window.URL.revokeObjectURL(currentDownloadUrl);
+            currentDownloadUrl = null;
+        }
     }
 
     // For encryption
+    const encryptorFileForm = document.getElementById("file_encrypt_form");
     const encryptorBrowseBtn = document.getElementById("encryptor-browse-btn");
     const encryptorFileInput = document.getElementById("encryptor_file_input");
     const encryptorDropZone = document.getElementById("encryptor-drop-zone");
@@ -1221,6 +1478,14 @@
         "encryptor-clear-file-btn",
     );
     const encryptorNextStep = document.getElementById("encryptor-next-step");
+    const encryptorButton = document.getElementById("encrypt_submit_btn");
+    const encryptorProgressIndicator = encryptorButton.querySelector(
+        ".button-progress-indicator",
+    );
+    const encryptorDownloadButton =
+        document.getElementById("download-encrypted");
+
+    const fileEncryptAPI = "/api/encryptor/encrypt_file";
 
     // Native trigger
     encryptorBrowseBtn.addEventListener("click", () =>
@@ -1243,9 +1508,11 @@
     encryptorClearFileBtn.addEventListener("click", () => {
         resetFileState(
             encryptorFileInput,
+            encryptorFileForm.encrypt_key,
             encryptorFileInfo,
             encryptorDropZone,
             encryptorNextStep,
+            encryptorDownloadButton,
         );
     });
 
@@ -1278,7 +1545,25 @@
         }
     });
 
+    // File Encryption process
+    encryptorFileForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        if (encryptorProgressIndicator.classList.contains("hidden!")) {
+            encryptorProgressIndicator.classList.remove("hidden!");
+
+            encryptorSendFile(
+                fileEncryptAPI,
+                encryptorFileInput,
+                encryptorFileForm.encrypt_key,
+                encryptorProgressIndicator,
+                encryptorDownloadButton,
+            );
+        }
+    });
+
     // For decryption
+    const decryptorFileForm = document.getElementById("file_decrypt_form");
     const decryptorBrowseBtn = document.getElementById("decryptor-browse-btn");
     const decryptorFileInput = document.getElementById("decryptor_file_input");
     const decryptorDropZone = document.getElementById("decryptor-drop-zone");
@@ -1290,6 +1575,14 @@
         "decryptor-clear-file-btn",
     );
     const decryptorNextStep = document.getElementById("decryptor-next-step");
+    const decryptorButton = document.getElementById("decrypt_submit_btn");
+    const decryptorProgressIndicator = decryptorButton.querySelector(
+        ".button-progress-indicator",
+    );
+    const decryptorDownloadButton =
+        document.getElementById("download-decrypted");
+
+    const fileDecryptAPI = "/api/encryptor/decrypt_file";
 
     // Native trigger
     decryptorBrowseBtn.addEventListener("click", () =>
@@ -1312,9 +1605,11 @@
     decryptorClearFileBtn.addEventListener("click", () => {
         resetFileState(
             decryptorFileInput,
+            decryptorFileForm.decrypt_key,
             decryptorFileInfo,
             decryptorDropZone,
             decryptorNextStep,
+            decryptorDownloadButton,
         );
     });
 
@@ -1336,13 +1631,37 @@
             const droppedFile = e.dataTransfer.files[0];
             const extension = droppedFile.name.split(".").pop().toLowerCase();
 
-            decryptorFileInput.files = e.dataTransfer.files;
-            showFileState(
-                droppedFile,
-                decryptorFileNameSpan,
-                decryptorDropZone,
-                decryptorFileInfo,
-                decryptorNextStep,
+            if (extension === "sunako") {
+                decryptorFileInput.files = e.dataTransfer.files;
+                showFileState(
+                    droppedFile,
+                    decryptorFileNameSpan,
+                    decryptorDropZone,
+                    decryptorFileInfo,
+                    decryptorNextStep,
+                );
+            } else {
+                showAlert(
+                    "Unsupported file format",
+                    "The selected file could not be recognized. Please upload a valid encrypted file with a .sunako extension.",
+                );
+            }
+        }
+    });
+
+    // File Decryption process
+    decryptorFileForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        if (decryptorProgressIndicator.classList.contains("hidden!")) {
+            decryptorProgressIndicator.classList.remove("hidden!");
+
+            encryptorSendFile(
+                fileDecryptAPI,
+                decryptorFileInput,
+                decryptorFileForm.decrypt_key,
+                decryptorProgressIndicator,
+                decryptorDownloadButton,
             );
         }
     });
