@@ -3,11 +3,8 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>
-            {% block title %}{% endblock %} | {{ name if name else 'Text
-            Encryptor' }}
-        </title>
-        <!-- Local CSS -->
+        <title>{% block title %}{% endblock %} | Sunako</title>
+        <!-- ========== Local CSS ========== -->
         <link
             rel="stylesheet"
             href="{{ url_for('static', filename='styles/tailwindcss/tailwind.css') }}"
@@ -19,23 +16,23 @@
         <script src="{{ url_for('static', filename='scripts/material-web.js') }}"></script>
     </head>
     <body class="flex flex-col h-screen bg-md-surface-container">
-        <!-- App Bars -->
+        <!-- ========== App Bars ========== -->
         {% include 'components/appbar.html' %}
 
         <main
             class="relative grid md:grid-cols-[96px_1fr] transition-all ease-out flex-1"
         >
-            <!-- Navigation rail -->
+            <!-- ========== Navigation rail ========== -->
             {% include 'components/navrail.html' %}
 
-            <!-- Main Section -->
+            <!-- ========== Main Section ========== -->
             {% block section %}{% endblock %}
         </main>
 
-        <!-- Navigation bar -->
+        <!-- ========== Navigation bar ========== -->
         {% include 'components/navbar.html' %}
 
-        <!-- Modals -->
+        <!-- ========== Modals ========== -->
         <md-dialog id="key-selector-modal" class="z-50">
             <div slot="headline">Encryption Key</div>
             <form
@@ -131,22 +128,22 @@
 
         {% block modals %}{% endblock %}
 
-        <!-- FABs -->
+        <!-- ========== FABs ========== -->
         <div class="fixed bottom-22 right-4 md:hidden">
             {% block fabs %}{% endblock %}
         </div>
 
-        <!-- Alert Dialog -->
+        <!-- ========== Alert Dialog ========== -->
         {% include 'components/alert_dialog.html' %}
 
-        <!-- Snackbar -->
+        <!-- ========== Snackbar ========== -->
         {% include 'components/snackbar.html' %}
 
-        <!-- Scripts -->
+        <!-- ========== Scripts ========== -->
         <script src="{{ url_for('static', filename='scripts/script.js') }}"></script>
         <script src="{{ url_for('static', filename='scripts/api.js') }}"></script>
         <script>
-            // Encryption key modal
+            // ========== Encryption key modal ==========
             const keySelectorModal =
                 document.getElementById("key-selector-modal");
 
@@ -182,7 +179,7 @@
                 }
             }
 
-            // Check encryption key
+            // ========== Check encryption key ==========
             async function checkEncryptionKey() {
                 let encryptionKey = sessionStorage.getItem("encryption_key");
                 if (encryptionKey) {
@@ -246,7 +243,7 @@
                 }
             }
 
-            // Key selector form handler
+            // ========== Key selector form handler ==========
             // Set encryption key
             async function changeActiveKey(keyValue, keyName) {
                 if (keyValue == "manual") {
@@ -267,7 +264,7 @@
                 }
             }
 
-            // Option key listener
+            // ========== Option key listener ==========
             if (optionKey) {
                 optionKey.addEventListener("change", () => {
                     // Enable submit key
@@ -305,7 +302,7 @@
                 });
             }
 
-            // Custom key field
+            // ========== Custom key field ==========
             function checkCustomKeyField() {
                 if (keySelectorForm.custom_key.value.trim() !== "") {
                     keySelectorForm.set_key.disabled = false;
@@ -318,7 +315,7 @@
                 checkCustomKeyField();
             });
 
-            // Generate key btn
+            // ========== Generate key btn ==========
             keySelectorForm.generate_key.addEventListener("click", async () => {
                 const keyGenerated = await generateKey("#custom_key");
 
@@ -327,7 +324,7 @@
                 }
             });
 
-            // On submit
+            // ========== On submit ==========
             keySelectorForm.addEventListener("submit", (event) => {
                 event.preventDefault();
 

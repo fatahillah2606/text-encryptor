@@ -6,14 +6,16 @@
 <!-- Section -->
 {% block section %}
 <section class="main-section">
-    <div class="bg-md-background md:rounded-4xl overflow-auto p-5 h-full">
+    <div
+        class="bg-md-background md:rounded-4xl overflow-auto p-5 pt-0 md:pt-5 h-full"
+    >
         <div class="flex flex-col gap-5 relative animate-showup">
             <div
                 class="flex items-center justify-start md:justify-center md:flex-col gap-2.5 md:gap-2 my-2.5"
             >
-                <!-- Profile picture -->
+                <!-- ========== Profile picture ========== -->
                 <div
-                    class="w-20 h-20 md:w-28 md:h-28 bg-md-primary-container rounded-full flex items-center justify-center"
+                    class="w-20 h-20 md:w-28 md:h-28 bg-md-primary-container rounded-full flex items-center justify-center shrink-0"
                 >
                     {% if 'username' in session %}
                     <span
@@ -35,13 +37,15 @@
                     >
                         {{ name if name else 'Guest' }}
                     </h2>
-                    <p class="text-md-on-surface text-left md:text-center m-0">
+                    <p
+                        class="text-md-on-surface-variant text-left md:text-center m-0"
+                    >
                         {{ username if username else 'guest'}}
                     </p>
                 </div>
             </div>
 
-            <!-- Chip menu -->
+            <!-- ========== Chip menu ========== -->
             <md-chip-set
                 class="hidden md:flex flex-wrap gap-2.5 items-center justify-center"
             >
@@ -56,32 +60,32 @@
                     onclick="movePage('/pages/password_manager')"
                 ></md-assist-chip>
                 <md-assist-chip
-                    label="Text Encryptor"
-                    onclick="movePage('/pages/tools#text_encryptor')"
+                    label="Encryptor"
+                    onclick="movePage('/pages/tools#encryptor')"
                 ></md-assist-chip>
                 <md-assist-chip
-                    label="Text Decryptor"
-                    onclick="movePage('/pages/tools#text_decryptor')"
+                    label="Password Generator"
+                    onclick="movePage('/pages/tools#password_generator')"
                 ></md-assist-chip>
 
                 {% else %}
                 <!-- For guest mode -->
                 <md-assist-chip
+                    label="Encryptor"
+                    onclick="movePage('/pages/tools#encryptor')"
+                ></md-assist-chip>
+                <md-assist-chip
                     label="Password Generator"
                     onclick="movePage('/pages/tools#password_generator')"
                 ></md-assist-chip>
                 <md-assist-chip
-                    label="Text Encryptor"
-                    onclick="movePage('/pages/tools#text_encryptor')"
-                ></md-assist-chip>
-                <md-assist-chip
-                    label="Text Decryptor"
-                    onclick="movePage('/pages/tools#text_decryptor')"
+                    label="Converter"
+                    onclick="movePage('/pages/tools#converter')"
                 ></md-assist-chip>
                 {% endif %}
             </md-chip-set>
 
-            <!-- Menu -->
+            <!-- ========== Menu ========== -->
             <div class="flex flex-col gap-8 md:hidden">
                 {% if 'username' in session%}
                 <div class="rounded-3xl overflow-hidden flex flex-col gap-1">
@@ -98,7 +102,7 @@
                             <h4 class="text-md-on-surface m-0 mb-1.5 font-bold">
                                 Account Manager
                             </h4>
-                            <p class="text-sm text-md-secondary m-0">
+                            <p class="text-sm text-md-on-surface-variant m-0">
                                 Update your profile, handle and security
                                 credentials.
                             </p>
@@ -121,7 +125,7 @@
                             <h4 class="text-md-on-surface m-0 mb-1.5 font-bold">
                                 Key Manager
                             </h4>
-                            <p class="text-sm text-md-secondary m-0">
+                            <p class="text-sm text-md-on-surface-variant m-0">
                                 Securely organize and manage your encryption
                                 keys.
                             </p>
@@ -142,7 +146,7 @@
                             <h4 class="text-md-on-surface m-0 mb-1.5 font-bold">
                                 Password Manager
                             </h4>
-                            <p class="text-sm text-md-secondary m-0">
+                            <p class="text-sm text-md-on-surface-variant m-0">
                                 A vault for all your saved login credentials.
                             </p>
                         </div>
@@ -165,7 +169,7 @@
                             <h4 class="text-md-on-surface m-0 mb-1.5 font-bold">
                                 Password Generator
                             </h4>
-                            <p class="text-sm text-md-secondary m-0">
+                            <p class="text-sm text-md-on-surface-variant m-0">
                                 Create complex, high-entropy passwords
                                 instantly.
                             </p>
@@ -176,7 +180,7 @@
                 </div>
                 <div class="rounded-3xl overflow-hidden flex flex-col gap-1">
                     <a
-                        href="/pages/tools#text_encryptor"
+                        href="/pages/tools#encryptor"
                         class="relative flex items-center justify-start p-3 gap-2.5 bg-md-surface-variant dark:bg-black rounded-md cursor-pointer"
                     >
                         <span
@@ -186,32 +190,31 @@
                         </span>
                         <div>
                             <h4 class="text-md-on-surface m-0 mb-1.5 font-bold">
-                                Text Encryptor
+                                Encryptor
                             </h4>
-                            <p class="text-sm text-md-secondary m-0">
-                                Transform your messages into secure, unreadable
-                                code.
+                            <p class="text-sm text-md-on-surface-variant m-0">
+                                Encrypt or decrypt your private text and files.
                             </p>
                         </div>
 
                         <md-ripple></md-ripple>
                     </a>
                     <a
-                        href="/pages/tools#text_decryptor"
+                        href="/pages/tools#converter"
                         class="relative flex items-center justify-start p-3 gap-2.5 bg-md-surface-variant dark:bg-black rounded-md cursor-pointer"
                     >
                         <span
                             class="material-symbols-rounded w-10 h-10 rounded-full block! text-center! leading-10! bg-red-300 text-red-900! shrink-0"
                         >
-                            lock_open_right
+                            translate
                         </span>
                         <div>
                             <h4 class="text-md-on-surface m-0 mb-1.5 font-bold">
-                                Text Decryptor
+                                Converter
                             </h4>
-                            <p class="text-sm text-md-secondary m-0">
-                                Restore encrypted text back to its original
-                                form.
+                            <p class="text-sm text-md-on-surface-variant m-0">
+                                Transform text into Binary, Morse, Base64, and
+                                ciphers.
                             </p>
                         </div>
 

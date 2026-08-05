@@ -7,7 +7,7 @@ import webbrowser
 from threading import Thread
 
 
-# Install the requirements
+# ========== Install the requirements ==========
 def install_requirements():
     req_file = "requirements.txt"
 
@@ -26,7 +26,7 @@ def install_requirements():
         print(f"[!] {req_file} not found. Skipping installation.")
 
 
-# Wait for the Flask is ready
+# ========== Wait for the Flask is ready ==========
 def wait_for_flask(url, timeout=15):
     start_time = time.time()
 
@@ -45,9 +45,9 @@ def wait_for_flask(url, timeout=15):
     print("[-] Timeout reached. Could not detect Flask server.")
 
 
-# Start the program
+# ========== Start the program ==========
 def start_app():
-    print("[*] Launching Text Encryptor...")
+    print("[*] Launching Sunako...")
     target_url = "http://127.0.0.1:5000"
     try:
         # Start Flask as a background process

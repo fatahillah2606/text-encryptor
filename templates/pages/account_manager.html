@@ -6,10 +6,12 @@
 <!-- Section -->
 {% block section %}
 <section class="main-section">
-    <div class="bg-md-background md:rounded-4xl overflow-auto p-5 h-full">
+    <div
+        class="bg-md-background md:rounded-4xl overflow-auto p-5 pt-0 md:pt-5 h-full"
+    >
         <div class="flex justify-center">
             <div class="w-full max-w-2xl animate-showup">
-                <!-- Heading -->
+                <!-- ========== Heading ========== -->
                 <div
                     class="flex items-center justify-start gap-2.5 bg-md-background z-10"
                 >
@@ -20,7 +22,7 @@
                     </h1>
                 </div>
 
-                <!-- Main -->
+                <!-- ========== Main ========== -->
                 <div class="flex flex-col gap-8">
                     <div
                         class="rounded-2xl overflow-hidden flex flex-col gap-1"
@@ -46,7 +48,7 @@
                                     Your Name
                                 </h2>
                                 <p
-                                    class="md-typescale-body-medium text-md-secondary m-0"
+                                    class="md-typescale-body-medium text-md-on-surface-variant m-0"
                                     id="your-name"
                                 >
                                     {{ name }}
@@ -74,7 +76,7 @@
                                     Username
                                 </h2>
                                 <p
-                                    class="md-typescale-body-medium text-md-secondary m-0"
+                                    class="md-typescale-body-medium text-md-on-surface-variant m-0"
                                     id="username"
                                 >
                                     {{ username }}
@@ -104,7 +106,7 @@
                                     Password
                                 </h2>
                                 <p
-                                    class="md-typescale-body-medium text-md-secondary m-0"
+                                    class="md-typescale-body-medium text-md-on-surface-variant m-0"
                                 >
                                     Acts as your master encryption key.
                                 </p>
@@ -126,7 +128,7 @@
                                     Log out
                                 </h2>
                                 <p
-                                    class="md-typescale-body-medium text-md-secondary m-0"
+                                    class="md-typescale-body-medium text-md-on-surface-variant m-0"
                                 >
                                     End your current session.
                                 </p>
@@ -135,7 +137,7 @@
                         </div>
                     </div>
 
-                    <!-- Data Management -->
+                    <!-- ========== Data Management ========== -->
                     <div>
                         <h2
                             class="md-typescale-body-large text-md-on-surface font-bold! mt-0"
@@ -159,7 +161,7 @@
                                         Import
                                     </h2>
                                     <p
-                                        class="md-typescale-body-medium text-md-secondary m-0"
+                                        class="md-typescale-body-medium text-md-on-surface-variant m-0"
                                     >
                                         Restore your encrypted data from a local
                                         backup file.
@@ -182,7 +184,7 @@
                                         Export
                                     </h2>
                                     <p
-                                        class="md-typescale-body-medium text-md-secondary m-0"
+                                        class="md-typescale-body-medium text-md-on-surface-variant m-0"
                                     >
                                         Create an encrypted backup of your keys
                                         and passwords.
@@ -193,7 +195,7 @@
                         </div>
                     </div>
 
-                    <!-- Account Termination -->
+                    <!-- ========== Account Termination ========== -->
                     <div>
                         <h2
                             class="md-typescale-body-large text-md-on-surface font-bold! mt-0"
@@ -217,7 +219,7 @@
                                         Delete your account
                                     </h2>
                                     <p
-                                        class="md-typescale-body-medium text-md-secondary m-0"
+                                        class="md-typescale-body-medium text-md-on-surface-variant m-0"
                                     >
                                         Permanently delete all your data. This
                                         action cannot be undone.
@@ -236,7 +238,7 @@
 
 <!-- Modals -->
 {% block modals %}
-<!-- Modal for edit account -->
+<!-- ========== Modal for edit account ========== -->
 <md-dialog id="edit-account-modal">
     <div slot="headline">Headline</div>
 
@@ -311,7 +313,7 @@
     </div>
 </md-dialog>
 
-<!-- Import dialog -->
+<!-- ========== Import dialog ========== -->
 <md-dialog id="import-dialog">
     <div slot="headline">
         <div class="flex flex-col gap-1">
@@ -389,8 +391,9 @@
                     <label
                         for="import_show_password"
                         class="md-typescale-body-medium text-md-on-surface m-0"
-                        >Show password</label
                     >
+                        Show password
+                    </label>
                 </div>
             </div>
 
@@ -491,7 +494,7 @@
     </div>
 </md-dialog>
 
-<!-- Export dialog -->
+<!-- ========== Export dialog ========== -->
 <md-dialog id="export-dialog">
     <div slot="headline">
         <div class="flex flex-col gap-1">
@@ -523,7 +526,7 @@
                     <span slot="headline">Full Backup (.json)</span>
                     <span slot="supporting-text">
                         Exports both Keys and Passwords. Ideal for importing
-                        back into this Text Encryptor app.
+                        back into Sunako.
                     </span>
                     <md-radio
                         slot="start"
@@ -557,7 +560,7 @@
             id="csv-warning"
         >
             <span
-                class="material-symbols-rounded text-md-on-error-container mt-0.5"
+                class="material-symbols-rounded material-icon-fill text-md-on-error-container mt-0.5"
             >
                 warning
             </span>
@@ -682,7 +685,7 @@
     </div>
 </md-dialog>
 
-<!-- Confirm delete dialog -->
+<!-- ========== Confirm delete dialog ========== -->
 <md-dialog id="confirm-delete">
     <div slot="headline"></div>
     <md-icon slot="icon">warning</md-icon>
@@ -721,6 +724,7 @@
         "show_password_container",
     );
 
+    // ========== Biodata ==========
     // Form dialog
     async function formDialog(name, headline, label, type) {
         dialogElm.querySelector('[slot="headline"]').innerText = headline;
@@ -850,7 +854,7 @@
         }
     }
 
-    // Import option
+    // ========== Import option ==========
     const browseBtn = document.getElementById("browse-btn");
     const fileInput = document.getElementById("file_input");
     const dropZone = document.getElementById("drop-zone");
@@ -939,7 +943,7 @@
                     resetFileState();
                     showAlert(
                         "Unable to read metadata",
-                        "The file you selected is corrupt or unsupported. Make sure the file you selected is not corrupted and comes from the Text Encryptor app.",
+                        "The file you selected is corrupt or unsupported. Make sure the file you selected is not corrupted and comes from the Sunako.",
                     );
                 }
             } else {
@@ -1099,7 +1103,7 @@
                     } catch (err) {
                         showAlert(
                             "Unable to import data",
-                            `The selected file is corrupted or unsupported. Ensure the file is not corrupted and comes from Text Encryptor. \nError: ${err}`,
+                            `The selected file is corrupted or unsupported. Ensure the file is not corrupted and comes from Sunako. \nError: ${err}`,
                         );
 
                         importBtnIndicator.classList.add("hidden!");
@@ -1136,7 +1140,7 @@
         }
     });
 
-    // Export option
+    // ========== Export option ==========
     const radioJson = document.getElementById("option-json");
     const radioCsv = document.getElementById("option-csv");
     const cryptoSwitch = document.getElementById("crypto-switch");
@@ -1240,18 +1244,14 @@
                         type: "text/csv;charset=utf-8;",
                     });
 
-                    tempoaryUrl(blob, "Text Encryptor - Passwords", "csv");
+                    tempoaryUrl(blob, "Sunako - Passwords", "csv");
                 } else if (dataSheet.file_type === "json") {
                     // For json
                     const blob = new Blob([dataSheet.json_file], {
                         type: "application/json;charset=utf-8;",
                     });
 
-                    tempoaryUrl(
-                        blob,
-                        "Text Encryptor - Keys & Passwords",
-                        "json",
-                    );
+                    tempoaryUrl(blob, "Sunako - Keys & Passwords", "json");
                 } else {
                     // If none of them
                     console.error(`Unknown file type! \nerror: ${dataSheet}`);
@@ -1278,7 +1278,7 @@
         }
     });
 
-    // Delete account
+    // ========== Delete account ==========
     async function deleteAccount() {
         const dialogId = "confirm-delete";
         const headline = "Delete account";
@@ -1305,7 +1305,7 @@
         }
     }
 
-    // Load userdata
+    // ========== Load userdata ==========
     async function loadUserData() {
         try {
             const result = await sendRequest(whoami, {}, "GET");

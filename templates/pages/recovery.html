@@ -30,20 +30,22 @@
 
             <!-- Logo -->
             <div
-                class="w-12 h-12 flex items-center justify-center m-0 p-0 bg-md-primary rounded-xl"
+                class="w-12 h-12 flex items-center justify-center m-0 p-1 bg-md-primary rounded-xl"
             >
-                <span
-                    class="material-symbols-rounded material-icon-fill text-4xl! text-md-on-primary!"
+                <svg
+                    class="text-md-on-primary"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 100 100"
                 >
-                    encrypted
-                </span>
+                    {% include 'components/logo.html' %}
+                </svg>
             </div>
 
             <!-- Login content -->
             <div
                 class="flex flex-col md:flex-row items-start justify-between gap-6 md:gap-12"
             >
-                <!-- Left content -->
+                <!-- ========== Left content ========== -->
                 <div class="w-full">
                     <h1 class="md-typescale-display-small text-md-on-surface">
                         Recovery
@@ -53,13 +55,13 @@
                     </p>
                 </div>
 
-                <!-- Right content -->
+                <!-- ========== Right content ========== -->
                 <div class="w-full relative overflow-hidden">
                     <div
                         id="slider"
                         class="flex w-full h-full transition-transform duration-500 ease-in-out"
                     >
-                        <!-- Available user to recover -->
+                        <!-- ========== Available user to recover ========== -->
                         <div
                             id="user-list"
                             class="w-full shrink-0 h-full py-4 flex flex-col justify-between"
@@ -112,7 +114,7 @@
                             </p>
                         </div>
 
-                        <!-- Password field content for decryption -->
+                        <!-- ========== Password field content for decryption ========== -->
                         <div
                             id="password-field"
                             class="w-full shrink-0 h-full p-4 flex flex-col justify-between"
@@ -173,7 +175,7 @@
                             </form>
                         </div>
 
-                        <!-- If there was duplicate account username -->
+                        <!-- ========== If there was duplicate account username ========== -->
                         <div
                             id="duplicate-handler"
                             class="w-full shrink-0 h-full p-4 flex flex-col justify-between"
@@ -265,7 +267,7 @@
         <script src="{{ url_for('static', filename='scripts/script.js') }}"></script>
         <script src="{{ url_for('static', filename='scripts/api.js') }}"></script>
         <script>
-            // Sliding animation
+            // ========== Sliding animation ==========
             const slider = document.querySelector("#slider");
             let account = null;
             let currentIndex = 0;
@@ -291,7 +293,7 @@
                 updatePosition();
             }
 
-            // Recovery
+            // ========== Recovery ==========
             const recovery_api = "/api/account/recovery";
             const recoveryForm = document.getElementById("recovery_form");
             const duplicateAction = document.getElementById("duplicate_action");
@@ -330,7 +332,7 @@
 
                             tempoaryUrl(
                                 blob,
-                                "Text Encryptor - Keys & Passwords",
+                                "Sunako - Keys & Passwords",
                                 "json",
                             );
 

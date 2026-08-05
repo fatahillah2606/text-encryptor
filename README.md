@@ -1,20 +1,52 @@
-# Text Encryptor
+# Sunako
 
 ## Description
 
-A simple project for text encryption and decryption, featuring a password manager and password generator. The purpose of this project is to practice my coding skills.
+Sunako is a privacy-focused security tool. Its name is inspired by a character from the game Blue Archive, Sunaookami Shiroko, though this project is entirely independent.
+
+This program is a simple project that I made to practice my coding skills, featuring text encryption, file encryption, a password manager, a password generator, and text conversion.
 
 ## Requirement
 
-- Python 3
-- Node.js (optional)
+- Python (v3.13 or higher)
+- Git
+- Node.js (Optional, only required if you want to build or modify the project yourself)
 
-## Installation
+## Usage
 
-1.  Clone this repository:
+### Windows
+
+Simply execute the `run_encryptor.bat` file
+
+### Linux & macOS
+
+1.  Clone the repository:
 
     ```bash
-    git clone https://github.com/fatahillah2606/text-encryptor.git
+    git clone https://github.com/fatahillah2606/sunako.git
+    ```
+
+2.  Create and activate a virtual environment:
+
+    ```bash
+    python -m venv .venv
+    source .venv/bin/activate
+    ```
+
+3.  Run the application:
+
+    ```bash
+    python run.py
+    ```
+
+## Building from Source
+
+If you want to modify or build the project assets yourself, follow these steps:
+
+1.  Clone the repository:
+
+    ```bash
+    git clone https://github.com/fatahillah2606/sunako.git
     ```
 
 2.  Create and activate a virtual environment:
@@ -23,34 +55,47 @@ A simple project for text encryption and decryption, featuring a password manage
     python -m venv .venv
     ```
 
-    For Windows:
+    - Windows: `.venv\Scripts\activate`
+    - Linux/macOS: `source .venv/bin/activate`
 
-        .venv\Scripts\activate
+3.  Install Python dependencies:
 
-    For Linux/MacOS:
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-        source .venv/bin/activate
-
-3.  Install node packages (optional)
+4.  Install Node packages:
 
     ```bash
     npm install
     ```
 
-## Usage
+5.  Start the Tailwind CSS CLI watcher:
 
-### Start the Flask
+    ```bash
+    npx @tailwindcss/cli -i ./static/styles/tailwindcss/import-tailwind.css -o ./static/styles/tailwindcss/tailwind.css --watch
+    ```
 
-```bash
-python run.py
-```
+6.  Bundle `material-web` using `esbuild`:
 
-### Start Tailwindcss cli (optional)
+    ```bash
+    npx esbuild ./static/scripts/import-m3.js --bundle --outfile=./static/scripts/material-web.js
+    ```
 
-```bash
-npx @tailwindcss/cli -i ./static/styles/tailwindcss/import-tailwind.css -o ./static/styles/tailwindcss/tailwind.css --watch
-```
+7.  Run the application:
 
-Open your browser and navigate to http://127.0.0.1:5000/
+    ```bash
+    python app.py
+    ```
 
-**Note**: Tailwindcss and Material Web are already bundled, so there's no need to install any Node.js packages—or even use Node.js at all.
+8.  Open your browser and navigate to [http://127.0.0.1:5000/](http://127.0.0.1:5000/)
+
+---
+
+## Disclaimer
+
+This project is an independent open-source tool and is not affiliated with, endorsed by, or connected to the NEXON Korea Corp. and NEXON Games Co., Ltd.
+
+---
+
+Made with ❤️ by Fatahillah

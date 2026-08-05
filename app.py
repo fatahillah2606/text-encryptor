@@ -3,7 +3,7 @@ import secrets
 from datetime import datetime, timezone
 
 from dotenv import load_dotenv
-from flask import Flask, redirect, session, url_for, abort, send_from_directory
+from flask import Flask, abort, redirect, send_from_directory, session, url_for
 from flask.sansio.app import timedelta
 from flask.templating import render_template
 
@@ -19,7 +19,7 @@ SESSION_KEY = secrets.token_hex()
 # SESSION_KEY = os.getenv("SESSION_KEY") # for development, to prevent logged out when restarting
 
 
-# Check db
+# ========== Check db ==========
 db_path = os.path.join("db", "vault_manager.db")
 
 
@@ -37,7 +37,7 @@ app.register_blueprint(pages_route, url_prefix="/pages/")
 app.register_blueprint(api_route, url_prefix="/api/")
 
 
-# Check session
+# ========== Check session ==========
 @app.before_request
 def check_session():
     expired = session.get("expired")
@@ -53,17 +53,20 @@ def check_session():
         session["expired"] = (current_time + timedelta(minutes=5)).isoformat()
 
 
-# Error handler
+# ========== Error handler ==========
 @app.errorhandler(404)
 def page_not_found(error):
     return "Page not found", 404
 
 
-# Favicon
-@app.route('/favicon.ico')
+# ========== Favicon ==========
+@app.route("/favicon.ico")
 def favicon():
-    return send_from_directory(os.path.join(app.root_path, 'static'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
-
+    return send_from_directory(
+        os.path.join(app.root_path, "static"),
+        "favicon.ico",
+        mimetype="image/vnd.microsoft.icon",
+    )
 
 
 @app.route("/")
@@ -89,13 +92,17 @@ def inject_globals():
     }
 
 
-# Open shared link
+# ========== Open shared link ==========
 @app.route("/<shared_type>/<blob>")
 def share_page(shared_type, blob):
     if shared_type == "t":
-        return render_template("pages/shared_text.html", active_page="shared_text", blob=blob)
+        return render_template(
+            "pages/shared_text.html", active_page="shared_text", blob=blob
+        )
     elif shared_type == "p":
-        return render_template("pages/shared_passwords.html", active_page="shared_passwords", blob=blob)
+        return render_template(
+            "pages/shared_passwords.html", active_page="shared_passwords", blob=blob
+        )
     else:
         abort(404, description="Invalid shared type")
 

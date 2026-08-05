@@ -9,6 +9,17 @@
         format("woff");
 }
 
+/* ========== Plus Jakarta Sans font ========== */
+@font-face {
+    font-family: "Plus Jakarta Sans";
+    src: url("/static/fonts/Plus_Jakarta_Sans/PlusJakartaSans-VariableFont_wght.ttf");
+}
+
+@font-face {
+    font-family: "Plus Jakarta Sans Italic";
+    src: url("/static/fonts/Plus_Jakarta_Sans/PlusJakartaSans-Italic-VariableFont_wght.ttf");
+}
+
 :root {
     font-family: Inter, sans-serif;
     font-feature-settings:
@@ -26,7 +37,7 @@
     }
 }
 
-/* Scrollbar */
+/* ========== Scrollbar ========== */
 /* Target every single element in the project */
 *,
 *::before,
@@ -77,7 +88,19 @@ md-dialog ::-webkit-scrollbar-thumb:hover {
     background-color: var(--md-sys-color-primary-fixed-dim) !important;
 }
 
-/* Main content */
+/* Remove scrollbar */
+md-tabs,
+.rm-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+md-tabs::-webkit-scrollbar,
+.rm-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+/* ========== Main content ========== */
 * {
     box-sizing: border-box;
 }
@@ -143,6 +166,7 @@ md-icon {
     justify-content: center;
 }
 
+/* ========== MD Progress button ========== */
 md-filled-button .button-progress-indicator {
     background-color: var(--md-sys-color-primary);
 }
@@ -159,7 +183,7 @@ md-filled-button .button-progress-indicator md-circular-progress {
     --md-sys-color-primary: var(--md-sys-color-on-primary);
 }
 
-/* MD Buttons */
+/* ========== MD Buttons ========== */
 /* Secondary Color Role */
 .md-color-secondary {
     --md-filled-button-container-color: var(--md-sys-color-secondary);
@@ -202,6 +226,7 @@ md-filled-button .button-progress-indicator md-circular-progress {
     );
 }
 
+/* ========== Remove arrow on input number ========== */
 .remove-arrow::-webkit-inner-spin-button,
 .remove-arrow::-webkit-outer-spin-button {
     -webkit-appearance: none !important;
@@ -210,6 +235,15 @@ md-filled-button .button-progress-indicator md-circular-progress {
 
 .remove-arrow {
     -moz-appearance: textfield !important;
+}
+
+/* ========== Appbar ========== */
+.sunako-appbar-title {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-weight: 600;
+    font-size: var(--md-sys-typescale-title-large-size, 1.375rem);
+    line-height: var(--md-sys-typescale-title-large-line-height, 1.75rem);
+    letter-spacing: var(--md-sys-typescale-title-large-tracking, 0);
 }
 
 #selection-appbar > * {
@@ -225,6 +259,7 @@ md-filled-button .button-progress-indicator md-circular-progress {
     }
 }
 
+/* ========== Nav menu & Rail menu ========== */
 .rail-menu.active,
 .bar-menu.active {
     font-variation-settings: "FILL" 1;
@@ -239,19 +274,25 @@ md-filled-button .button-progress-indicator md-circular-progress {
     font-variation-settings: "FILL" 1;
 }
 
-md-tabs::part(divider) {
+/* ========== md-tabs ========== */
+/* md-tabs::part(divider) {
+    display: none;
+} */
+
+.rm-divider::part(divider) {
     display: none;
 }
 
+/* ========== Snackbar ========== */
 #snackbar md-text-button {
     --md-sys-color-primary: var(--md-sys-color-inverse-primary);
 }
-/* For import option on 'Account manager' */
+
+/* ========== For import option ========== */
 .upload-container {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    min-width: 320px;
 }
 
 .drop-zone {
@@ -326,7 +367,7 @@ md-tabs::part(divider) {
     width: 100%;
 }
 
-/* Transition showup */
+/* ========== Transition showup ========== */
 .transition-showup-start {
     transform: translateY(5%);
     opacity: 0;
@@ -334,4 +375,30 @@ md-tabs::part(divider) {
 .transition-showup-end {
     transform: translateY(0%);
     opacity: 1;
+}
+
+/* ========== Etc ========== */
+.default-textarea {
+    background: none;
+    border: none;
+    outline: none;
+    padding: 14px;
+    width: 100%;
+    min-height: calc(160px - 40px);
+    resize: none;
+    font-family: Inter, sans-serif;
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+.reverse-convert {
+    direction: rtl;
+}
+
+.converter-md-outline-select {
+    min-width: unset;
+    --md-outlined-select-text-field-input-text-size: 14px;
+    --md-outlined-field-outline-color: transparent;
+    --md-outlined-field-focus-outline-color: transparent;
+    --md-outlined-field-hover-outline-color: transparent;
+    --md-outlined-field-outline-width: 0px;
 }

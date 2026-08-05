@@ -1,18 +1,21 @@
 import binascii
-from functools import wraps
 import json
+from functools import wraps
 
 from flask import Blueprint, jsonify, request, session
 
+from src.converter import TextConverter
 from src.data_io import DataExporter, DataImporter
 from src.data_manager import KeyManager, PasswordManager, Recovery, UserManager
-from src.encryptor import NewEncryption, generate_password
-from src.essentials import createLoginSession, generate_share_link, decrypt_payload
+from src.encryptor import FileEncryptor, NewEncryption, generate_password
+from src.essentials import createLoginSession, decrypt_payload, generate_share_link
 
 encryption_method = NewEncryption()
+text_converter = TextConverter()
+file_encryptor = FileEncryptor()
 
 
-# API Response
+# ========== API Response ==========
 def api_response(status, code, message, data, pagination):
     response = {
         "status": status,
@@ -24,7 +27,7 @@ def api_response(status, code, message, data, pagination):
     return jsonify(response)
 
 
-# API protection
+# ========== API protection ==========
 def logged_in_only_api(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -49,7 +52,7 @@ api_route = Blueprint("api", __name__)
 #
 
 
-# encription key
+# ========== encription key ==========
 @api_route.route("/encryptor/encryption_key", methods=["POST", "GET"])
 def encryption_key():
     if request.method == "POST":
@@ -89,13 +92,13 @@ def encryption_key():
             ), 404
 
 
-# Encrypt text
+# ========== Encrypt text ==========
 @api_route.route("/encryptor/encrypt_text", methods=["POST"])
 def encrypt_text():
     try:
         data = request.json
         key = str(data.get("key"))
-        text = str(data.get("unencrypted_text"))
+        text = str(data.get("encryptor_input_text"))
 
         # Check if the key is available to prevent get_valid_key auto generated key
         if not key or key == "":
@@ -118,7 +121,7 @@ def encrypt_text():
             "success",
             200,
             "Successfully encrypted text",
-            {"encrypted_text": encrypted_text},
+            {"result_text": encrypted_text},
             {},
         )
 
@@ -132,7 +135,7 @@ def encrypt_text():
         ), 500
 
 
-# Generate share link
+# ========== Generate share link ==========
 @api_route.route("/encryptor/generate_link", methods=["POST"])
 def generate_link():
     try:
@@ -160,13 +163,13 @@ def generate_link():
         ), 500
 
 
-# Decrypt text
+# ========== Decrypt text ==========
 @api_route.route("/encryptor/decrypt_text", methods=["POST"])
 def decrypt_text():
     try:
         data = request.json
         key = str(data.get("key"))
-        text = str(data.get("encrypted_text"))
+        text = str(data.get("encryptor_input_text"))
 
         # Check if the key is available to prevent get_valid_key auto generated key
         if not key or key == "":
@@ -189,7 +192,7 @@ def decrypt_text():
             "success",
             200,
             "Successfully decrypted text",
-            {"decrypted_text": decrypted_text},
+            {"result_text": decrypted_text},
             {},
         )
 
@@ -198,12 +201,14 @@ def decrypt_text():
             "error",
             500,
             "The text is corrupted, incomplete, or the wrong key was used. Check your key, and ensure you copied the entire encrypted text block.",
-            [],
+            {
+                "result_text": "The text is corrupted, incomplete, or the wrong key was used. Check your key, and ensure you copied the entire encrypted text block."
+            },
             {},
         ), 500
 
 
-# Decrypt shared link
+# ========== Decrypt shared link ==========
 @api_route.route("/encryptor/decrypt_link", methods=["POST"])
 def decrypt_shared_link():
     data = request.json
@@ -213,19 +218,106 @@ def decrypt_shared_link():
     if not blob or not key:
         return api_response("error", 400, "Invalid transmission format.", [], {}), 400
 
-
     status, decrypted = decrypt_payload(blob, key)
     if status == "success":
-        return api_response("success", 200, "Successfully decrypted the link", decrypted, {})
+        return api_response(
+            "success", 200, "Successfully decrypted the link", decrypted, {}
+        )
 
     elif status == "expired":
-        return api_response("error", 410, "This shared session has expired (5-minute limit exceeded).", [], {}), 410
+        return api_response(
+            "error",
+            410,
+            "This shared session has expired (5-minute limit exceeded).",
+            [],
+            {},
+        ), 410
 
     else:
-        return api_response("error", 400, "Decryption failed. The key or payload might be corrupted.", [], {}), 400
+        return api_response(
+            "error",
+            400,
+            "Decryption failed. The key or payload might be corrupted.",
+            [],
+            {},
+        ), 400
 
 
-# Password generator
+# ========== File encryption ==========
+@api_route.route("/encryptor/encrypt_file", methods=["POST"])
+def proceed_file_encryption():
+    if "file" not in request.files:
+        return api_response(
+            "error",
+            400,
+            "No files provided, make sure you select the files you want to encrypt and try again.",
+            [],
+            {},
+        ), 400
+
+    file = request.files["file"]
+    password = request.form.get("key")
+
+    if not file or not password:
+        return api_response(
+            "error",
+            400,
+            "Failed to receive file and encryption key. Please try again.",
+            [],
+            {},
+        ), 400
+
+    status, result = file_encryptor.encrypt_file(file, password)
+    if status == "success":
+        return result
+    else:
+        return api_response(
+            "error",
+            400,
+            str(result),
+            [],
+            {},
+        ), 400
+
+
+# ========== File decryption ==========
+@api_route.route("/encryptor/decrypt_file", methods=["POST"])
+def proceed_file_decryption():
+    if "file" not in request.files:
+        return api_response(
+            "error",
+            400,
+            "No files provided, make sure you select the files you want to decrypt and try again.",
+            [],
+            {},
+        ), 400
+
+    file = request.files["file"]
+    password = request.form.get("key")
+
+    if not file or not password:
+        return api_response(
+            "error",
+            400,
+            "Failed to receive file and decryption key. Please try again.",
+            [],
+            {},
+        ), 400
+
+    status, result = file_encryptor.decrypt_file(file, password)
+    if status == "success":
+        return result
+    else:
+        return api_response(
+            "error",
+            400,
+            str(result),
+            [],
+            {},
+        ), 400
+
+
+# ========== Password generator ==========
 @api_route.route("/encryptor/password_generator", methods=["POST"])
 def password_generator():
     try:
@@ -277,14 +369,99 @@ def password_generator():
         ), 500
 
 
+# ========== Text Converter ==========
+@api_route.route("/converter", methods=["POST"])
+def converter_text():
+    try:
+        data = request.json
+        convert_to_option = str(data.get("convert_to_option"))
+        converter_input_text = str(data.get("converter_input_text"))
+        reverse_convert = bool(1 if data.get("reverse_convert") == "true" else 0)
+
+        # Convert to morse code
+        if convert_to_option == "morse":
+            result = (
+                text_converter.from_morse(converter_input_text)
+                if reverse_convert
+                else text_converter.to_morse(converter_input_text)
+            )
+            return api_response("success", 200, "Ok", {"result_text": result}, {})
+
+        # Convert to binary
+        elif convert_to_option == "binary":
+            result = (
+                text_converter.from_binary(converter_input_text)
+                if reverse_convert
+                else text_converter.to_binary(converter_input_text)
+            )
+            return api_response("success", 200, "Ok", {"result_text": result}, {})
+
+        # Convert to Hexadecimal
+        elif convert_to_option == "hexa":
+            result = (
+                text_converter.from_hex(converter_input_text)
+                if reverse_convert
+                else text_converter.to_hex(converter_input_text)
+            )
+            return api_response("success", 200, "Ok", {"result_text": result}, {})
+
+        # Convert to Caesar Cipher
+        elif convert_to_option == "caesar":
+            result = (
+                text_converter.from_rot13(converter_input_text)
+                if reverse_convert
+                else text_converter.to_rot13(converter_input_text)
+            )
+            return api_response("success", 200, "Ok", {"result_text": result}, {})
+
+        # Convert to Atbash Cipher
+        elif convert_to_option == "atbash":
+            result = (
+                text_converter.from_atbash(converter_input_text)
+                if reverse_convert
+                else text_converter.to_atbash(converter_input_text)
+            )
+            return api_response("success", 200, "Ok", {"result_text": result}, {})
+
+        # Convert to A1Z26
+        elif convert_to_option == "A1Z26":
+            result = (
+                text_converter.from_a1z26(converter_input_text)
+                if reverse_convert
+                else text_converter.to_a1z26(converter_input_text)
+            )
+            return api_response("success", 200, "Ok", {"result_text": result}, {})
+
+        # Convert to Base64
+        elif convert_to_option == "base64":
+            result = (
+                text_converter.from_base64(converter_input_text)
+                if reverse_convert
+                else text_converter.to_base64(converter_input_text)
+            )
+            return api_response("success", 200, "Ok", {"result_text": result}, {})
+
+        else:
+            return api_response("error", 503, "Feature unavailable", [], {}), 503
+
+    except Exception as err:
+        return api_response(
+            "error",
+            500,
+            f"An error occurred on the server. \nError message:{str(err)}",
+            [],
+            {},
+        ), 500
+
+
 #
-# Auth process
+# ========== Auth process ==========
 #
 
 user = UserManager()
 
 
-# Register
+# ========== Register ==========
 @api_route.route("/auth/register", methods=["POST"])
 def register():
     try:
@@ -334,7 +511,7 @@ def register():
         ), 500
 
 
-# Login
+# ========== Login ==========
 @api_route.route("/auth/login", methods=["POST"])
 def login():
     try:
@@ -369,7 +546,7 @@ def login():
         ), 500
 
 
-# Who am I?
+# ========== Who am I? ==========
 @api_route.route("/auth/whoami", methods=["GET"])
 @logged_in_only_api
 def whoAmI():
@@ -383,7 +560,7 @@ def whoAmI():
     return api_response("success", 200, f"Hello, {session['name']}", userData, {})
 
 
-# Check username availablity
+# ========== Check username availablity ==========
 @api_route.route("/account/username/available", methods=["POST"])
 def checkAvailablity():
     try:
@@ -417,7 +594,7 @@ def checkAvailablity():
         ), 500
 
 
-# Account update
+# ========== Account update ==========
 @api_route.route("/account/update", methods=["PATCH"])
 def updateProfile():
     try:
@@ -499,7 +676,7 @@ def updateProfile():
         ), 500
 
 
-# Change account password
+# ========== Change account password ==========
 @api_route.route("/account/change-password", methods=["PUT"])
 @logged_in_only_api
 def updateUserPassword():
@@ -531,7 +708,7 @@ def updateUserPassword():
         ), 500
 
 
-# Import data
+# ========== Import data ==========
 importer = DataImporter()
 
 
@@ -608,7 +785,7 @@ def importData():
                 return api_response(
                     "error",
                     400,
-                    "The selected file is corrupted or unsupported. Ensure the file is not corrupted and comes from Text Encryptor.",
+                    "The selected file is corrupted or unsupported. Ensure the file is not corrupted and comes from Sunako.",
                     [],
                     {},
                 ), 400
@@ -636,7 +813,7 @@ def importData():
         ), 500
 
 
-# Export data
+# ========== Export data ==========
 exporter = DataExporter()
 
 
@@ -722,7 +899,7 @@ def exportData():
         ), 500
 
 
-# Account delete
+# ========== Account delete ==========
 @api_route.route("/account/delete", methods=["DELETE"])
 @logged_in_only_api
 def deleteUserAccount():
@@ -752,13 +929,13 @@ def deleteUserAccount():
 
 
 #
-# Key manager
+# ========== Key manager ==========
 #
 
 keys = KeyManager()
 
 
-# Get all user keys
+# ========== Get all user keys ==========
 @api_route.route("/user/keys", methods=["GET"])
 @logged_in_only_api
 def listUserKeys():
@@ -776,7 +953,7 @@ def listUserKeys():
         ), 500
 
 
-# Get some user key
+# ========== Get some user key ==========
 @api_route.route("/user/key/<key_id>", methods=["GET"])
 @logged_in_only_api
 def listUserKey(key_id):
@@ -804,7 +981,7 @@ def listUserKey(key_id):
         ), 500
 
 
-# Create new encryption key
+# ========== Create new encryption key ==========
 @api_route.route("/user/key/create", methods=["POST"])
 @logged_in_only_api
 def createEncryptionKey():
@@ -841,7 +1018,7 @@ def createEncryptionKey():
         ), 500
 
 
-# Edit encryption key
+# ========== Edit encryption key ==========
 @api_route.route("/user/key/<key_id>/edit", methods=["PUT"])
 @logged_in_only_api
 def editEncryptionKey(key_id):
@@ -880,7 +1057,7 @@ def editEncryptionKey(key_id):
         ), 500
 
 
-# Delete key
+# ========== Delete key ==========
 @api_route.route("/user/key/<key_id>/delete", methods=["DELETE"])
 @logged_in_only_api
 def deleteKey(key_id):
@@ -940,13 +1117,13 @@ def deleteManyKey():
 
 
 #
-# Password manager
+# ========== Password manager ==========
 #
 
 passwords = PasswordManager()
 
 
-# Get all user passwords
+# ========== Get all user passwords ==========
 @api_route.route("/user/passwords", methods=["GET"])
 @logged_in_only_api
 def listUserPasswords():
@@ -966,7 +1143,7 @@ def listUserPasswords():
         ), 500
 
 
-# Get some user password
+# ========== Get some user password ==========
 @api_route.route("/user/password/<password_id>", methods=["GET"])
 @logged_in_only_api
 def listUserPassword(password_id):
@@ -996,7 +1173,7 @@ def listUserPassword(password_id):
         ), 500
 
 
-# Create new password
+# ========== Create new password ==========
 @api_route.route("/user/password/create", methods=["POST"])
 @logged_in_only_api
 def createPassword():
@@ -1051,7 +1228,7 @@ def createPassword():
         ), 500
 
 
-# Save password from link
+# ========== Save password from link ==========
 @api_route.route("/user/password/save", methods=["POST"])
 @logged_in_only_api
 def savePassword():
@@ -1073,7 +1250,7 @@ def savePassword():
                 error_list.append(
                     {
                         "service_name": password["name"],
-                        "error_info": "The maximum length for service name is 50."
+                        "error_info": "The maximum length for service name is 50.",
                     }
                 )
 
@@ -1082,10 +1259,9 @@ def savePassword():
                 error_list.append(
                     {
                         "service_name": password["name"],
-                        "error_info": "The maximum length for username is 50."
+                        "error_info": "The maximum length for username is 50.",
                     }
                 )
-
 
             # Insert into db
             status, result = passwords.create_user_password(
@@ -1101,10 +1277,7 @@ def savePassword():
 
             if status == "error":
                 error_list.append(
-                    {
-                        "service_name": password["name"],
-                        "error_info": result
-                    }
+                    {"service_name": password["name"], "error_info": result}
                 )
 
             success_status.append(status)
@@ -1113,10 +1286,17 @@ def savePassword():
         error_count = success_status.count("error")
 
         if error_count == len(success_status):
-            return api_response("error", 500, "Failed to save all passwords.", error_list, {}), 500
+            return api_response(
+                "error", 500, "Failed to save all passwords.", error_list, {}
+            ), 500
         else:
-            return api_response("success", 200, f"{success_count} out of {len(success_status)} passwords were saved successfully.", error_list, {})
-
+            return api_response(
+                "success",
+                200,
+                f"{success_count} out of {len(success_status)} passwords were saved successfully.",
+                error_list,
+                {},
+            )
 
     except Exception as err:
         return api_response(
@@ -1128,7 +1308,7 @@ def savePassword():
         ), 500
 
 
-# Edit password
+# ========== Edit password ==========
 @api_route.route("/user/password/<password_id>/edit", methods=["PUT"])
 @logged_in_only_api
 def editPassword(password_id):
@@ -1184,7 +1364,7 @@ def editPassword(password_id):
         ), 500
 
 
-# Share password
+# ========== Share password ==========
 @api_route.route("/user/password/share", methods=["POST"])
 @logged_in_only_api
 def sharePassword():
@@ -1214,7 +1394,9 @@ def sharePassword():
         blob, one_time_key = generate_share_link(json.dumps(passwordList))
         link = f"http://127.0.0.1:5000/p/{blob}#{one_time_key}"
 
-        return api_response("success", 200, "Successfully generated link.", {"link": link}, {})
+        return api_response(
+            "success", 200, "Successfully generated link.", {"link": link}, {}
+        )
 
     except Exception as err:
         return api_response(
@@ -1226,7 +1408,7 @@ def sharePassword():
         ), 500
 
 
-# Export password
+# ========== Export password ==========
 @api_route.route("/user/password/export", methods=["POST"])
 @logged_in_only_api
 def exportPassword():
@@ -1330,7 +1512,7 @@ def exportPassword():
         ), 500
 
 
-# Delete password
+# ========== Delete password ==========
 @api_route.route("/user/password/<password_id>/delete", methods=["DELETE"])
 @logged_in_only_api
 def deletePassword(password_id):
@@ -1392,7 +1574,7 @@ def deleteManyPassword():
 recovery_method = Recovery()
 
 
-# Recovery
+# ========== Recovery ==========
 @api_route.route("/account/recovery", methods=["POST"])
 def recoverAccount():
     try:
