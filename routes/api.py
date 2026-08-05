@@ -15,7 +15,7 @@ text_converter = TextConverter()
 file_encryptor = FileEncryptor()
 
 
-# API Response
+# ========== API Response ==========
 def api_response(status, code, message, data, pagination):
     response = {
         "status": status,
@@ -27,7 +27,7 @@ def api_response(status, code, message, data, pagination):
     return jsonify(response)
 
 
-# API protection
+# ========== API protection ==========
 def logged_in_only_api(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -52,7 +52,7 @@ api_route = Blueprint("api", __name__)
 #
 
 
-# encription key
+# ========== encription key ==========
 @api_route.route("/encryptor/encryption_key", methods=["POST", "GET"])
 def encryption_key():
     if request.method == "POST":
@@ -92,7 +92,7 @@ def encryption_key():
             ), 404
 
 
-# Encrypt text
+# ========== Encrypt text ==========
 @api_route.route("/encryptor/encrypt_text", methods=["POST"])
 def encrypt_text():
     try:
@@ -135,7 +135,7 @@ def encrypt_text():
         ), 500
 
 
-# Generate share link
+# ========== Generate share link ==========
 @api_route.route("/encryptor/generate_link", methods=["POST"])
 def generate_link():
     try:
@@ -163,7 +163,7 @@ def generate_link():
         ), 500
 
 
-# Decrypt text
+# ========== Decrypt text ==========
 @api_route.route("/encryptor/decrypt_text", methods=["POST"])
 def decrypt_text():
     try:
@@ -208,7 +208,7 @@ def decrypt_text():
         ), 500
 
 
-# Decrypt shared link
+# ========== Decrypt shared link ==========
 @api_route.route("/encryptor/decrypt_link", methods=["POST"])
 def decrypt_shared_link():
     data = request.json
@@ -243,7 +243,7 @@ def decrypt_shared_link():
         ), 400
 
 
-# File encryption
+# ========== File encryption ==========
 @api_route.route("/encryptor/encrypt_file", methods=["POST"])
 def proceed_file_encryption():
     if "file" not in request.files:
@@ -280,7 +280,7 @@ def proceed_file_encryption():
         ), 400
 
 
-# File decryption
+# ========== File decryption ==========
 @api_route.route("/encryptor/decrypt_file", methods=["POST"])
 def proceed_file_decryption():
     if "file" not in request.files:
@@ -317,7 +317,7 @@ def proceed_file_decryption():
         ), 400
 
 
-# Password generator
+# ========== Password generator ==========
 @api_route.route("/encryptor/password_generator", methods=["POST"])
 def password_generator():
     try:
@@ -369,7 +369,7 @@ def password_generator():
         ), 500
 
 
-# Text Converter
+# ========== Text Converter ==========
 @api_route.route("/converter", methods=["POST"])
 def converter_text():
     try:
@@ -455,13 +455,13 @@ def converter_text():
 
 
 #
-# Auth process
+# ========== Auth process ==========
 #
 
 user = UserManager()
 
 
-# Register
+# ========== Register ==========
 @api_route.route("/auth/register", methods=["POST"])
 def register():
     try:
@@ -511,7 +511,7 @@ def register():
         ), 500
 
 
-# Login
+# ========== Login ==========
 @api_route.route("/auth/login", methods=["POST"])
 def login():
     try:
@@ -546,7 +546,7 @@ def login():
         ), 500
 
 
-# Who am I?
+# ========== Who am I? ==========
 @api_route.route("/auth/whoami", methods=["GET"])
 @logged_in_only_api
 def whoAmI():
@@ -560,7 +560,7 @@ def whoAmI():
     return api_response("success", 200, f"Hello, {session['name']}", userData, {})
 
 
-# Check username availablity
+# ========== Check username availablity ==========
 @api_route.route("/account/username/available", methods=["POST"])
 def checkAvailablity():
     try:
@@ -594,7 +594,7 @@ def checkAvailablity():
         ), 500
 
 
-# Account update
+# ========== Account update ==========
 @api_route.route("/account/update", methods=["PATCH"])
 def updateProfile():
     try:
@@ -676,7 +676,7 @@ def updateProfile():
         ), 500
 
 
-# Change account password
+# ========== Change account password ==========
 @api_route.route("/account/change-password", methods=["PUT"])
 @logged_in_only_api
 def updateUserPassword():
@@ -708,7 +708,7 @@ def updateUserPassword():
         ), 500
 
 
-# Import data
+# ========== Import data ==========
 importer = DataImporter()
 
 
@@ -813,7 +813,7 @@ def importData():
         ), 500
 
 
-# Export data
+# ========== Export data ==========
 exporter = DataExporter()
 
 
@@ -899,7 +899,7 @@ def exportData():
         ), 500
 
 
-# Account delete
+# ========== Account delete ==========
 @api_route.route("/account/delete", methods=["DELETE"])
 @logged_in_only_api
 def deleteUserAccount():
@@ -929,13 +929,13 @@ def deleteUserAccount():
 
 
 #
-# Key manager
+# ========== Key manager ==========
 #
 
 keys = KeyManager()
 
 
-# Get all user keys
+# ========== Get all user keys ==========
 @api_route.route("/user/keys", methods=["GET"])
 @logged_in_only_api
 def listUserKeys():
@@ -953,7 +953,7 @@ def listUserKeys():
         ), 500
 
 
-# Get some user key
+# ========== Get some user key ==========
 @api_route.route("/user/key/<key_id>", methods=["GET"])
 @logged_in_only_api
 def listUserKey(key_id):
@@ -981,7 +981,7 @@ def listUserKey(key_id):
         ), 500
 
 
-# Create new encryption key
+# ========== Create new encryption key ==========
 @api_route.route("/user/key/create", methods=["POST"])
 @logged_in_only_api
 def createEncryptionKey():
@@ -1018,7 +1018,7 @@ def createEncryptionKey():
         ), 500
 
 
-# Edit encryption key
+# ========== Edit encryption key ==========
 @api_route.route("/user/key/<key_id>/edit", methods=["PUT"])
 @logged_in_only_api
 def editEncryptionKey(key_id):
@@ -1057,7 +1057,7 @@ def editEncryptionKey(key_id):
         ), 500
 
 
-# Delete key
+# ========== Delete key ==========
 @api_route.route("/user/key/<key_id>/delete", methods=["DELETE"])
 @logged_in_only_api
 def deleteKey(key_id):
@@ -1117,13 +1117,13 @@ def deleteManyKey():
 
 
 #
-# Password manager
+# ========== Password manager ==========
 #
 
 passwords = PasswordManager()
 
 
-# Get all user passwords
+# ========== Get all user passwords ==========
 @api_route.route("/user/passwords", methods=["GET"])
 @logged_in_only_api
 def listUserPasswords():
@@ -1143,7 +1143,7 @@ def listUserPasswords():
         ), 500
 
 
-# Get some user password
+# ========== Get some user password ==========
 @api_route.route("/user/password/<password_id>", methods=["GET"])
 @logged_in_only_api
 def listUserPassword(password_id):
@@ -1173,7 +1173,7 @@ def listUserPassword(password_id):
         ), 500
 
 
-# Create new password
+# ========== Create new password ==========
 @api_route.route("/user/password/create", methods=["POST"])
 @logged_in_only_api
 def createPassword():
@@ -1228,7 +1228,7 @@ def createPassword():
         ), 500
 
 
-# Save password from link
+# ========== Save password from link ==========
 @api_route.route("/user/password/save", methods=["POST"])
 @logged_in_only_api
 def savePassword():
@@ -1308,7 +1308,7 @@ def savePassword():
         ), 500
 
 
-# Edit password
+# ========== Edit password ==========
 @api_route.route("/user/password/<password_id>/edit", methods=["PUT"])
 @logged_in_only_api
 def editPassword(password_id):
@@ -1364,7 +1364,7 @@ def editPassword(password_id):
         ), 500
 
 
-# Share password
+# ========== Share password ==========
 @api_route.route("/user/password/share", methods=["POST"])
 @logged_in_only_api
 def sharePassword():
@@ -1408,7 +1408,7 @@ def sharePassword():
         ), 500
 
 
-# Export password
+# ========== Export password ==========
 @api_route.route("/user/password/export", methods=["POST"])
 @logged_in_only_api
 def exportPassword():
@@ -1512,7 +1512,7 @@ def exportPassword():
         ), 500
 
 
-# Delete password
+# ========== Delete password ==========
 @api_route.route("/user/password/<password_id>/delete", methods=["DELETE"])
 @logged_in_only_api
 def deletePassword(password_id):
@@ -1574,7 +1574,7 @@ def deleteManyPassword():
 recovery_method = Recovery()
 
 
-# Recovery
+# ========== Recovery ==========
 @api_route.route("/account/recovery", methods=["POST"])
 def recoverAccount():
     try:

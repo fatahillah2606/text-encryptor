@@ -66,7 +66,7 @@ class TextConverter:
 
         self.REVERSE_MORSE = {v: k for k, v in self.MORSE_CODE_DICT.items()}
 
-    # Morse code
+    # ========== Morse code ==========
     def to_morse(self, text: str) -> str:
         result = []
         for char in text.upper():
@@ -86,7 +86,7 @@ class TextConverter:
             )
         return " ".join(decoded_words)
 
-    # Binary
+    # ========== Binary ==========
     @classmethod
     def to_binary(cls, text: str) -> str:
         return " ".join(format(ord(c), "08b") for c in text)
@@ -95,7 +95,7 @@ class TextConverter:
     def from_binary(cls, binary_str: str) -> str:
         return "".join(chr(int(b, 2)) for b in binary_str.split())
 
-    # Hexadecimal
+    # ========== Hexadecimal ==========
     @classmethod
     def to_hex(cls, text: str) -> str:
         return text.encode("utf-8").hex()
@@ -107,7 +107,7 @@ class TextConverter:
         except ValueError:
             return ""
 
-    # Caesar Cipher
+    # ========== Caesar Cipher ==========
     @classmethod
     def to_rot13(cls, text: str) -> str:
         return codecs.encode(text, "rot_13")
@@ -116,7 +116,7 @@ class TextConverter:
     def from_rot13(cls, rot13_str: str) -> str:
         return codecs.decode(rot13_str, "rot_13")
 
-    # Atbash Cipher
+    # ========== Atbash Cipher ==========
     _ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
     _REVERSED_ALPHA = "ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
     _ATBASH_TABLE = str.maketrans(_ALPHA, _REVERSED_ALPHA)
@@ -129,7 +129,7 @@ class TextConverter:
     def from_atbash(cls, atbash_str: str) -> str:
         return atbash_str.translate(cls._ATBASH_TABLE)
 
-    # A1Z26
+    # ========== A1Z26 ==========
     @classmethod
     def to_a1z26(cls, text: str) -> str:
         return " ".join(str(ord(c.upper()) - 64) for c in text if c.isalpha())
@@ -143,7 +143,7 @@ class TextConverter:
                 result.append(chr(int(num) + 64))
         return "".join(result)
 
-    # Base64
+    # ========== Base64 ==========
     @classmethod
     def to_base64(cls, text: str) -> str:
         return base64.b64encode(text.encode("utf-8")).decode("utf-8")

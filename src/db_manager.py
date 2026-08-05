@@ -6,7 +6,7 @@ db_path = "db/vault_manager.db"
 old_db_path = "db/old_vault_manager.db"
 
 
-# Get database version
+# ========== Get database version ==========
 def get_db_version(path):
     if not os.path.exists(path):
         return None
@@ -20,7 +20,7 @@ def get_db_version(path):
     return version
 
 
-# Initialize the database
+# ========== Initialize the database ==========
 def initialize_db():
     if os.path.exists(db_path):
         version = get_db_version(db_path)
@@ -50,7 +50,7 @@ def initialize_db():
         create_database()
 
 
-# Create the database
+# ========== Create the database ==========
 def create_database():
     # check if db folder exist
     if not os.path.exists("db"):

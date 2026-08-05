@@ -9,7 +9,7 @@
         format("woff");
 }
 
-/* Plus Jakarta Sans font */
+/* ========== Plus Jakarta Sans font ========== */
 @font-face {
     font-family: "Plus Jakarta Sans";
     src: url("/static/fonts/Plus_Jakarta_Sans/PlusJakartaSans-VariableFont_wght.ttf");
@@ -37,7 +37,7 @@
     }
 }
 
-/* Scrollbar */
+/* ========== Scrollbar ========== */
 /* Target every single element in the project */
 *,
 *::before,
@@ -100,7 +100,7 @@ md-tabs::-webkit-scrollbar,
     display: none;
 }
 
-/* Main content */
+/* ========== Main content ========== */
 * {
     box-sizing: border-box;
 }
@@ -166,7 +166,7 @@ md-icon {
     justify-content: center;
 }
 
-/* MD Progress button */
+/* ========== MD Progress button ========== */
 md-filled-button .button-progress-indicator {
     background-color: var(--md-sys-color-primary);
 }
@@ -183,7 +183,7 @@ md-filled-button .button-progress-indicator md-circular-progress {
     --md-sys-color-primary: var(--md-sys-color-on-primary);
 }
 
-/* MD Buttons */
+/* ========== MD Buttons ========== */
 /* Secondary Color Role */
 .md-color-secondary {
     --md-filled-button-container-color: var(--md-sys-color-secondary);
@@ -226,6 +226,7 @@ md-filled-button .button-progress-indicator md-circular-progress {
     );
 }
 
+/* ========== Remove arrow on input number ========== */
 .remove-arrow::-webkit-inner-spin-button,
 .remove-arrow::-webkit-outer-spin-button {
     -webkit-appearance: none !important;
@@ -234,6 +235,15 @@ md-filled-button .button-progress-indicator md-circular-progress {
 
 .remove-arrow {
     -moz-appearance: textfield !important;
+}
+
+/* ========== Appbar ========== */
+.sunako-appbar-title {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-weight: 600;
+    font-size: var(--md-sys-typescale-title-large-size, 1.375rem);
+    line-height: var(--md-sys-typescale-title-large-line-height, 1.75rem);
+    letter-spacing: var(--md-sys-typescale-title-large-tracking, 0);
 }
 
 #selection-appbar > * {
@@ -249,6 +259,7 @@ md-filled-button .button-progress-indicator md-circular-progress {
     }
 }
 
+/* ========== Nav menu & Rail menu ========== */
 .rail-menu.active,
 .bar-menu.active {
     font-variation-settings: "FILL" 1;
@@ -263,6 +274,7 @@ md-filled-button .button-progress-indicator md-circular-progress {
     font-variation-settings: "FILL" 1;
 }
 
+/* ========== md-tabs ========== */
 /* md-tabs::part(divider) {
     display: none;
 } */
@@ -271,10 +283,12 @@ md-filled-button .button-progress-indicator md-circular-progress {
     display: none;
 }
 
+/* ========== Snackbar ========== */
 #snackbar md-text-button {
     --md-sys-color-primary: var(--md-sys-color-inverse-primary);
 }
-/* For import option on 'Account manager' */
+
+/* ========== For import option ========== */
 .upload-container {
     display: flex;
     flex-direction: column;
@@ -353,7 +367,7 @@ md-filled-button .button-progress-indicator md-circular-progress {
     width: 100%;
 }
 
-/* Transition showup */
+/* ========== Transition showup ========== */
 .transition-showup-start {
     transform: translateY(5%);
     opacity: 0;
@@ -363,15 +377,7 @@ md-filled-button .button-progress-indicator md-circular-progress {
     opacity: 1;
 }
 
-.sunako-appbar-title {
-    font-family: "Plus Jakarta Sans", sans-serif;
-    font-weight: 600;
-
-    font-size: var(--md-sys-typescale-title-large-size, 1.375rem);
-    line-height: var(--md-sys-typescale-title-large-line-height, 1.75rem);
-    letter-spacing: var(--md-sys-typescale-title-large-tracking, 0);
-}
-
+/* ========== Etc ========== */
 .default-textarea {
     background: none;
     border: none;

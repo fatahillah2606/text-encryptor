@@ -25,13 +25,13 @@ TEMP_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def get_secure_temp_path(prefix="file"):
-    """Generate a unique temporary path inside the root 'tmp' folder."""
+    # Generate a unique temporary path inside the root 'tmp' folder.
     filename = f"{prefix}_{os.urandom(8).hex()}.tmp"
     return str(TEMP_DIR / filename)
 
 
 def cleanup_temp_file(path):
-    """Safely delete the temporary file and force Python garbage collection."""
+    # Safely delete the temporary file and force Python garbage collection.
     try:
         if path and os.path.exists(path):
             os.remove(path)
@@ -40,12 +40,12 @@ def cleanup_temp_file(path):
         print(f"[TMP CLEANUP] Failed to delete {path}: {e}")
 
 
-# AES-128 Encryption
+# ========== AES-128 Encryption ==========
 class OldEncryption:
     def __init__(self) -> None:
         pass
 
-    # Get valid key from user input
+    # ========== Get valid key from user input ==========
     def get_valid_key(self, user_key):
         if not user_key:  # If empty, make new one
             generate_key = binascii.hexlify(
@@ -61,14 +61,14 @@ class OldEncryption:
         valid_key = {"encoded_key": key, "generated_key": generated_key}
         return valid_key
 
-    # Encryptor
+    # ========== Encryptor ==========
     def encrypt_aes(self, text, key):
         cipher = AES.new(key, AES.MODE_CBC)
         iv = cipher.iv  # Initialization Vector
         encrypted_message = cipher.encrypt(pad(text.encode(), AES.block_size))
         return iv, encrypted_message
 
-    # Decryptor
+    # ========== Decryptor ==========
     def decrypt_aes(self, text, key):
         iv = text[:16]
         cipher = AES.new(key, AES.MODE_CBC, iv)
@@ -76,12 +76,12 @@ class OldEncryption:
         return decrypted_message.decode()
 
 
-# AES-256 Encryption
+# ========== AES-256 Encryption ==========
 class NewEncryption:
     def __init__(self) -> None:
         pass
 
-    # Get valid key from user input
+    # ========== Get valid key from user input ==========
     def get_valid_key(self, user_key):
         if not user_key:
             generate_key = binascii.hexlify(get_random_bytes(32)).decode()
@@ -95,14 +95,14 @@ class NewEncryption:
         valid_key = {"encoded_key": key, "generated_key": generated_key}
         return valid_key
 
-    # Encryptor
+    # ========== Encryptor ==========
     def encrypt_aes(self, text, key):
         cipher = AES.new(key, AES.MODE_CBC)
         iv = cipher.iv
         encrypted_message = cipher.encrypt(pad(text.encode(), AES.block_size))
         return iv, encrypted_message
 
-    # Decryptor
+    # ========== Decryptor ==========
     def decrypt_aes(self, text, key):
         iv = text[:16]
         cipher = AES.new(key, AES.MODE_CBC, iv)
@@ -110,10 +110,12 @@ class NewEncryption:
         return decrypted_message.decode()
 
 
+# ========== File Encryption ==========
 class FileEncryptor:
     def __init__(self) -> None:
         pass
 
+    # ========== Encrypt file ==========
     def encrypt_file(self, file, password):
         # Save to project's /tmp directory
         temp_path = get_secure_temp_path("encrypt")
@@ -201,6 +203,7 @@ class FileEncryptor:
             cleanup_temp_file(temp_path)
             return "error", str(e)
 
+    # ========== Decrypt file ==========
     def decrypt_file(self, file, password):
         # Tempoary save the file
         temp_path = get_secure_temp_path("decrypt")
@@ -331,7 +334,7 @@ class FileEncryptor:
             return "error", str(e)
 
 
-# Password Generator
+# ========== Password Generator ==========
 def generate_password(passLenth):
     try:
         characters = string.ascii_letters + string.digits + string.punctuation

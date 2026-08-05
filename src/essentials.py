@@ -13,14 +13,14 @@ from flask import session
 from src.encryptor import NewEncryption
 
 
-# bcrypt hashing
+# ========== scrypt hashing ==========
 def scryptHashing(text):
     salt = os.urandom(16)
     hashed_bytes = hashlib.scrypt(text.encode("utf-8"), salt=salt, n=16384, r=8, p=1)
     return salt + hashed_bytes
 
 
-# bcrypt check
+# ========== scrypt check ==========
 def scryptCheck(text, hashedText):
     try:
         salt = hashedText[:16]
@@ -33,7 +33,7 @@ def scryptCheck(text, hashedText):
         return False
 
 
-# Create login session
+# ========== Create login session ==========
 def createLoginSession(user_id, name, username, key):
     session.permanent = True
     session["expired"] = (datetime.now(timezone.utc) + timedelta(minutes=5)).isoformat()
@@ -44,7 +44,7 @@ def createLoginSession(user_id, name, username, key):
     session["key"] = key
 
 
-# Generate share link
+# ========== Generate share link ==========
 linkEncryptor = NewEncryption()
 
 
@@ -75,7 +75,7 @@ def generate_share_link(raw_text):
     return blob, one_time_key
 
 
-# Decrypt payload
+# ========== Decrypt payload ==========
 def decrypt_payload(ciphertext_b64, key):
     # Decode URL-safe base64 and decompress
     compressed_data = base64.urlsafe_b64decode(ciphertext_b64)
@@ -83,7 +83,7 @@ def decrypt_payload(ciphertext_b64, key):
 
     # Convert to dictionary and decrypt the content
     try:
-        data = json.loads(decrypted_json_bytes.decode('utf-8'))
+        data = json.loads(decrypted_json_bytes.decode("utf-8"))
 
         # Check the expired time first
         current_time = int(time.time())
@@ -92,7 +92,9 @@ def decrypt_payload(ciphertext_b64, key):
 
         valid_key = linkEncryptor.get_valid_key(key)
         convert_content = binascii.unhexlify(data["d"])
-        decrypted_content = linkEncryptor.decrypt_aes(convert_content, valid_key["encoded_key"])
+        decrypted_content = linkEncryptor.decrypt_aes(
+            convert_content, valid_key["encoded_key"]
+        )
 
         return "success", decrypted_content
 

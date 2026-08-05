@@ -44,7 +44,7 @@
             <div
                 class="flex flex-col md:flex-row items-start justify-between gap-6 md:gap-12"
             >
-                <!-- Left content -->
+                <!-- ========== Left content ========== -->
                 <div class="w-full">
                     <h1 class="md-typescale-display-small text-md-on-surface">
                         Register
@@ -84,14 +84,14 @@
                     </div>
                     {% endif %}
                 </div>
-                <!-- Right content -->
+                <!-- ========== Right content ========== -->
                 <div class="w-full relative overflow-hidden">
                     <form action="" id="register_form" name="register_form">
                         <div
                             id="slider"
                             class="flex w-full h-full transition-transform duration-500 ease-in-out"
                         >
-                            <!-- User name & account content -->
+                            <!-- ========== User name & account content ========== -->
                             <div
                                 id="account-content"
                                 class="w-full shrink-0 h-full py-4 flex flex-col justify-between"
@@ -158,7 +158,7 @@
                                 </div>
                             </div>
 
-                            <!-- Password content -->
+                            <!-- ========== Password content ========== -->
                             <div
                                 class="w-full shrink-0 h-full p-4 flex flex-col justify-between"
                             >
@@ -226,6 +226,9 @@
                     </form>
                 </div>
             </div>
+
+            <!-- Toast -->
+            {% include 'components/snackbar.html' %}
         </section>
 
         <!-- Alert Dialog -->
@@ -238,7 +241,7 @@
             // Prograss bar
             const progressBar = document.querySelector("md-linear-progress");
 
-            /* Field validity */
+            /* ========== Field validity ========== */
             const allField = document.querySelectorAll(
                 "md-outlined-text-field",
             );
@@ -265,7 +268,7 @@
                 });
             });
 
-            /* Slide animation */
+            /* ========== Slide animation ========== */
             const slider = document.querySelector("#slider");
 
             async function slideNext() {
@@ -321,7 +324,7 @@
                 slider.style.transform = "translateX(0)";
             }
 
-            /* Auth */
+            /* ========== Auth ========== */
             const regist_api = "/api/auth/register";
             const registerForm = document.getElementById("register_form");
             const retypePw = document.querySelector("#retype_password");

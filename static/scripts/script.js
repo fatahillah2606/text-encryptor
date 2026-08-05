@@ -1,4 +1,4 @@
-// Toggle menu
+// ========== Toggle menu ==========
 const navrail = document.getElementById("navrail");
 if (navrail) {
     const railMenuList = navrail.querySelectorAll("a");
@@ -88,7 +88,7 @@ if (navrail) {
     });
 }
 
-// Profile menu
+// ========== Profile menu ==========
 const userProfile = document.body.querySelector("#user-profile");
 const profileMenu = document.body.querySelector("#profile-menu");
 if (userProfile) {
@@ -97,7 +97,7 @@ if (userProfile) {
     });
 }
 
-// Select option menu
+// ========== Select option menu ==========
 const moreSelectOpt = document.body.querySelector("#more-select-opt");
 const moreSelectMenu = document.body.querySelector("#more-select-menu");
 if (moreSelectOpt) {
@@ -106,12 +106,12 @@ if (moreSelectOpt) {
     });
 }
 
-// Move page
+// ========== Move page ==========
 function movePage(uri) {
     location.href = uri;
 }
 
-// Snackbar
+// ========== Snackbar ==========
 let autoDismiss;
 
 function showSnackbar(message, action = null) {
@@ -193,7 +193,7 @@ function dismissSnackbar(callback = null) {
     }, 150);
 }
 
-// Alert dialog
+// ========== Alert dialog ==========
 async function showAlert(headline, content) {
     // Close all dialog first
     closeAllOpenDialogs();
@@ -210,7 +210,7 @@ async function showAlert(headline, content) {
     }
 }
 
-// Copy text
+// ========== Copy text ==========
 function copyText(field, copyBtn) {
     const element = document.getElementById(field);
     if (!element) return;
@@ -267,7 +267,7 @@ function copyTextIconBtn(field, copyIconBtn, event) {
         });
 }
 
-// Show password
+// ========== Show password ==========
 function showPasswordCheckBox(elmCheckBox, elmPasswords) {
     // Get all password elm
     const passwordField = elmPasswords.map((id) => document.getElementById(id));
@@ -287,7 +287,7 @@ function showPw(checkboxId, fieldId) {
     });
 }
 
-// Increase value
+// ========== Increase value ==========
 function increaseValue(field) {
     const numField = document.getElementById(field);
     let value = parseInt(numField.value, 10);
@@ -310,7 +310,7 @@ function decreaseValue(field) {
     numField.value = value;
 }
 
-// Supporting text
+// ========== Supporting text ==========
 function showSupportText(elm, message) {
     elm.error = true;
     elm.errorText = message;
@@ -320,13 +320,13 @@ function hideSupportText(elm) {
     elm.error = false;
 }
 
-// auto generate key
+// ========== auto generate key ==========
 async function generateAndSetKey() {
     const data = await generateEncryptionKey();
     saveKeyToSession(data);
 }
 
-// Set manual key
+// ========== Set manual key ==========
 const key_api_uri = "/api/encryptor/encryption_key";
 async function setEncryptionKey(theKey) {
     try {
@@ -344,7 +344,7 @@ async function setEncryptionKey(theKey) {
     }
 }
 
-// Generate key
+// ========== Generate key ==========
 async function generateKey(elmId) {
     try {
         const elm = document.querySelector(elmId);
@@ -360,7 +360,7 @@ async function generateKey(elmId) {
     }
 }
 
-// Save encryption key to session storage
+// ========== Save encryption key to session storage ==========
 function saveKeyToSession(data) {
     keyData = { name: data.key_name, key: data.encryption_key };
     sessionStorage.setItem("encryption_key", JSON.stringify(keyData));
@@ -369,13 +369,13 @@ function saveKeyToSession(data) {
     checkEncryptionKey();
 }
 
-// logout
+// ========== logout ==========
 function logout() {
     sessionStorage.clear();
     location.href = "/pages/logout";
 }
 
-// Confirm dialog
+// ========== Confirm dialog ==========
 async function confirmDialog(dialogId, headline, content) {
     const dialog = document.getElementById(dialogId);
 
@@ -394,7 +394,7 @@ async function confirmDialog(dialogId, headline, content) {
     });
 }
 
-// Search
+// ========== Search ==========
 const searchBar = document.getElementById("search-bar");
 
 if (searchBar) {
@@ -440,7 +440,7 @@ function filterSearch(search_value) {
     }
 }
 
-// Enable submit button only if all field is not empty
+// ========== Enable submit button only if all field is not empty ==========
 function requireAllFields(fields, submitBtn) {
     submitBtn.disabled = true;
 
@@ -457,7 +457,7 @@ function requireAllFields(fields, submitBtn) {
     });
 }
 
-// Timestamp
+// ========== Timestamp ==========
 function timeStamp() {
     const now = new Date();
 
@@ -473,7 +473,7 @@ function timeStamp() {
     return timestamp;
 }
 
-// Tempoary object url
+// ========== Tempoary object url ==========
 function tempoaryUrl(blob, nameFile, fileType) {
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
@@ -489,7 +489,7 @@ function tempoaryUrl(blob, nameFile, fileType) {
     URL.revokeObjectURL(url);
 }
 
-// Check session
+// ========== Check session ==========
 async function checkSession() {
     try {
         const apiUri = "/api/auth/whoami";
@@ -503,7 +503,7 @@ async function checkSession() {
     }
 }
 
-// Close all opened dialog
+// ========== Close all opened dialog ==========
 function closeAllOpenDialogs() {
     const openDialogs = document.querySelectorAll("md-dialog[open]");
 
@@ -516,7 +516,7 @@ function closeAllOpenDialogs() {
     });
 }
 
-// Debounce helper function
+// ========== Debounce helper function ==========
 function debounce(func, delay = 300) {
     let timeoutId;
     return function (...args) {
@@ -528,7 +528,7 @@ function debounce(func, delay = 300) {
     };
 }
 
-// For textarea on tools page
+// ========== For textarea on tools page ==========
 // Auto-resize textarea height
 function autoResizeTextarea(textarea) {
     textarea.style.height = "auto";
@@ -556,7 +556,7 @@ function resetTextarea(textarea) {
     textarea.classList.add("sm:text-xl");
 }
 
-// Helper function to format bytes into readable sizes
+// ========== Helper function to format bytes into readable sizes ==========
 function formatFileSize(bytes) {
     if (bytes === 0) return "0 Bytes";
     const k = 1024;

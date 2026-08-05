@@ -11,7 +11,7 @@
     >
         <div class="flex justify-center">
             <div class="w-full max-w-2xl animate-showup">
-                <!-- Heading -->
+                <!-- ========== Heading ========== -->
                 <div
                     class="flex items-center justify-start gap-2.5 bg-md-background z-10"
                 >
@@ -22,7 +22,7 @@
                     </h1>
                 </div>
 
-                <!-- Main -->
+                <!-- ========== Main ========== -->
                 <div class="flex flex-col gap-8">
                     <div
                         class="rounded-2xl overflow-hidden flex flex-col gap-1"
@@ -137,7 +137,7 @@
                         </div>
                     </div>
 
-                    <!-- Data Management -->
+                    <!-- ========== Data Management ========== -->
                     <div>
                         <h2
                             class="md-typescale-body-large text-md-on-surface font-bold! mt-0"
@@ -195,7 +195,7 @@
                         </div>
                     </div>
 
-                    <!-- Account Termination -->
+                    <!-- ========== Account Termination ========== -->
                     <div>
                         <h2
                             class="md-typescale-body-large text-md-on-surface font-bold! mt-0"
@@ -238,7 +238,7 @@
 
 <!-- Modals -->
 {% block modals %}
-<!-- Modal for edit account -->
+<!-- ========== Modal for edit account ========== -->
 <md-dialog id="edit-account-modal">
     <div slot="headline">Headline</div>
 
@@ -313,7 +313,7 @@
     </div>
 </md-dialog>
 
-<!-- Import dialog -->
+<!-- ========== Import dialog ========== -->
 <md-dialog id="import-dialog">
     <div slot="headline">
         <div class="flex flex-col gap-1">
@@ -494,7 +494,7 @@
     </div>
 </md-dialog>
 
-<!-- Export dialog -->
+<!-- ========== Export dialog ========== -->
 <md-dialog id="export-dialog">
     <div slot="headline">
         <div class="flex flex-col gap-1">
@@ -685,7 +685,7 @@
     </div>
 </md-dialog>
 
-<!-- Confirm delete dialog -->
+<!-- ========== Confirm delete dialog ========== -->
 <md-dialog id="confirm-delete">
     <div slot="headline"></div>
     <md-icon slot="icon">warning</md-icon>
@@ -724,6 +724,7 @@
         "show_password_container",
     );
 
+    // ========== Biodata ==========
     // Form dialog
     async function formDialog(name, headline, label, type) {
         dialogElm.querySelector('[slot="headline"]').innerText = headline;
@@ -853,7 +854,7 @@
         }
     }
 
-    // Import option
+    // ========== Import option ==========
     const browseBtn = document.getElementById("browse-btn");
     const fileInput = document.getElementById("file_input");
     const dropZone = document.getElementById("drop-zone");
@@ -1139,7 +1140,7 @@
         }
     });
 
-    // Export option
+    // ========== Export option ==========
     const radioJson = document.getElementById("option-json");
     const radioCsv = document.getElementById("option-csv");
     const cryptoSwitch = document.getElementById("crypto-switch");
@@ -1277,7 +1278,7 @@
         }
     });
 
-    // Delete account
+    // ========== Delete account ==========
     async function deleteAccount() {
         const dialogId = "confirm-delete";
         const headline = "Delete account";
@@ -1304,7 +1305,7 @@
         }
     }
 
-    // Load userdata
+    // ========== Load userdata ==========
     async function loadUserData() {
         try {
             const result = await sendRequest(whoami, {}, "GET");

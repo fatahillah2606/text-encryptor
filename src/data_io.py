@@ -12,13 +12,13 @@ from Crypto.Protocol.KDF import PBKDF2
 from src.data_manager import UserManager
 
 
-# Importer
+# ========== Importer ==========
 class DataImporter:
     def __init__(self):
         self._ITERATIONS = 600000
         self.usermgr = UserManager()
 
-    # Derive key from user password
+    # ========== Derive key from user password ==========
     def _derive_key(self, password: str, salt: bytes, iterations: int) -> bytes:
         return PBKDF2(
             password=password,
@@ -28,7 +28,7 @@ class DataImporter:
             hmac_hash_module=SHA256,
         )
 
-    # Decrypt the data
+    # ========== Decrypt the data ==========
     def decrypt_data(self, json_data, password: str) -> list:
         payload = base64.b64decode(json_data["data"])
 
@@ -63,7 +63,7 @@ class DataImporter:
                 "The encryption password is incorrect or the data is corrupted. Ensure the password is correct and try again.",
             )
 
-    # Import into database
+    # ========== Import into database ==========
     def import_into_db(self, json_data, user_id, master_key):
         try:
             keys = json_data.get("keys", [])
@@ -103,7 +103,7 @@ class DataImporter:
         except Exception as err:
             return "error", str(err)
 
-    # Compatibility mode import (csv)
+    # ========== Compatibility mode import (csv) ==========
     def process_csv(self, csv_data):
         if csv_data.startswith("\ufeff"):
             csv_data = csv_data.lstrip("\ufeff")
@@ -171,13 +171,13 @@ class DataImporter:
         return "success", parsed_passwords
 
 
-# Exporter
+# ========== Exporter ==========
 class DataExporter:
     def __init__(self, version: str = "2.3.0"):
         self.version = version
         self._ITERATIONS = 600000
 
-    # For generating header/metadata
+    # ========== For generating header/metadata ==========
     def _generate_metadata(self, is_encrypted: bool, salt: bytes = None) -> dict:
         metadata = {
             "version": self.version,
@@ -187,7 +187,7 @@ class DataExporter:
         }
         return metadata
 
-    # Derives a secure 256-bit key from user password
+    # ========== Derives a secure 256-bit key from user password ==========
     def _derive_key(self, password: str, salt: bytes) -> bytes:
         return PBKDF2(
             password=password,
@@ -197,7 +197,7 @@ class DataExporter:
             hmac_hash_module=SHA256,
         )
 
-    # Export data without encryption
+    # ========== Export data without encryption ==========
     def export_unencrypted(self, vault_items: list) -> str:
         output = {}
         keys = []
@@ -235,7 +235,7 @@ class DataExporter:
 
         return json.dumps(output, indent=4)
 
-    # Export the data with encryption
+    # ========== Export the data with encryption ==========
     def export_encrypted(self, vault_items: list, encrypt_pw: str) -> str:
         keys = []
         passwords = []
@@ -312,7 +312,7 @@ class DataExporter:
         }
         return json.dumps(output, indent=4)
 
-    # Compatibility mode export (csv)
+    # ========== Compatibility mode export (csv) ==========
     def export_csv(self, user_passwords):
         # Create in-memory string buffer
         output = io.StringIO()

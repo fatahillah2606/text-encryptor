@@ -1,7 +1,7 @@
 <div
     class="w-full h-18 shrink-0 bg-md-background md:bg-md-surface-container flex items-center justify-between z-50 sticky top-0"
 >
-    <!-- Icon and lable -->
+    <!-- ========== Icon and lable ========== -->
     <div class="flex items-center justify-start">
         <!-- Logo and menu icon -->
         <div class="hidden w-24 md:flex items-center justify-center">
@@ -33,7 +33,7 @@
         </div>
     </div>
 
-    <!-- User profile -->
+    <!-- ========== User profile ========== -->
     <div class="relative flex items-center justify-center mr-5 gap-2.5">
         <md-icon-button onclick="openKeyModal()" title="Encryption key">
             <md-icon>key_vertical</md-icon>
@@ -69,7 +69,7 @@
         {% endif %}
     </div>
 
-    <!-- For multi-select option -->
+    <!-- ========== For multi-select option ========== -->
     <div
         class="absolute top-0 left-0 w-full h-full bg-md-surface-container flex hidden items-center justify-between px-2.5 md:px-0"
         id="selection-appbar"
@@ -132,6 +132,7 @@
                 {% endif %}
             </div>
 
+            <!-- ========== For small screen (mobile) ========== -->
             <div class="md:hidden relative">
                 <md-icon-button id="more-select-opt">
                     <md-icon>more_vert</md-icon>

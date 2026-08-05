@@ -6,10 +6,12 @@
 <!-- Section -->
 {% block section %}
 <section class="main-section">
-    <div class="bg-md-background md:rounded-4xl overflow-auto p-5 pt-0 md:pt-5 h-full">
+    <div
+        class="bg-md-background md:rounded-4xl overflow-auto p-5 pt-0 md:pt-5 h-full"
+    >
         <div class="flex justify-center">
             <div class="w-full max-w-2xl animate-showup">
-                <!-- Heading -->
+                <!-- ========== Heading ========== -->
                 <div
                     class="flex items-center justify-start gap-2.5 bg-md-background z-10"
                 >
@@ -20,7 +22,7 @@
                     </h1>
                 </div>
 
-                <!-- Search bar -->
+                <!-- ========== Search bar ========== -->
                 <search
                     class="w-full h-12 overflow-hidden rounded-full bg-md-surface-container-high mb-5 relative"
                     id="search-bar"
@@ -50,7 +52,7 @@
                     <md-ripple></md-ripple>
                 </search>
 
-                <!-- Main -->
+                <!-- ========== Main ========== -->
                 <div class="flex flex-col gap-8">
                     <div class="flex flex-col gap-1" id="data_list">
                         <md-circular-progress
@@ -68,7 +70,7 @@
 <!-- Modals -->
 {% block modals %}
 
-<!-- Modal for new/add account -->
+<!-- ========== Modal for new/add account ========== -->
 <md-dialog id="new-key-modal">
     <div slot="headline">Add new key</div>
 
@@ -128,7 +130,7 @@
     </div>
 </md-dialog>
 
-<!-- Modal for edit existing account -->
+<!-- ========== Modal for edit existing account ========== -->
 <md-dialog id="edit-key-modal">
     <div slot="headline">Key info</div>
 
@@ -225,7 +227,7 @@
     </div>
 </md-dialog>
 
-<!-- Confirm delete dialog -->
+<!-- ========== Confirm delete dialog ========== -->
 <md-dialog id="confirm-delete">
     <div slot="headline">Dialog headline</div>
     <md-icon slot="icon">delete_forever</md-icon>
@@ -238,7 +240,7 @@
     </div>
 </md-dialog>
 
-<!-- Progress Dialog -->
+<!-- ========== Progress Dialog ========== -->
 <md-dialog id="progress-dialog">
     <div slot="headline"></div>
     <form
@@ -263,7 +265,7 @@
 <!-- Script -->
 {% block script %}
 <script>
-    // Define variable
+    // ========== Define variable ==========
     // API
     const createNewKeyApi = "/api/user/key/create";
 
@@ -286,10 +288,7 @@
     // Progress dialog
     const progressDialog = document.getElementById("progress-dialog");
 
-    /*
-     ** For the process of adding key
-     */
-
+    // ========== For the process of adding key ==========
     // Show/Close new key modal
     async function openNewKeyModal() {
         // Clear the form first
@@ -353,10 +352,7 @@
         }
     });
 
-    /*
-     ** For part of the key editing process
-     */
-
+    // ========== For part of the key editing process ==========
     // Show/Close edit key modal
     async function openEditKeyModal(uri) {
         // Reset everything first
@@ -535,7 +531,7 @@
         }
     });
 
-    // Delete key
+    // ========== Delete key ==========
     async function deleteKey(keysId, state_backed = false) {
         if (keysId && keysId.trim() !== "") {
             closeEditKeyModal();
@@ -574,7 +570,7 @@
         }
     }
 
-    // Delete selected keys
+    // ========== Delete selected keys ==========
     async function deleteSelected() {
         const choise = await confirmDialog(
             "confirm-delete",
@@ -609,7 +605,7 @@
         }
     }
 
-    // Load keys
+    // ========== Load keys ==========
     let allKeys = [];
     let visibleKeyCount = 0;
     let keyAnimationTimeouts = [];

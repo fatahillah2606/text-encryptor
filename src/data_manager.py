@@ -6,7 +6,7 @@ from src.encryptor import NewEncryption, OldEncryption
 from src.essentials import scryptCheck, scryptHashing
 
 #
-# User manager
+# ========== User manager ==========
 #
 
 
@@ -18,7 +18,7 @@ class UserManager:
         self.keys = KeyManager()
         self.new_encryption = NewEncryption()
 
-    # Get availabel users
+    # ========== Get availabel users ==========
     def getAvailableUsers(self):
         query = "SElECT name, username FROM users"
 
@@ -41,7 +41,7 @@ class UserManager:
         except sqlite3.Error as err:
             return f"An error occurred in the database. \nError message: {str(err)}"
 
-    # Check user availablity
+    # ========== Check user availablity ==========
     def checkUsername(self, username):
         query = "SELECT username FROM users WHERE username = ?"
 
@@ -68,7 +68,7 @@ class UserManager:
                 f"An error occurred in the database. \nError message: {str(err)}",
             )
 
-    # Register
+    # ========== Register ==========
     def register(self, name, username, password):
         query = "INSERT INTO users (name, username, password_hash) VALUES (?, ?, ?)"
 
@@ -93,7 +93,7 @@ class UserManager:
         except sqlite3.Error as err:
             return f"An error occurred in the database. \nError message: {str(err)}"
 
-    # Authentication
+    # ========== Authentication ==========
     def authenticate(self, username, password):
         query = "SELECT * FROM users WHERE username = ?"
 
@@ -127,7 +127,7 @@ class UserManager:
                 f"An error occurred in the database. \nError message: {str(err)}",
             )
 
-    # Update profile
+    # ========== Update profile ==========
     def updateProfile(self, user_id, updates):
         try:
             if not updates:
@@ -154,7 +154,7 @@ class UserManager:
                 f"An error occurred in the database. \nError message: {str(err)}",
             )
 
-    # update password
+    # ========== update password ==========
     def updateProfilePassword(self, new_password, userId, currentPassword):
         try:
             # Get all keys made by user
@@ -226,7 +226,7 @@ class UserManager:
                 f"An error occurred in the database. \nError message: {str(err)}",
             )
 
-    # Import data
+    # ========== Import data ==========
     # Key importing
     def import_keys(self, dataSheet, user_id, master_key):
         query = "INSERT INTO keys (user_id, key_name, encrypted_key, key_iv) VALUES (?, ?, ?, ?)"
@@ -314,7 +314,7 @@ class UserManager:
                 f"An error occurred in the database. \nError message: {str(err)}",
             )
 
-    # Export data
+    # ========== Export data ==========
     def user_saved_keys(self, user_id, key):
         query = "SELECT * FROM keys WHERE user_id = ?"
 
@@ -424,7 +424,7 @@ class UserManager:
                 f"An error occurred in the database. \nError message: {str(err)}",
             )
 
-    # Delete profile
+    # ========== Delete profile ==========
     def deleteProfile(self, user_id):
         try:
             query = "DELETE FROM users WHERE user_id = ?"
@@ -453,7 +453,7 @@ class UserManager:
 
 
 #
-# Key manager
+# ========== Key manager ==========
 #
 
 
@@ -462,7 +462,7 @@ class KeyManager:
         self.db_path = db_path
         self.new_encryption = NewEncryption()
 
-    # Get all user key
+    # ========== Get all user key ==========
     def get_user_key_all(self, user_id, master_key):
         query = "SELECT * FROM keys WHERE user_id = ?"
 
@@ -508,7 +508,7 @@ class KeyManager:
         except sqlite3.Error as err:
             return f"An error occurred in the database. \nError message: {str(err)}"
 
-    # Get user key
+    # ========== Get user key ==========
     def get_user_key(self, key_id, user_id, master_key):
         query = "SELECT * FROM keys WHERE key_id = ? AND user_id = ?"
 
@@ -551,7 +551,7 @@ class KeyManager:
         except sqlite3.Error as err:
             return f"An error occurred in the database. \nError message: {str(err)}"
 
-    # Create key
+    # ========== Create key ==========
     def create_user_key(self, keyName, theKey, user_id, session_key):
         query = "INSERT INTO keys (user_id, key_name, encrypted_key, key_iv) VALUES (?, ?, ?, ?)"
 
@@ -578,7 +578,7 @@ class KeyManager:
                 f"An error occurred in the database. \nError message: {str(err)}",
             )
 
-    # Edit key
+    # ========== Edit key ==========
     def edit_user_key(self, key_id, keyName, theKey, user_id, session_key):
         try:
             # Get the current key first
@@ -711,7 +711,7 @@ class KeyManager:
                 f"An error occurred in the database. \nError message: {str(err)}",
             )
 
-    # Delete key
+    # ========== Delete key ==========
     def delete_user_key(self, key_id):
         query = "DELETE FROM keys WHERE key_id = ?"
 
@@ -740,7 +740,7 @@ class KeyManager:
 
 
 #
-# Password manager
+# ========== Password manager ==========
 #
 
 
@@ -752,7 +752,7 @@ class PasswordManager:
         self.keys = KeyManager()
         self.new_encryption = NewEncryption()
 
-    # Get all user passwords
+    # ========== Get all user passwords ==========
     def get_user_password_all(self, user_id, master_key):
         query = "SELECT * FROM passwords WHERE user_id = ?"
 
@@ -789,7 +789,7 @@ class PasswordManager:
         except sqlite3.Error as err:
             return f"An error occurred in the database. \nError message: {str(err)}"
 
-    # Get user password
+    # ========== Get user password ==========
     def get_user_password(self, password_id, user_id, master_key):
         query = "SELECT * FROM passwords WHERE password_id = ? AND user_id = ?"
 
@@ -862,7 +862,7 @@ class PasswordManager:
         except sqlite3.Error as err:
             return f"An error occurred in the database. \nError message: {str(err)}"
 
-    # Create password
+    # ========== Create password ==========
     def create_user_password(
         self,
         serviceUrl,
@@ -922,7 +922,7 @@ class PasswordManager:
                 f"An error occurred in the database. \nError message: {str(err)}",
             )
 
-    # Edit password
+    # ========== Edit password ==========
     def edit_user_password(
         self,
         serviceUrl,
@@ -983,7 +983,7 @@ class PasswordManager:
                 f"An error occurred in the database. \nError message: {str(err)}",
             )
 
-    # Delete password
+    # ========== Delete password ==========
     def delete_user_password(self, password_id):
         query = "DELETE FROM passwords WHERE password_id = ?"
 
@@ -1011,14 +1011,16 @@ class PasswordManager:
             )
 
 
-# Recovery
+#
+# ========== Recovery ==========
+#
 class Recovery:
     def __init__(self, old_db_path=os.path.join("db", "old_vault_manager.db")):
         self.db_path = old_db_path
         self.user_manager = UserManager(old_db_path)
         self.old_encryption = OldEncryption()
 
-    # Check if there was a user in old database
+    # ========== Check if there was a user in old database ==========
     def check_old_users(self):
         if os.path.exists(self.db_path):
             with sqlite3.connect(self.db_path) as conn:
@@ -1032,7 +1034,7 @@ class Recovery:
     def getRecoverableAccounts(self):
         return self.user_manager.getAvailableUsers()
 
-    # Get user information
+    # ========== Get user information ==========
     def get_user_information(self, username):
         query = "SELECT * FROM users WHERE username = ?"
 
@@ -1061,11 +1063,11 @@ class Recovery:
         except sqlite3.Error as err:
             return f"An error occurred in the database. \nError message: {str(err)}"
 
-    # Delete old user account
+    # ========== Delete old user account ==========
     def delete_old_account(self, user_id):
         return self.user_manager.deleteProfile(user_id)
 
-    # Get all key from old db
+    # ========== Get all key from old db ==========
     def user_saved_keys(self, user_id, master_key):
         query = "SELECT * FROM keys WHERE user_id = ?"
 
@@ -1116,7 +1118,7 @@ class Recovery:
                 f"An error occurred in the database, \nError message: {str(err)}",
             )
 
-    # Get key from old db
+    # ========== Get key from old db ==========
     def get_user_key(self, key_id, user_id, master_key):
         query = "SELECT * FROM keys WHERE key_id = ? AND user_id = ?"
 
@@ -1156,7 +1158,7 @@ class Recovery:
         except sqlite3.Error as err:
             return f"An error occurred in the database. \nError message: {str(err)}"
 
-    # Get all password from old db
+    # ========== Get all password from old db ==========
     def user_saved_accounts(self, user_id, master_key):
         try:
             query = "SELECT * FROM passwords WHERE user_id = ?"

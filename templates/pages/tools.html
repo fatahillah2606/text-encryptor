@@ -11,7 +11,7 @@
     >
         <div class="flex justify-center animate-showup">
             <div class="w-full max-w-7xl">
-                <!-- Tabs -->
+                <!-- ========== Tabs ========== -->
                 <md-tabs
                     class="sticky top-0 md:-top-5 z-10"
                     id="tools-tab"
@@ -38,16 +38,23 @@
                     >
                         Converter
                     </md-primary-tab>
-                    <md-primary-tab>Steganography</md-primary-tab>
+                    <md-primary-tab
+                        id="steganography-tab"
+                        aria-controls="steganography-panel"
+                        onclick="movePage('#steganography')"
+                        class="hidden"
+                    >
+                        Steganography
+                    </md-primary-tab>
                 </md-tabs>
 
-                <!-- Panels -->
+                <!-- ========== Panels ========== -->
                 <div class="w-full relative overflow-hidden mt-5">
                     <div
                         id="slider"
                         class="flex w-full h-full transition-transform duration-300 ease-in-out"
                     >
-                        <!-- Encryptor -->
+                        <!-- ========== Encryptor ========== -->
                         <div
                             id="encryptor-panel"
                             role="tabpanel"
@@ -68,7 +75,7 @@
                                     id="encryptor-slider"
                                     class="flex w-full h-full transition-transform duration-300 ease-in-out"
                                 >
-                                    <!-- Text encryptor -->
+                                    <!-- ========== Text encryptor ========== -->
                                     <div
                                         class="px-5 md:px-0 w-full shrink-0 h-full"
                                     >
@@ -185,7 +192,7 @@
                                         </div>
                                     </div>
 
-                                    <!-- File encryptor -->
+                                    <!-- ========== File encryptor ========== -->
                                     <div
                                         class="px-5 md:px-0 w-full shrink-0 h-full"
                                     >
@@ -361,7 +368,7 @@
                                                                     id="encrypt_submit_btn"
                                                                     class="relative overflow-hidden"
                                                                 >
-                                                                    Encrypt File
+                                                                    Encrypt
                                                                     <md-icon
                                                                         slot="icon"
                                                                     >
@@ -497,14 +504,6 @@
                                                                     label="Key / Password"
                                                                     required
                                                                 ></md-outlined-text-field>
-                                                                <p
-                                                                    class="md-typescale-body-small text-md-outline m-0"
-                                                                >
-                                                                    Enter the
-                                                                    key used
-                                                                    during
-                                                                    encryption.
-                                                                </p>
                                                             </div>
 
                                                             <div
@@ -552,7 +551,7 @@
                                                                     id="decrypt_submit_btn"
                                                                     class="relative overflow-hidden"
                                                                 >
-                                                                    Decrypt File
+                                                                    Decrypt
                                                                     <md-icon
                                                                         slot="icon"
                                                                     >
@@ -577,7 +576,7 @@
                             </div>
                         </div>
 
-                        <!-- Password Generator -->
+                        <!-- ========== Password Generator ========== -->
                         <div
                             id="passgen-panel"
                             role="tabpanel"
@@ -783,7 +782,7 @@
                             </div>
                         </div>
 
-                        <!-- Text converter -->
+                        <!-- ========== Text converter ========== -->
                         <div
                             id="converter-panel"
                             role="tabpanel"
@@ -932,6 +931,102 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- ========== Steganography (Postponed) ========== -->
+                        <div
+                            id="steganography-panel"
+                            role="tabpanel"
+                            aria-labelledby="steganography-tab"
+                            class="w-full h-full shrink-0 relative"
+                        >
+                            <div
+                                class="absolute top-0 left-0 w-full h-full bg-md-background z-50"
+                            ></div>
+                            <div class="px-5 md:px-0 grid grid-cols-2 gap-3">
+                                <div
+                                    class="rounded-2xl overflow-hidden flex flex-col gap-1 col-span-2 sm:col-span-1"
+                                >
+                                    <!-- title -->
+                                    <div
+                                        class="p-5 bg-md-surface-container rounded-md"
+                                    >
+                                        <h2
+                                            class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
+                                        >
+                                            Title 1
+                                        </h2>
+                                    </div>
+
+                                    <!-- body -->
+                                    <div
+                                        class="p-5 bg-md-surface-container rounded-md h-full"
+                                    >
+                                        <form
+                                            action=""
+                                            method="post"
+                                            id=""
+                                            name=""
+                                            class="flex flex-col gap-5"
+                                        >
+                                            <div>
+                                                <p
+                                                    class="md-typescale-body-small font-semibold! uppercase! tracking-wider! text-md-on-surface-variant"
+                                                >
+                                                    1. Select the type you want
+                                                    to hide
+                                                </p>
+                                                <md-outlined-select>
+                                                    <md-select-option
+                                                        selected
+                                                        value="plain-text"
+                                                    >
+                                                        <div slot="headline">
+                                                            Plain Text
+                                                        </div>
+                                                    </md-select-option>
+                                                    <md-select-option
+                                                        value="file"
+                                                    >
+                                                        <div slot="headline">
+                                                            File
+                                                        </div>
+                                                    </md-select-option>
+                                                </md-outlined-select>
+                                            </div>
+
+                                            <div>
+                                                <p
+                                                    class="md-typescale-body-small font-semibold! uppercase! tracking-wider! text-md-on-surface-variant"
+                                                >
+                                                    2. Select a media file to
+                                                    store the secret
+                                                </p>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="rounded-2xl overflow-hidden flex flex-col gap-1 col-span-2 sm:col-span-1"
+                                >
+                                    <!-- title -->
+                                    <div
+                                        class="p-5 bg-md-surface-container rounded-md"
+                                    >
+                                        <h2
+                                            class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
+                                        >
+                                            Title 2
+                                        </h2>
+                                    </div>
+
+                                    <!-- body -->
+                                    <div
+                                        class="p-5 bg-md-surface-container rounded-md h-full"
+                                    ></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -942,7 +1037,7 @@
 
 <!-- Modals -->
 {% block modals %}
-<!-- Modal for sharing text -->
+<!-- ========== Modal for sharing text ========== -->
 <md-dialog id="share-modal">
     <div slot="headline">
         <div class="flex flex-col gap-1 flex-1">
@@ -1022,7 +1117,7 @@
 <!-- Script -->
 {% block script %}
 <script>
-    // Tabs switcher
+    // ========== Tabs switcher ==========
     const toolsTab = document.getElementById("tools-tab");
     const slider = document.querySelector("#slider");
 
@@ -1043,21 +1138,24 @@
                 tabSwitcher(0);
                 unActiveTab();
                 toolsTab.tabs[0].active = true;
-
                 break;
 
             case "#password_generator":
                 tabSwitcher(1);
                 unActiveTab();
                 toolsTab.tabs[1].active = true;
-
                 break;
 
             case "#converter":
                 tabSwitcher(2);
                 unActiveTab();
                 toolsTab.tabs[2].active = true;
+                break;
 
+            case "#steganography":
+                tabSwitcher(3);
+                unActiveTab();
+                toolsTab.tabs[3].active = true;
                 break;
 
             default:
@@ -1069,7 +1167,7 @@
         tabSwitcher(event.target.activeTabIndex);
     });
 
-    // Text Encryption
+    // ========== Text Encryption ==========
     let currentState = "encryption";
     const encryptorFromLabel = document.getElementById("encryptor-from-label");
     const encryptorToLabel = document.getElementById("encryptor-to-label");
@@ -1214,7 +1312,7 @@
     // The X button
     encryptorResetInput.addEventListener("click", encryptorResetInputState);
 
-    // Share option
+    // ========== Share option ==========
     const shareModal = document.getElementById("share-modal");
     const shareForm = document.getElementById("share_form");
     const outputLink = document.getElementById("generated_link");
@@ -1289,7 +1387,7 @@
         }
     });
 
-    // File Encryptor
+    // ========== File Encryptor ==========
     let currentDownloadUrl = null;
 
     function encryptorSendFile(
@@ -1465,7 +1563,7 @@
         }
     }
 
-    // For encryption
+    // ========== For encryption ==========
     const encryptorFileForm = document.getElementById("file_encrypt_form");
     const encryptorBrowseBtn = document.getElementById("encryptor-browse-btn");
     const encryptorFileInput = document.getElementById("encryptor_file_input");
@@ -1562,7 +1660,7 @@
         }
     });
 
-    // For decryption
+    // ========== For decryption ==========
     const decryptorFileForm = document.getElementById("file_decrypt_form");
     const decryptorBrowseBtn = document.getElementById("decryptor-browse-btn");
     const decryptorFileInput = document.getElementById("decryptor_file_input");
@@ -1666,7 +1764,7 @@
         }
     });
 
-    // Password Generator
+    // ========== Password Generator ==========
     const passwordGeneratorForm = document.getElementById(
         "password_generator_form",
     );
@@ -1721,7 +1819,7 @@
         generatePassword();
     });
 
-    // Text Converter
+    // ========== Text Converter ==========
     let reverseConvert = false;
 
     const converterLabelParent = document.getElementById("converter-labels");
