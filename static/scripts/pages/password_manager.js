@@ -1,0 +1,1145 @@
+// ========== Define variable ==========
+// API
+const userPasswordsAPI = "/api/user/passwords";
+const newAccountAPI = "/api/user/password/create";
+
+// New account modal
+const newAccountModal = document.getElementById("new-account-modal");
+const newAccountForm = newAccountModal.querySelector("#new_account");
+
+// Edit account modal
+const editAccountModal = document.getElementById("edit-account-modal");
+const editAccountForm = editAccountModal.querySelector("#edit_account");
+
+const editModalOption = editAccountModal.querySelector("#modal_option");
+const editModalAction = editAccountModal.querySelector("#modal_action");
+
+const editModalHeadline = editAccountModal.querySelector("[slot='headline']");
+
+// Confirm delete dialog
+const confirmDeleteDialog = document.getElementById("confirm-delete");
+
+// Progress dialog
+const progressDialog = document.getElementById("progress-dialog");
+
+// ========== For new account ==========
+// Show/Close new account modal
+async function openNewAccountModal() {
+    // Clear the form first
+    newAccountForm.reset();
+    newAccountForm.new_password.setAttribute("type", "password");
+    newAccountForm.add_btn.disabled = true;
+
+    await newAccountModal.show();
+}
+
+async function closeNewAccountModal() {
+    await newAccountModal.close();
+}
+
+// Add/new account
+async function newAccount(theForm) {
+    const progressIndicator = newAccountModal.querySelector(
+        ".button-progress-indicator",
+    );
+
+    try {
+        let formData = new FormData(theForm);
+        formData = Object.fromEntries(formData.entries());
+
+        // Send request
+        const result = await sendRequest(newAccountAPI, formData, "POST");
+
+        if (result.code === 200) {
+            // Reinit passwords
+            loadPasswords();
+
+            progressIndicator.classList.add("hidden!");
+            newAccountForm.add_btn.disabled = true;
+
+            showSnackbar(result.message);
+            closeNewAccountModal();
+        }
+    } catch (error) {
+        progressIndicator.classList.add("hidden!");
+
+        showAlert("Failed to add password", error.message);
+    }
+}
+
+newAccountForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const progressIndicator = newAccountModal.querySelector(
+        ".button-progress-indicator",
+    );
+
+    if (progressIndicator.classList.contains("hidden!")) {
+        progressIndicator.classList.remove("hidden!");
+        newAccount(newAccountForm);
+    }
+});
+
+// ========== For edit account ==========
+// Show/Close edit account modal
+async function openEditAccountModal(uri) {
+    // Reset everything first
+    editAccountForm.dataset.passwordId = "";
+    editAccountForm.edit_password.setAttribute("type", "password");
+    editAccountForm.reset();
+    editAccountForm.save_btn.disabled = true;
+
+    // Set passwordId with API url
+    editAccountForm.dataset.passwordId = uri;
+
+    await editAccountModal.show();
+}
+
+async function closeEditAccountModal() {
+    await editAccountModal.close();
+}
+
+// Copy button toggle
+function copyBtnToggle(display) {
+    const copyBtn = document.querySelectorAll(".copy-btn");
+    copyBtn.forEach((btn) => {
+        if (display == "show") {
+            btn.classList.remove("hidden");
+        } else {
+            btn.classList.add("hidden");
+        }
+    });
+}
+
+// Get account info
+async function getAccountInfo() {
+    // Get password id api
+    const passId = editAccountForm.dataset.passwordId;
+
+    if (passId && passId.trim() !== "") {
+        try {
+            // Send request
+            const result = await sendRequest(passId, {}, "GET");
+            const data = result.data;
+
+            // Set the form values
+            editAccountForm.edit_service_url.value = data.service_url;
+            editAccountForm.edit_service_name.value = data.service_name;
+            editAccountForm.edit_username.value = data.username_account;
+            editAccountForm.edit_password.value = data.decrypted_password;
+            editAccountForm.edit_service_notes.value = data.service_note;
+            editAccountForm.edit_selected_key.value = String(data.key_id);
+
+            editAccountForm.save_btn.disabled = true;
+        } catch (error) {
+            showAlert("Failed to load password info", error.message);
+        }
+    } else {
+        console.warn("Warning: 'data-password-id' is empty!");
+    }
+}
+
+// Open existing account
+async function openExistingAccount(uri) {
+    const available = await checkSession();
+
+    if (available) {
+        // Set the action button
+        editAccountForm.reset_info.onclick = getAccountInfo;
+        editAccountForm.cancle_editing.onclick = disableEditing;
+        editAccountForm.delete_account.onclick = function () {
+            deleteAccount(uri, true);
+        };
+
+        // Show the modal
+        openEditAccountModal(uri);
+        getAccountInfo();
+    } else {
+        showAlert(
+            "Failed to load password info",
+            "Your session has expired. Please log in again.",
+        );
+    }
+}
+
+// Set to readonly
+function setToReadonly() {
+    editAccountForm.edit_service_url.setAttribute("readonly", "");
+    editAccountForm.edit_service_name.setAttribute("readonly", "");
+    editAccountForm.edit_username.setAttribute("readonly", "");
+    editAccountForm.edit_password.setAttribute("readonly", "");
+    editAccountForm.edit_service_notes.setAttribute("readonly", "");
+
+    editAccountForm.edit_selected_key.setAttribute("readonly", "");
+    editAccountForm.edit_selected_key.classList.add("hidden");
+
+    editAccountForm.save_btn.disabled = true;
+}
+
+// Set to writeable
+function setToWriteable() {
+    editAccountForm.edit_service_url.removeAttribute("readonly");
+    editAccountForm.edit_service_name.removeAttribute("readonly");
+    editAccountForm.edit_username.removeAttribute("readonly");
+    editAccountForm.edit_password.removeAttribute("readonly");
+    editAccountForm.edit_service_notes.removeAttribute("readonly");
+
+    editAccountForm.edit_selected_key.removeAttribute("readonly");
+    editAccountForm.edit_selected_key.classList.remove("hidden");
+}
+
+// Enable editing
+function enableEditing() {
+    editModalHeadline.textContent = "Edit account";
+    setToWriteable();
+    copyBtnToggle("hide");
+
+    editModalOption.classList.add("hidden");
+    editModalAction.classList.remove("hidden");
+}
+
+// Disable editing
+async function disableEditing() {
+    const available = await checkSession();
+
+    if (available) {
+        // Reset the info
+        getAccountInfo();
+
+        editModalHeadline.textContent = "Account info";
+        setToReadonly();
+        copyBtnToggle("show");
+
+        editModalOption.classList.remove("hidden");
+        editModalAction.classList.add("hidden");
+    } else {
+        showAlert(
+            "Failed to load password info",
+            "Your session has expired. Please log in again.",
+        );
+    }
+}
+
+// Prevents dialogs from remaining in edit mode when closed.
+editAccountModal.addEventListener("closed", () => {
+    editModalHeadline.textContent = "Account info";
+    editModalOption.classList.remove("hidden");
+    editModalAction.classList.add("hidden");
+
+    setToReadonly();
+    copyBtnToggle("show");
+});
+
+// Save password changes
+async function editAccount(theForm) {
+    // Get password id api
+    const passId = editAccountForm.dataset.passwordId;
+
+    const progressIndicator = editAccountModal.querySelector(
+        ".button-progress-indicator",
+    );
+
+    if (passId && passId.trim() !== "") {
+        try {
+            let formData = new FormData(theForm);
+            formData = Object.fromEntries(formData.entries());
+
+            // Send request
+            const result = await sendRequest(`${passId}/edit`, formData, "PUT");
+
+            if (result.code === 200) {
+                // Reinit passwords
+                loadPasswords();
+
+                progressIndicator.classList.add("hidden!");
+                editAccountForm.save_btn.disabled = true;
+
+                showSnackbar(result.message);
+                disableEditing();
+            }
+        } catch (error) {
+            progressIndicator.classList.add("hidden!");
+            showAlert("Failed to change password", error.message);
+        }
+    } else {
+        console.warn("Warning: 'data-password-id' is empty!");
+    }
+}
+
+editAccountForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const progressIndicator = editAccountModal.querySelector(
+        ".button-progress-indicator",
+    );
+
+    if (progressIndicator.classList.contains("hidden!")) {
+        progressIndicator.classList.remove("hidden!");
+        editAccount(editAccountForm);
+    }
+});
+
+// ========== Delete password ==========
+async function deleteAccount(passId, state_backed = false) {
+    if (passId && passId.trim() !== "") {
+        closeEditAccountModal();
+
+        // Wait for the response
+        const choise = await confirmDialog(
+            "confirm-delete",
+            "Delete password?",
+            "You cannot undo this action.",
+        );
+
+        if (choise === "delete") {
+            try {
+                // Send request
+                const result = await sendRequest(
+                    `${passId}/delete`,
+                    {},
+                    "DELETE",
+                );
+
+                if (result.code === 200) {
+                    closeEditAccountModal();
+                    showSnackbar(result.message);
+
+                    // Reinit passwords
+                    loadPasswords();
+                }
+            } catch (error) {
+                showAlert("Failed to delete password", error.message);
+            }
+        } else {
+            state_backed ? openExistingAccount(passId) : "";
+        }
+    } else {
+        console.warn("Warning: 'data-password-id' is empty!");
+    }
+}
+
+// ========== Delete selected passwords ==========
+async function deleteSelected() {
+    const choise = await confirmDialog(
+        "confirm-delete",
+        `Delete ${selectedPasswordIds.length} passwords?`,
+        "You cannot undo this action.",
+    );
+
+    if (choise === "delete") {
+        await progressDialog.show();
+
+        try {
+            // Send request
+            const result = await sendRequest(
+                "/api/user/password/delete_many",
+                {
+                    selected_password: selectedPasswordIds,
+                },
+                "PUT",
+            );
+
+            if (result.code === 200) {
+                closeEditAccountModal();
+                showSnackbar(result.message);
+
+                // Deselect and Reinit passwords
+                deselectAll();
+                loadPasswords();
+                await progressDialog.close();
+            }
+        } catch (error) {
+            showAlert("Failed to delete password", error.message);
+        }
+    }
+}
+
+// ========== Share option ==========
+const shareDialog = document.getElementById("share-dialog");
+const shareForm = document.getElementById("share_form");
+const selectedCount = document.getElementById("selected-count");
+const linkSpan = document.getElementById("link-span");
+
+const shareIconBtn = document.getElementById("share-icon-btn");
+const shareMenuItem = document.getElementById("share-menu-item");
+
+async function openShareDialog() {
+    // Reset everything first
+    shareForm.reset();
+    linkSpan.classList.add("hidden");
+
+    selectedCount.textContent = selectedPasswordIds.length;
+    await shareDialog.show();
+}
+
+async function closeShareDialog() {
+    await shareDialog.close();
+}
+
+async function shareSelected() {
+    const shareAPI = "/api/user/password/share";
+    const data = {
+        selected_password: selectedPasswordIds,
+    };
+
+    sendRequest(shareAPI, data, "POST")
+        .then((response) => {
+            shareForm.generated_link.value = response.data.link;
+
+            // Link span
+            const currentTime = new Date();
+            currentTime.setMinutes(currentTime.getMinutes() + 5);
+
+            let hour = currentTime.getHours();
+            let minute = currentTime.getMinutes();
+
+            hour = hour < 10 ? "0" + hour : hour;
+            minute = minute < 10 ? "0" + minute : minute;
+
+            let bannerText = `The link is valid until ${hour}:${minute}`;
+
+            linkSpan.classList.remove("hidden");
+            linkSpan.querySelector("span:nth-child(2)").textContent =
+                bannerText;
+
+            showSnackbar(response.message);
+        })
+        .catch((error) => {
+            showAlert("Unable to create link", error.message);
+        });
+}
+
+// ========== Export option ==========
+const radioJson = document.getElementById("option-json");
+const radioCsv = document.getElementById("option-csv");
+const cryptoSwitch = document.getElementById("crypto-switch");
+const csvWarning = document.getElementById("csv-warning");
+const securitySection = document.getElementById("security-section");
+const passwordBlock = document.getElementById("password-block");
+const exportPassword = document.getElementById("export_password");
+const exportManifestDesc = document.getElementById("export-manifest-desc");
+const exportBtn = document.getElementById("submit_export_btn");
+const exportBtnIndicator = exportBtn.querySelector(
+    ".button-progress-indicator",
+);
+
+const exportDialog = document.getElementById("export-dialog");
+const exportForm = document.getElementById("export_form");
+
+// Trigger dialog
+async function openExportMenu() {
+    if (selectedPasswordIds.length != 0) {
+        await exportDialog.show();
+    } else {
+        console.warn(
+            "At least one password must be selected to display this dialog.",
+        );
+    }
+}
+async function closeExportMenu() {
+    await exportDialog.close();
+
+    exportForm.reset();
+    exportForm.export_password.setAttribute("type", "password");
+    syncDialogState();
+}
+
+// Sync dialog state
+function syncDialogState() {
+    const isCsvSelected = radioCsv.querySelector("md-radio").checked;
+    const isEncryptionEnabled = cryptoSwitch.selected;
+
+    if (isCsvSelected) {
+        // Enforce validation rule: CSV files cannot be application-encrypted
+        cryptoSwitch.selected = false;
+        cryptoSwitch.disabled = true;
+        securitySection.classList.add("opacity-40", "pointer-events-none");
+        passwordBlock.classList.add("hidden");
+        exportPassword.required = false;
+        csvWarning.classList.remove("hidden");
+
+        // Update Context Manifest
+        exportManifestDesc.innerHTML =
+            "Generating <strong>unencrypted .csv spreadsheet</strong>. Contains <span class='underline font-medium'>passwords only</span>. Ready for local browser import pipelines.";
+    } else {
+        // For json exporting
+        cryptoSwitch.disabled = false;
+        securitySection.classList.remove("opacity-40", "pointer-events-none");
+
+        if (isEncryptionEnabled) {
+            passwordBlock.classList.remove("hidden");
+            exportPassword.required = true;
+            exportManifestDesc.innerHTML =
+                "Generating <strong>secure encrypted .json bundle</strong>. Contains <span class='underline font-medium'>keys and passwords</span> protected via your chosen encryption passphrase.";
+        } else {
+            passwordBlock.classList.add("hidden");
+            exportPassword.value = "";
+            exportPassword.required = false;
+            exportManifestDesc.innerHTML =
+                "Generating <strong>plaintext .json bundle</strong>. Contains <span class='underline font-medium'>keys and passwords</span> without secondary protection. Store safely.";
+        }
+
+        csvWarning.classList.add("hidden");
+    }
+}
+
+// Listener for "Target format" radio button
+radioJson.addEventListener("click", () => {
+    radioJson.querySelector("md-radio").checked = true;
+    syncDialogState();
+});
+
+radioCsv.addEventListener("click", () => {
+    radioCsv.querySelector("md-radio").checked = true;
+    syncDialogState();
+});
+
+cryptoSwitch.addEventListener("change", syncDialogState);
+
+// Run initialization hook when components populate
+syncDialogState();
+
+// Trigger Export
+async function exportSelected(theForm) {
+    const exportAPI = "/api/user/password/export";
+
+    let formData = new FormData(theForm);
+    formData = Object.fromEntries(formData.entries());
+    formData.selected_password = selectedPasswordIds;
+
+    sendRequest(exportAPI, formData, "POST")
+        .then((response) => {
+            const dataSheet = response.data;
+
+            if (dataSheet.file_type === "csv") {
+                // For csv
+                const blob = new Blob(["\ufeff", dataSheet.data_sheet], {
+                    type: "text/csv;charset=utf-8;",
+                });
+
+                tempoaryUrl(blob, "Sunako - Passwords", "csv");
+            } else if (dataSheet.file_type === "json") {
+                // For json
+                const blob = new Blob([dataSheet.json_file], {
+                    type: "application/json;charset=utf-8;",
+                });
+
+                tempoaryUrl(blob, "Sunako - Keys & Passwords", "json");
+            } else {
+                // If none of them
+                console.error(`Unknown file type! \nerror: ${dataSheet}`);
+            }
+
+            showSnackbar(response.message);
+
+            // Reset to default state
+            exportBtnIndicator.classList.add("hidden!");
+            closeExportMenu();
+        })
+        .catch((error) => {
+            exportBtnIndicator.classList.add("hidden!");
+            showAlert("Unable to export", error.message);
+        });
+}
+
+// Export action button
+exportForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    if (exportBtnIndicator.classList.contains("hidden!")) {
+        exportBtnIndicator.classList.remove("hidden!");
+
+        exportSelected(exportForm);
+    }
+});
+
+// ========== Load password ==========
+let selectedKeyFilters = [];
+let allPasswords = [];
+let visibleCount = 0;
+let isObserving = false;
+let animationTimeouts = [];
+let passwordSearchQuery = ""; // Tracks the text input for passwords
+let isSelectionMode = false;
+let selectedPasswordIds = [];
+
+// Password list container
+const pwList = document.getElementById("data_list");
+
+// Filter chip
+const filterChipSet = document.getElementById("filter-chip");
+
+// Selection appbar
+const selectionAppbar = document.getElementById("selection-appbar");
+const selectionCount = selectionAppbar.querySelector("#select-count");
+
+// Load the passwords
+async function loadPasswords() {
+    try {
+        const result = await sendRequest(userPasswordsAPI, {}, "GET");
+        allPasswords = result.data;
+
+        renderPasswords();
+        setupInfiniteScroll();
+    } catch (error) {
+        showAlert("Failed to load password list", error.message);
+    }
+}
+
+// Clears the list completely and renders from the beginning
+function renderPasswords() {
+    // Clear any pending staggered append timeouts from a previous filter run
+    animationTimeouts.forEach((timeout) => clearTimeout(timeout));
+    animationTimeouts = [];
+
+    pwList.innerHTML = "";
+    visibleCount = 0;
+
+    const filtered = getFilteredPasswords();
+    if (allPasswords.length === 0) {
+        pwList.innerHTML = `
+                <blockquote class="flex items-start bg-md-tertiary-container rounded-2xl w-full m-0 p-5 gap-2.5 animate-showup">
+                    <md-icon class="material-icon-fill text-md-on-tertiary-container shrink-0">info</md-icon>
+                    <p class="md-typescale-body-large text-md-on-tertiary-container italic! font-semibold! m-0">
+                        "The vault is empty. No passwords have been recorded yet. We should secure your first account before we move out."
+                    </p>
+                </blockquote>
+            `;
+        return;
+    } else if (filtered.length === 0) {
+        pwList.innerHTML = `
+                <blockquote class="flex items-start bg-md-tertiary-container rounded-2xl w-full m-0 p-5 gap-2.5 animate-showup">
+                    <md-icon class="material-icon-fill text-md-on-tertiary-container shrink-0">info</md-icon>
+                    <p class="md-typescale-body-large text-md-on-tertiary-container italic! font-semibold! m-0">
+                        "Nothing matches our coordinates. I can't find that specific password in the current logs. Try adjusting the filter."
+                    </p>
+                </blockquote>
+            `;
+        return;
+    }
+
+    // Render the initial block
+    appendNextChunk(15);
+}
+
+// Helper function to update the visual state of a row instantly based on selection
+function updateRowSelectionVisuals(pwId) {
+    const itemWrapper = document.getElementById(`pw-row-${pwId}`);
+    const menuContainer = document.getElementById(`menu-container-${pwId}`);
+
+    if (!itemWrapper || !menuContainer) return;
+
+    const isSelected = selectedPasswordIds.includes(pwId);
+
+    if (isSelectionMode) {
+        // Check if the checkbox already exists in the container
+        let checkbox = document.getElementById(`checkbox-${pwId}`);
+
+        if (!checkbox) {
+            // Create it once if it doesn't exist
+            menuContainer.innerHTML = `
+                <md-checkbox 
+                    id="checkbox-${pwId}" 
+                    class="pointer-events-auto">
+                </md-checkbox>
+            `;
+            checkbox = document.getElementById(`checkbox-${pwId}`);
+
+            checkbox.onclick = (e) => {
+                e.stopPropagation();
+                togglePasswordSelection(pwId);
+            };
+        }
+
+        // Animate the property change smoothly instead of rebuilding the DOM
+        if (checkbox.checked !== isSelected) {
+            checkbox.checked = isSelected;
+        }
+
+        // Apply M3 Selected State Colors
+        if (isSelected) {
+            itemWrapper.classList.remove("bg-md-surface-container");
+            itemWrapper.classList.add("bg-md-secondary-container");
+
+            // Switch icon style
+            itemWrapper
+                .querySelector("md-icon")
+                .classList.add("material-icon-fill");
+
+            // Switch text/icon color
+            itemWrapper
+                .querySelectorAll(".text-md-on-surface")
+                .forEach((el) => {
+                    el.classList.replace(
+                        "text-md-on-surface",
+                        "text-md-secondary",
+                    );
+                });
+        } else {
+            itemWrapper.classList.remove("bg-md-secondary-container");
+            itemWrapper.classList.add("bg-md-surface-container");
+
+            itemWrapper
+                .querySelector("md-icon")
+                .classList.remove("material-icon-fill");
+
+            itemWrapper.querySelectorAll(".text-md-secondary").forEach((el) => {
+                el.classList.replace("text-md-secondary", "text-md-on-surface");
+            });
+        }
+    } else {
+        // Restore default state
+        itemWrapper.classList.remove("bg-md-secondary-container");
+        itemWrapper.classList.add("bg-md-surface-container");
+
+        itemWrapper
+            .querySelector("md-icon")
+            .classList.remove("material-icon-fill");
+
+        itemWrapper.querySelectorAll(".text-md-secondary").forEach((el) => {
+            el.classList.replace("text-md-secondary", "text-md-on-surface");
+        });
+
+        menuContainer.innerHTML = `
+                <md-icon-button id="menu-${pwId}-anchor" class="text-md-on-surface-variant">
+                    <md-icon>more_vert</md-icon>
+                </md-icon-button>
+
+                <md-menu id="menu-${pwId}-menu" anchor="menu-${pwId}-anchor">
+                    <md-menu-item id="menu-${pwId}-select">
+                        <div slot="headline">Select</div>
+                    </md-menu-item>
+                    <md-menu-item id="menu-${pwId}-edit">
+                        <div slot="headline">Edit</div>
+                    </md-menu-item>
+                    <md-menu-item id="menu-${pwId}-share">
+                        <div slot="headline">Share</div>
+                    </md-menu-item>
+                    <md-menu-item id="menu-${pwId}-export">
+                        <div slot="headline">Export</div>
+                    </md-menu-item>
+                    <md-menu-item id="menu-${pwId}-delete">
+                        <div slot="headline">Delete</div>
+                    </md-menu-item>
+                </md-menu>
+            `;
+
+        bindMenuEvents(pwId);
+    }
+}
+
+// Helper to check selection states and update the App Bar UI
+function syncSelectAllButtonState() {
+    const filtered = getFilteredPasswords();
+
+    // If no items are visible, don't try to sync
+    if (filtered.length === 0) return;
+
+    // Check if every single visible filtered item is in selection array
+    const areAllFilteredSelected = filtered.every((pw) =>
+        selectedPasswordIds.includes(pw.password_id),
+    );
+
+    // Target select-all button
+    const selectAllButton = document.getElementById("select-all-btn");
+    const selectAllMenu = document.getElementById("select-all-menu");
+
+    if (!selectAllButton && !selectAllMenu) return;
+
+    if (areAllFilteredSelected) {
+        // Change button layout/text to Deselect All mode
+        selectAllButton.title = "Deselect all";
+        selectAllButton.querySelector("md-icon").innerHTML = "deselect";
+
+        selectAllMenu.textContent = "Clear all";
+    } else {
+        // Fallback to standard Select All layout
+        selectAllButton.title = "Select all";
+        selectAllButton.querySelector("md-icon").innerHTML = "select_all";
+
+        selectAllMenu.textContent = "Select all";
+    }
+}
+
+// Function to toggle selection states
+function togglePasswordSelection(pwId) {
+    const index = selectedPasswordIds.indexOf(pwId);
+    if (index > -1) {
+        selectedPasswordIds.splice(index, 1);
+    } else {
+        selectedPasswordIds.push(pwId);
+    }
+
+    // If no items are left selected, exit selection mode automatically
+    if (selectedPasswordIds.length === 0) {
+        isSelectionMode = false;
+        selectionAppbar.classList.add("hidden");
+
+        // Refresh all elements currently inside the DOM list
+        document.querySelectorAll('[id^="pw-row-"]').forEach((row) => {
+            const id = parseInt(row.id.replace("pw-row-", ""));
+            updateRowSelectionVisuals(id);
+        });
+    } else {
+        selectionCount.textContent = selectedPasswordIds.length;
+
+        // For sharing passwords, if selected password is more than 5, then disable the button
+        if (selectedPasswordIds.length > 5) {
+            shareIconBtn.disabled = true;
+            shareMenuItem.disabled = true;
+        } else {
+            shareIconBtn.disabled = false;
+            shareMenuItem.disabled = false;
+        }
+
+        updateRowSelectionVisuals(pwId);
+    }
+
+    syncSelectAllButtonState();
+}
+
+// Enter selection mode globally
+function enterSelectionMode(initialPwId) {
+    isSelectionMode = true;
+    selectedPasswordIds = [initialPwId];
+    selectionAppbar.classList.remove("hidden");
+    selectionCount.textContent = selectedPasswordIds.length;
+
+    // Switch every rendered item in the list into selection mode view state
+    document.querySelectorAll('[id^="pw-row-"]').forEach((row) => {
+        const id = parseInt(row.id.replace("pw-row-", ""));
+        updateRowSelectionVisuals(id);
+    });
+
+    // For sharing passwords, if selected password is more than 5, then disable the button
+    if (selectedPasswordIds.length > 5) {
+        shareIconBtn.disabled = true;
+        shareMenuItem.disabled = true;
+    } else {
+        shareIconBtn.disabled = false;
+        shareMenuItem.disabled = false;
+    }
+}
+
+// Helper to bind standard item menus
+function bindMenuEvents(pwId) {
+    const anchor = document.getElementById(`menu-${pwId}-anchor`);
+    const menu = document.getElementById(`menu-${pwId}-menu`);
+
+    if (!anchor || !menu) return;
+
+    anchor.onclick = (e) => {
+        e.stopPropagation();
+
+        const isOpen = !menu.open;
+        menu.open = isOpen;
+
+        const row = document.getElementById(`pw-row-${pwId}`);
+        if (row) {
+            if (isOpen) {
+                // Elevate the active row above all other list rows
+                row.style.zIndex = "50";
+            } else {
+                // Reset z-index when closed
+                row.style.zIndex = "";
+            }
+        }
+    };
+
+    menu.addEventListener("closed", () => {
+        const row = document.getElementById(`pw-row-${pwId}`);
+        if (row) row.style.zIndex = "";
+    });
+
+    // Select option
+    document.getElementById(`menu-${pwId}-select`).onclick = (e) => {
+        e.stopPropagation();
+        menu.open = false;
+        enterSelectionMode(pwId);
+    };
+
+    // Edit option
+    document.getElementById(`menu-${pwId}-edit`).onclick = (e) => {
+        e.stopPropagation();
+        menu.open = false;
+        openExistingAccount(`/api/user/password/${pwId}`);
+        enableEditing();
+    };
+
+    // Share option
+    document.getElementById(`menu-${pwId}-share`).onclick = (e) => {
+        e.stopPropagation();
+        menu.open = false;
+        enterSelectionMode(pwId);
+        openShareDialog();
+    };
+
+    // Export option
+    document.getElementById(`menu-${pwId}-export`).onclick = (e) => {
+        e.stopPropagation();
+        menu.open = false;
+        enterSelectionMode(pwId);
+        openExportMenu();
+    };
+
+    // Delete option
+    document.getElementById(`menu-${pwId}-delete`).onclick = (e) => {
+        e.stopPropagation();
+        menu.open = false;
+        deleteAccount(`/api/user/password/${pwId}`, false);
+    };
+}
+
+// Appends a specific number of elements sequentially with a timeout delay
+function appendNextChunk(limit) {
+    const filtered = getFilteredPasswords();
+    const start = visibleCount;
+    const end = Math.min(start + limit, filtered.length);
+
+    if (start >= filtered.length) return;
+
+    let localIndex = 0;
+
+    for (let i = start; i < end; i++) {
+        const pw = filtered[i];
+
+        const itemWrapper = document.createElement("div");
+        itemWrapper.id = `pw-row-${pw.password_id}`;
+
+        // Material You curves
+        let radiusClasses = "rounded-none";
+        if (i === 0) {
+            radiusClasses = "rounded-t-2xl rounded-b-md";
+        } else if (i === filtered.length - 1) {
+            radiusClasses = "rounded-b-2xl rounded-t-md";
+        } else {
+            radiusClasses = "rounded-md";
+        }
+
+        // Base classes + initial hidden transition state
+        itemWrapper.className = `relative py-2.5 px-5 max-h-16 bg-md-surface-container ${radiusClasses} flex items-center justify-between gap-5 cursor-pointer transition-all duration-500 ease-out transition-showup-start`;
+
+        itemWrapper.onclick = () => {
+            if (isSelectionMode) {
+                togglePasswordSelection(pw.password_id);
+            } else {
+                openExistingAccount(`/api/user/password/${pw.password_id}`);
+            }
+        };
+
+        itemWrapper.innerHTML = `
+            <md-icon class="text-md-on-surface">lock</md-icon>
+            <div class="w-full whitespace-nowrap overflow-hidden">
+                <h2 class="md-typescale-title-medium text-md-on-surface font-bold! m-0 w-full whitespace-nowrap overflow-hidden text-ellipsis">${pw.service_name}</h2>
+                <p class="md-typescale-body-medium text-md-on-surface-variant m-0 w-full whitespace-nowrap overflow-hidden text-ellipsis">${pw.key_name}</p>
+            </div>
+            
+            <div id="menu-container-${pw.password_id}" class="relative flex items-center justify-center"></div>
+            <md-ripple></md-ripple>
+        `;
+
+        // Append IMMEDIATELY to DOM in strict sequential order
+        pwList.appendChild(itemWrapper);
+        updateRowSelectionVisuals(pw.password_id);
+
+        // Trigger transition stagger without delaying DOM insertion
+        const delay = localIndex * 35;
+        setTimeout(() => {
+            itemWrapper.classList.remove("transition-showup-start");
+            itemWrapper.classList.add("transition-showup-end");
+        }, delay);
+
+        localIndex++;
+    }
+
+    visibleCount = end;
+}
+
+// Filtered password with chip
+filterChipSet.addEventListener("click", (event) => {
+    const clickedChip = event.target.closest("md-filter-chip");
+
+    if (!clickedChip) return;
+
+    // Wait a small tick for the 'selected' property to update
+    setTimeout(() => {
+        const chips = filterChipSet.querySelectorAll("md-filter-chip");
+
+        // Filter for selected ones and map their values
+        const selectedValues = Array.from(chips)
+            .filter((chip) => chip.selected)
+            .map((chip) => chip.getAttribute("value") || chip.label);
+
+        // Update the array tracking active filters
+        selectedKeyFilters = selectedValues;
+
+        // Clear the list and re-render the passwords with the staggered entrance animation
+        renderPasswords();
+    }, 0);
+});
+
+function getFilteredPasswords() {
+    let filtered = allPasswords;
+
+    // Filter by Chip selection
+    if (selectedKeyFilters.length > 0) {
+        filtered = filtered.filter((pw) =>
+            selectedKeyFilters.includes(pw.key_name),
+        );
+    }
+
+    // Filter by Search Bar input text
+    if (passwordSearchQuery) {
+        filtered = filtered.filter(
+            (pw) =>
+                pw.service_name.toLowerCase().includes(passwordSearchQuery) ||
+                pw.key_name.toLowerCase().includes(passwordSearchQuery),
+        );
+    }
+
+    // Sort by ID from oldest to newest
+    filtered.sort((a, b) => a.password_id - b.password_id);
+    return filtered;
+}
+
+function setupInfiniteScroll() {
+    if (isObserving) return;
+
+    let sentinel = document.getElementById("scroll-sentinel");
+    if (!sentinel) {
+        sentinel = document.createElement("div");
+        sentinel.id = "scroll-sentinel";
+        sentinel.className = "h-1 w-full";
+        pwList.after(sentinel);
+    }
+
+    const observer = new IntersectionObserver(
+        (entries) => {
+            if (entries[0].isIntersecting) {
+                const filtered = getFilteredPasswords();
+                // Only fetch next chunk if there are remaining items left out of the DOM
+                if (visibleCount < filtered.length) {
+                    appendNextChunk(10); // Append 10 more to the bottom without touching previous ones
+                }
+            }
+        },
+        { rootMargin: "100px" },
+    );
+
+    observer.observe(sentinel);
+    isObserving = true;
+}
+
+function toggleKeyFilter(keyName) {
+    const index = selectedKeyFilters.indexOf(keyName);
+
+    if (index === -1) {
+        selectedKeyFilters.push(keyName);
+    } else {
+        selectedKeyFilters.splice(index, 1);
+    }
+
+    renderPasswords();
+}
+
+// Select all passwords that match the current filter
+function selectAllFiltered() {
+    // Ensure selection mode is globally active
+    isSelectionMode = true;
+
+    // Get the current filtered subset
+    const filtered = getFilteredPasswords();
+
+    // Determine if ALL currently filtered passwords are already selected
+    const areAllFilteredSelected = filtered.every((pw) =>
+        selectedPasswordIds.includes(pw.password_id),
+    );
+
+    if (areAllFilteredSelected) {
+        // If all filtered passwords are selected, deselect only these filtered ones
+        const filteredIds = filtered.map((pw) => pw.password_id);
+        selectedPasswordIds = selectedPasswordIds.filter(
+            (id) => !filteredIds.includes(id),
+        );
+
+        // If this leaves the global list completely clear, exit selection mode
+        if (selectedPasswordIds.length === 0) {
+            isSelectionMode = false;
+
+            // Update selection count and hide selection appbar
+            selectionCount.textContent = selectedPasswordIds.length;
+            selectionAppbar.classList.add("hidden");
+        }
+    } else {
+        // If none or only some are selected, select all remaining filtered ones
+        filtered.forEach((pw) => {
+            if (!selectedPasswordIds.includes(pw.password_id)) {
+                selectedPasswordIds.push(pw.password_id);
+            }
+        });
+    }
+
+    // Update the UI for all rendered rows inside the DOM list
+    document.querySelectorAll('[id^="pw-row-"]').forEach((row) => {
+        const id = parseInt(row.id.replace("pw-row-", ""));
+        updateRowSelectionVisuals(id);
+    });
+
+    // Update the selection count and select all button
+    selectionCount.textContent = selectedPasswordIds.length;
+    syncSelectAllButtonState();
+
+    // For sharing passwords, if selected password is more than 5, then disable the button
+    if (selectedPasswordIds.length > 5) {
+        shareIconBtn.disabled = true;
+        shareMenuItem.disabled = true;
+    } else {
+        shareIconBtn.disabled = false;
+        shareMenuItem.disabled = false;
+    }
+}
+
+// Clear all selections globally
+function deselectAll() {
+    // Reset state tracking
+    isSelectionMode = false;
+    selectedPasswordIds = [];
+
+    // Refresh every rendered row back to default state (three-dots menu)
+    document.querySelectorAll('[id^="pw-row-"]').forEach((row) => {
+        const id = parseInt(row.id.replace("pw-row-", ""));
+        updateRowSelectionVisuals(id);
+    });
+
+    // Update selection count and hide selection appbar
+    selectionCount.textContent = selectedPasswordIds.length;
+    selectionAppbar.classList.add("hidden");
+    syncSelectAllButtonState();
+
+    // For sharing passwords, if selected password is more than 5, then disable the button
+    if (selectedPasswordIds.length > 5) {
+        shareIconBtn.disabled = true;
+        shareMenuItem.disabled = true;
+    } else {
+        shareIconBtn.disabled = false;
+        shareMenuItem.disabled = false;
+    }
+}
+
+// Load the passwords
+loadPasswords();
+
+// for enable/disable submit btn
+document.addEventListener("DOMContentLoaded", () => {
+    // For add account/password
+    const newAccountFields = newAccountModal.querySelectorAll(
+        "md-filled-text-field, md-filled-select",
+    );
+    const newAccountBtn = newAccountForm.add_btn;
+    requireAllFields(newAccountFields, newAccountBtn);
+
+    // For edit account/password
+    const editAccountFields = editAccountModal.querySelectorAll(
+        "md-filled-text-field, md-filled-select",
+    );
+    const editAccountBtn = editAccountForm.save_btn;
+    requireAllFields(editAccountFields, editAccountBtn);
+});

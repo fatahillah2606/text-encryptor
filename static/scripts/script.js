@@ -269,6 +269,8 @@ function copyTextIconBtn(field, copyIconBtn, event) {
 
 // ========== Show password ==========
 function showPasswordCheckBox(elmCheckBox, elmPasswords) {
+    console.log(elmCheckBox.checked);
+
     // Get all password elm
     const passwordField = elmPasswords.map((id) => document.getElementById(id));
 
@@ -303,7 +305,7 @@ function decreaseValue(field) {
     let value = parseInt(numField.value, 10);
 
     value = isNaN(value) ? 0 : value;
-    if (value > 0) {
+    if (value > 8) {
         value--;
     }
 

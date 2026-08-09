@@ -98,4 +98,4 @@ This project is an independent open-source tool and is not affiliated with, endo
 
 ---
 
-Made with ❤️ by Fatahillah
+Made with ❤️ by Fatahillah and Shiroko

@@ -3,7 +3,7 @@ import gc
 import hashlib
 import hmac
 import os
-import random
+import secrets
 import string
 import struct
 from pathlib import Path
@@ -337,12 +337,36 @@ class FileEncryptor:
 # ========== Password Generator ==========
 def generate_password(passLenth):
     try:
-        characters = string.ascii_letters + string.digits + string.punctuation
-        password = "".join(random.choice(characters) for i in range(int(passLenth)))
-        return password
+        length = int(passLenth)
+
+        # Check (again) if password length is bellow 8
+        if length < 8:
+            return "Password length must be at least 8 characters."
+
+        # Character pools
+        lowers = string.ascii_lowercase
+        uppers = string.ascii_uppercase
+        digits = string.digits
+        punctuation = string.punctuation
+        all_characters = lowers + uppers + digits + punctuation
+
+        # Guarantee at least one character from each required set
+        password = [
+            secrets.choice(lowers),
+            secrets.choice(uppers),
+            secrets.choice(digits),
+            secrets.choice(punctuation),
+        ]
+
+        # Fill the remaining length from all characters combined
+        password += [secrets.choice(all_characters) for _ in range(length - 4)]
+
+        # Shuffle to break predictable character positioning
+        secrets.SystemRandom().shuffle(password)
+
+        return "".join(password)
 
     except ValueError:
         return "The password length value must be numeric."
-
     except Exception as error:
-        return error
+        return str(error)

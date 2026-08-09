@@ -350,6 +350,7 @@ md-filled-button .button-progress-indicator md-circular-progress {
 }
 
 .file-details {
+    width: 100%;
     display: flex;
     align-items: center;
     gap: 12px;

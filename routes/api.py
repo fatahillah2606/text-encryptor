@@ -336,10 +336,10 @@ def password_generator():
                 {},
             ), 400
 
-        # Check if password length is 0 or bellow
-        if length <= 0:
+        # Check if password length is bellow 8
+        if length < 8:
             raise ValueError(
-                "The character length you entered is less than 1. At least 1 or more characters long to generate a password."
+                "The character length you entered is less than 8. At least 8 or more characters long to generate a password."
             )
 
         password = generate_password(length)
