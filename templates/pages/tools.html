@@ -198,11 +198,11 @@
                                         <div class="grid grid-cols-2 gap-3">
                                             <!-- Left Container: File Encryption -->
                                             <div
-                                                class="rounded-2xl overflow-hidden flex flex-col gap-1 col-span-2 sm:col-span-1"
+                                                class="overflow-hidden flex flex-col gap-1 col-span-2 sm:col-span-1"
                                             >
                                                 <!-- Title -->
                                                 <div
-                                                    class="p-5 bg-md-surface-container rounded-md"
+                                                    class="p-5 bg-md-surface-container rounded-t-2xl rounded-b-md"
                                                 >
                                                     <h2
                                                         class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
@@ -213,7 +213,7 @@
 
                                                 <!-- Body -->
                                                 <div
-                                                    class="p-5 bg-md-surface-container rounded-md h-full"
+                                                    class="p-5 bg-md-surface-container rounded-t-md rounded-b-2xl h-auto"
                                                 >
                                                     <form
                                                         action=""
@@ -390,11 +390,11 @@
 
                                             <!-- Right Container: File Decryption -->
                                             <div
-                                                class="rounded-2xl overflow-hidden flex flex-col gap-1 col-span-2 sm:col-span-1"
+                                                class="overflow-hidden flex flex-col gap-1 col-span-2 sm:col-span-1"
                                             >
                                                 <!-- Title -->
                                                 <div
-                                                    class="p-5 bg-md-surface-container rounded-md"
+                                                    class="p-5 bg-md-surface-container rounded-t-2xl rounded-b-md"
                                                 >
                                                     <h2
                                                         class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
@@ -405,7 +405,7 @@
 
                                                 <!-- Body -->
                                                 <div
-                                                    class="p-5 bg-md-surface-container rounded-md h-full flex flex-col justify-between"
+                                                    class="p-5 bg-md-surface-container rounded-t-md rounded-b-2xl h-auto flex flex-col justify-between"
                                                 >
                                                     <form
                                                         action=""
@@ -936,11 +936,11 @@
                         >
                             <div class="px-5 md:px-0 grid grid-cols-2 gap-3">
                                 <div
-                                    class="rounded-2xl overflow-hidden flex flex-col gap-1 col-span-2 sm:col-span-1"
+                                    class="overflow-hidden flex flex-col gap-1 col-span-2 sm:col-span-1"
                                 >
                                     <!-- title -->
                                     <div
-                                        class="p-5 bg-md-surface-container rounded-md"
+                                        class="p-5 bg-md-surface-container rounded-md rounded-t-2xl rounded-b-md"
                                     >
                                         <h2
                                             class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
@@ -951,7 +951,7 @@
 
                                     <!-- body -->
                                     <div
-                                        class="p-5 bg-md-surface-container rounded-md h-full"
+                                        class="p-5 bg-md-surface-container rounded-t-md rounded-b-2xl h-auto"
                                     >
                                         <form
                                             action=""
@@ -996,6 +996,9 @@
                                                 id="secret-message-container"
                                             >
                                                 <md-outlined-text-field
+                                                    type="textarea"
+                                                    rows="3"
+                                                    class="resize-y"
                                                     id="secret_message"
                                                     name="secret_message"
                                                     label="Message to hide"
@@ -1185,8 +1188,18 @@
 
                                             <!-- Action button -->
                                             <div
-                                                class="flex items-center justify-end"
+                                                class="flex items-center justify-end gap-2"
                                             >
+                                                <md-outlined-button
+                                                    type="button"
+                                                    class="hidden"
+                                                    id="download-encoded-result"
+                                                >
+                                                    Download
+                                                    <md-icon slot="icon">
+                                                        download
+                                                    </md-icon>
+                                                </md-outlined-button>
                                                 <md-filled-button
                                                     type="submit"
                                                     id="hide_submit_btn"
@@ -1210,11 +1223,11 @@
                                 </div>
 
                                 <div
-                                    class="rounded-2xl overflow-hidden flex flex-col gap-1 col-span-2 sm:col-span-1"
+                                    class="overflow-hidden flex flex-col gap-1 col-span-2 sm:col-span-1"
                                 >
                                     <!-- title -->
                                     <div
-                                        class="p-5 bg-md-surface-container rounded-md"
+                                        class="p-5 bg-md-surface-container rounded-t-2xl rounded-b-md"
                                     >
                                         <h2
                                             class="md-typescale-title-medium text-md-on-surface font-bold! m-0"
@@ -1225,8 +1238,155 @@
 
                                     <!-- body -->
                                     <div
-                                        class="p-5 bg-md-surface-container rounded-md h-full"
-                                    ></div>
+                                        class="p-5 bg-md-surface-container rounded-t-md rounded-b-2xl h-auto"
+                                    >
+                                        <form
+                                            action=""
+                                            method="post"
+                                            name="reveal-secret-form"
+                                            id="reveal-secret-form"
+                                            class="flex flex-col gap-4"
+                                        >
+                                            <p
+                                                class="md-typescale-body-medium text-md-on-surface m-0"
+                                            >
+                                                Select a file to reveal its
+                                                secrets.
+                                            </p>
+
+                                            <!-- File input -->
+                                            <div
+                                                class="upload-container col-span-2"
+                                            >
+                                                <div
+                                                    class="drop-zone"
+                                                    id="reveal-secret-drop-zone"
+                                                >
+                                                    <md-icon>
+                                                        upload_file
+                                                    </md-icon>
+                                                    <p
+                                                        class="md-typescale-body-medium text-md-on-surface m-0"
+                                                    >
+                                                        Drag and drop your file
+                                                        here
+                                                    </p>
+                                                    <span>or</span>
+                                                    <md-filled-button
+                                                        type="button"
+                                                        id="reveal-secret-browse-btn"
+                                                    >
+                                                        Choose File
+                                                    </md-filled-button>
+                                                    <input
+                                                        type="file"
+                                                        accept=".sunako"
+                                                        id="reveal_secret_file_input"
+                                                        name="reveal_secret_file_input"
+                                                        style="display: none"
+                                                    />
+                                                </div>
+
+                                                <div
+                                                    id="reveal-secret-file-info"
+                                                    class="file-info"
+                                                    style="display: none"
+                                                >
+                                                    <div class="file-details">
+                                                        <md-icon>
+                                                            insert_drive_file
+                                                        </md-icon>
+                                                        <span
+                                                            id="reveal-secret-file-name"
+                                                            class="md-typescale-body-medium text-md-on-surface m-0 w-full whitespace-nowrap overflow-hidden text-ellipsis"
+                                                        >
+                                                            filename.json
+                                                        </span>
+                                                        <md-icon-button
+                                                            type="button"
+                                                            id="reveal-secret-clear-file-btn"
+                                                            aria-label="Clear selected file"
+                                                            class="shrink-0!"
+                                                        >
+                                                            <md-icon>
+                                                                close
+                                                            </md-icon>
+                                                        </md-icon-button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div
+                                                id="reveal-secret-next-step"
+                                                class="hidden"
+                                            >
+                                                <!-- Secret Key / Password -->
+                                                <div
+                                                    class="flex flex-col gap-1.5"
+                                                >
+                                                    <md-outlined-text-field
+                                                        type="password"
+                                                        id="decode_key"
+                                                        name="decode_key"
+                                                        label="Password"
+                                                    ></md-outlined-text-field>
+                                                </div>
+
+                                                <div
+                                                    class="flex items-center justify-start gap-4 my-2.5"
+                                                    onclick="
+                                                        showPw(
+                                                            'reveal_secret_show_key',
+                                                            ['decode_key'],
+                                                        )
+                                                    "
+                                                >
+                                                    <md-checkbox
+                                                        id="reveal_secret_show_key"
+                                                        touch-target="wrapper"
+                                                        class="m-0"
+                                                    ></md-checkbox>
+                                                    <label
+                                                        for="reveal_secret_show_key"
+                                                        class="md-typescale-body-medium text-md-on-surface m-0"
+                                                    >
+                                                        Show password
+                                                    </label>
+                                                </div>
+
+                                                <div
+                                                    class="pt-2 flex items-center justify-end gap-2"
+                                                >
+                                                    <md-outlined-button
+                                                        type="button"
+                                                        class="hidden"
+                                                        id="download-decoded-result"
+                                                    >
+                                                        Download
+                                                        <md-icon slot="icon">
+                                                            download
+                                                        </md-icon>
+                                                    </md-outlined-button>
+                                                    <md-filled-button
+                                                        type="submit"
+                                                        id="decode_submit_btn"
+                                                        class="relative overflow-hidden"
+                                                    >
+                                                        Proceed
+                                                        <md-icon slot="icon">
+                                                            lock_open
+                                                        </md-icon>
+                                                        <div
+                                                            class="button-progress-indicator hidden!"
+                                                        >
+                                                            <md-circular-progress
+                                                                indeterminate
+                                                            ></md-circular-progress>
+                                                        </div>
+                                                    </md-filled-button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>

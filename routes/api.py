@@ -9,10 +9,12 @@ from src.data_io import DataExporter, DataImporter
 from src.data_manager import KeyManager, PasswordManager, Recovery, UserManager
 from src.encryptor import FileEncryptor, NewEncryption, generate_password
 from src.essentials import createLoginSession, decrypt_payload, generate_share_link
+from src.stego_encoder import StegoEncoder
 
 encryption_method = NewEncryption()
 text_converter = TextConverter()
 file_encryptor = FileEncryptor()
+stego_encoder = StegoEncoder()
 
 
 # ========== API Response ==========
@@ -452,6 +454,47 @@ def converter_text():
             [],
             {},
         ), 500
+
+
+# ========== Steganography ==========
+@api_route.route("/steganography/hide", methods=["POST"])
+def hideSecret():
+    if "media_carrier" not in request.files:
+        return api_response(
+            "error",
+            400,
+            "No media carrier is provided. Make sure to select a file to serve as the container for hiding your secret.",
+            [],
+            {},
+        ), 400
+
+    secret_type = str(request.form.get("secret_type"))
+    media_carrier = request.files["media_carrier"]
+
+    raw_password = request.form.get("secret_password")
+    password = str(raw_password) if raw_password else None
+
+    secret_message = request.form.get("secret_message")
+    secret_file = request.files.get("secret_file_input")
+
+    status, result = stego_encoder.hide_secret(
+        media_carrier=media_carrier,
+        secret_type=secret_type,
+        secret_message=secret_message,
+        secret_file=secret_file,
+        password=password,
+    )
+
+    if status == "success":
+        return result
+    else:
+        return api_response(
+            "error",
+            400,
+            str(result),
+            [],
+            {},
+        ), 400
 
 
 #

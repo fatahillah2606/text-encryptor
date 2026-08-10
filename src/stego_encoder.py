@@ -3,13 +3,11 @@ import os
 import struct
 from pathlib import Path
 
-import imageio.v3 as iio
-import numpy as np
 from Crypto.Cipher import AES
 from Crypto.Protocol.KDF import scrypt
 from Crypto.Random import get_random_bytes
+from flask import Response, stream_with_context
 
-# Set 'tmp' folder relative to project root
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 TEMP_DIR = PROJECT_ROOT / "tmp"
 TEMP_DIR.mkdir(parents=True, exist_ok=True)
@@ -17,96 +15,139 @@ TEMP_DIR.mkdir(parents=True, exist_ok=True)
 MAGIC_BYTES = b"SNK1"
 
 
-def get_secure_temp_path(prefix="stego") -> str:
-    # Generate a unique temporary path inside the root 'tmp' folder.
-    filename = f"{prefix}_{os.urandom(8).hex()}.tmp"
-    return str(TEMP_DIR / filename)
+class StegoEncoder:
+    @staticmethod
+    def get_secure_temp_path(prefix="stego") -> str:
+        # Generate a unique temporary path inside the root 'tmp' folder.
+        filename = f"{prefix}_{os.urandom(8).hex()}.tmp"
+        return str(TEMP_DIR / filename)
 
+    @staticmethod
+    def cleanup_temp_file(path: str):
+        # Safely delete the temporary file and force Python garbage collection.
+        try:
+            if path and os.path.exists(path):
+                os.remove(path)
+                gc.collect()
 
-def cleanup_temp_file(path: str):
-    # Safely delete the temporary file and force Python garbage collection.
-    try:
-        if path and os.path.exists(path):
-            os.remove(path)
-            gc.collect()
-    except Exception as e:
-        print(f"[TMP CLEANUP] Failed to delete {path}: {e}")
+        except Exception as e:
+            print(f"[TMP CLEANUP] Failed to delete {path}: {e}")
 
+    @staticmethod
+    def prepare_payload(data_bytes: bytes, filename: str = "") -> bytes:
+        # Packs metadata with foreign character support and random padding.
+        filename_bytes = filename.encode("utf-8")
+        filename_len = len(filename_bytes)
+        data_len = len(data_bytes)
 
-def prepare_payload(data_bytes: bytes, filename: str = "") -> bytes:
-    # Packs metadata with foreign character support and random padding.
-    filename_bytes = filename.encode("utf-8")
-    filename_len = len(filename_bytes)
-    data_len = len(data_bytes)
+        padding_len = int.from_bytes(get_random_bytes(1), "big") % 49 + 16
+        padding = get_random_bytes(padding_len)
 
-    # 16 to 64 bytes of random noise as padding
-    padding_len = int.from_bytes(get_random_bytes(1), "big") % 49 + 16
-    padding = get_random_bytes(padding_len)
+        header = struct.pack(">HQI", filename_len, data_len, padding_len)
+        return header + filename_bytes + data_bytes + padding
 
-    header = struct.pack(">HQI", filename_len, data_len, padding_len)
-    return header + filename_bytes + data_bytes + padding
+    @classmethod
+    def build_stego_block(cls, raw_payload: bytes, password: str = None) -> bytes:
+        # Builds the stego binary block, applying AES-256-GCM only if a password is provided.
+        if password:
+            is_encrypted = b"\x01"
+            salt = get_random_bytes(16)
+            key = scrypt(password.encode("utf-8"), salt, key_len=32, N=2**14, r=8, p=1)
 
+            cipher = AES.new(key, AES.MODE_GCM)
+            ciphertext, tag = cipher.encrypt_and_digest(raw_payload)
 
-def encrypt_payload(payload: bytes, password: str) -> bytes:
-    # Encrypts raw payload using AES-256-GCM and Scrypt key derivation.
-    salt = get_random_bytes(16)
-    key = scrypt(password.encode("utf-8"), salt, key_len=32, N=2**14, r=8, p=1)
+            payload_size = len(ciphertext)
+            header = (
+                MAGIC_BYTES
+                + is_encrypted
+                + salt
+                + cipher.nonce
+                + tag
+                + struct.pack(">I", payload_size)
+            )
+            return header + ciphertext
 
-    cipher = AES.new(key, AES.MODE_GCM)
-    ciphertext, tag = cipher.encrypt_and_digest(payload)
+        else:
+            is_encrypted = b"\x00"
+            payload_size = len(raw_payload)
+            header = MAGIC_BYTES + is_encrypted + struct.pack(">I", payload_size)
+            return header + raw_payload
 
-    payload_size = len(ciphertext)
-    # Header: Magic Bytes (4B) + Salt (16B) + Nonce (12B) + Tag (16B) + Payload Size (4B)
-    header = MAGIC_BYTES + salt + cipher.nonce + tag + struct.pack(">I", payload_size)
-    return header + ciphertext
+    @classmethod
+    def hide_secret(
+        cls,
+        media_carrier,
+        secret_type: str,
+        secret_message: str = None,
+        secret_file=None,
+        password: str = None,
+    ):
 
+        # Main entry point for API call.
+        # Processes inputs, creates temp files, appends stego block, and returns a streaming Flask Response.
 
-def check_capacity(img_array: np.ndarray, required_bytes: int) -> tuple[bool, int]:
-    # Checks if PNG carrier array has sufficient LSB capacity.
-    max_bytes = img_array.size // 8
-    return (max_bytes >= required_bytes), max_bytes
+        temp_carrier_path = cls.get_secure_temp_path(prefix="carrier")
+        temp_output_path = None
 
+        try:
+            # 1. Save uploaded carrier file to disk
+            media_carrier.save(temp_carrier_path)
 
-def hide_data(
-    carrier_path: str, secret_bytes: bytes, password: str, filename: str = ""
-) -> str:
-    # Encrypts payload and embeds into PNG carrier LSBs.
-    # 1. Validate PNG Extension
-    if not carrier_path.lower().endswith(".png"):
-        raise ValueError("Only PNG carrier images are supported for LSB steganography.")
+            # 2. Extract payload bytes based on type
+            if secret_type == "text":
+                payload_bytes = (secret_message or "").encode("utf-8")
+                filename = "secret_message.txt"
+            elif secret_type == "file" and secret_file:
+                payload_bytes = secret_file.read()
+                filename = secret_file.filename or "secret_file.bin"
+            else:
+                cls.cleanup_temp_file(temp_carrier_path)
+                return "error", "Invalid or missing secret payload."
 
-    # 2. Read PNG Image
-    img = iio.imread(carrier_path)
+            # 3. Build stego block and prepare output file path
+            raw_payload = cls.prepare_payload(payload_bytes, filename)
+            stego_block = cls.build_stego_block(raw_payload, password)
 
-    if img.ndim < 3:
-        raise ValueError("Carrier image must be a color PNG (RGB/RGBA).")
+            carrier_ext = os.path.splitext(media_carrier.filename)[1] or ".bin"
+            temp_output_path = (
+                cls.get_secure_temp_path(prefix="stego_out") + carrier_ext
+            )
 
-    # 3. Prepare & Encrypt Payload
-    raw_payload = prepare_payload(secret_bytes, filename)
-    encrypted_payload = encrypt_payload(raw_payload, password)
+            # 4. Copy carrier and append EOF payload
+            with (
+                open(temp_carrier_path, "rb") as f_in,
+                open(temp_output_path, "wb") as f_out,
+            ):
+                while chunk := f_in.read(65536):
+                    f_out.write(chunk)
+                f_out.write(stego_block)
 
-    # 4. Capacity Check
-    has_capacity, max_bytes = check_capacity(img, len(encrypted_payload))
-    if not has_capacity:
-        raise ValueError(
-            f"Carrier image capacity insufficient. Required: {len(encrypted_payload)} bytes, "
-            f"Available: {max_bytes} bytes."
-        )
+            # 5. Define streaming generator with automatic file deletion
+            def generate():
+                with open(temp_output_path, "rb") as f:
+                    while chunk := f.read(65536):
+                        yield chunk
+                cls.cleanup_temp_file(temp_output_path)
 
-    # 5. Embed Bits into Pixel LSBs
-    original_shape = img.shape
-    flat_img = img.flatten()
+            # Cleanup input carrier immediately
+            cls.cleanup_temp_file(temp_carrier_path)
 
-    payload_np = np.frombuffer(encrypted_payload, dtype=np.uint8)
-    bits = np.unpackbits(payload_np)
-    num_bits = len(bits)
+            download_name = f"stego_{media_carrier.filename}"
+            response = Response(
+                stream_with_context(generate()),
+                mimetype=media_carrier.mimetype or "application/octet-stream",
+                headers={
+                    "Content-Disposition": f'attachment; filename="{download_name}"'
+                },
+            )
 
-    flat_img[:num_bits] = (flat_img[:num_bits] & ~1) | bits
+            return "success", response
 
-    # 6. Reshape and Save as lossless PNG
-    stego_img = flat_img.reshape(original_shape)
+        except Exception as e:
+            cls.cleanup_temp_file(temp_carrier_path)
 
-    output_path = get_secure_temp_path(prefix="stego_out") + ".png"
-    iio.imwrite(output_path, stego_img, extension=".png")
+            if temp_output_path:
+                cls.cleanup_temp_file(temp_output_path)
 
-    return output_path
+            return "error", str(e)

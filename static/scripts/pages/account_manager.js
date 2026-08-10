@@ -165,14 +165,14 @@ const importForm = document.getElementById("import_form");
 
 // Trigger the dialog
 async function openImportMenu() {
+    importForm.reset();
+    importForm.file_password.setAttribute("type", "password");
+    resetFileState();
+
     await importDialog.show();
 }
 async function closeImportMenu() {
     await importDialog.close();
-
-    importForm.reset();
-    importForm.file_password.setAttribute("type", "password");
-    resetFileState();
 }
 
 // Field visibility
@@ -449,14 +449,14 @@ const exportForm = document.getElementById("export_form");
 
 // Trigger dialog
 async function openExportMenu() {
+    exportForm.reset();
+    exportForm.export_password.setAttribute("type", "password");
+    syncDialogState();
+
     await exportDialog.show();
 }
 async function closeExportMenu() {
     await exportDialog.close();
-
-    exportForm.reset();
-    exportForm.export_password.setAttribute("type", "password");
-    syncDialogState();
 }
 
 // Sync dialog state

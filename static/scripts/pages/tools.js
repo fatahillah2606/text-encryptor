@@ -1,3 +1,18 @@
+// Current Download URL
+let currentDownloadUrl = null;
+
+function clearDownloadURL() {
+    if (currentDownloadUrl) {
+        window.URL.revokeObjectURL(currentDownloadUrl);
+        currentDownloadUrl = null;
+
+        // Download buttons
+        encryptorDownloadButton.classList.add("hidden");
+        decryptorDownloadButton.classList.add("hidden");
+        downloadEncodedResult.classList.add("hidden");
+    }
+}
+
 // ========== Tabs switcher ==========
 const toolsTab = document.getElementById("tools-tab");
 const slider = document.querySelector("#slider");
@@ -264,7 +279,6 @@ regenerateBtn.addEventListener("click", () => {
 });
 
 // ========== File Encryptor ==========
-let currentDownloadUrl = null;
 
 function encryptorSendFile(
     uploadAPI,
@@ -284,13 +298,7 @@ function encryptorSendFile(
     );
 
     // Clean up previous blob URL if the user is processing a new file and hide download button during process
-    if (currentDownloadUrl) {
-        window.URL.revokeObjectURL(currentDownloadUrl);
-        currentDownloadUrl = null;
-
-        encryptorDownloadButton.classList.add("hidden");
-        decryptorDownloadButton.classList.add("hidden");
-    }
+    clearDownloadURL();
 
     const formData = new FormData();
     formData.append("file", fileInput.files[0]);
@@ -849,13 +857,25 @@ const typeSelector = hideSecretForm.type_selector;
 const secretMessageContainer = document.getElementById(
     "secret-message-container",
 );
+const hideSecretSubmitBtn = document.getElementById("hide_submit_btn");
+const hideSecretSubmitBtnIndicator = hideSecretSubmitBtn.querySelector(
+    ".button-progress-indicator",
+);
+const downloadEncodedResult = document.getElementById(
+    "download-encoded-result",
+);
 
+const stegoEncodeAPI = "/api/steganography/hide";
 let secretType = "text";
+let enableEncryptionState = false;
 
 // Type selection listener
 typeSelector.addEventListener("change", () => {
     secretMessageContainer.classList.add("hidden");
     secretFileContainer.classList.add("hidden");
+
+    hideSupportText(hideSecretForm.secret_message);
+    hideSupportText(hideSecretForm.secret_password);
 
     // Reset secret message state
     hideSecretForm.secret_message.value = "";
@@ -868,9 +888,13 @@ typeSelector.addEventListener("change", () => {
     );
 
     if (typeSelector.value === "plain-text") {
+        secretType = "text";
+
         hideSecretForm.secret_message.required = true;
         secretMessageContainer.classList.remove("hidden");
     } else {
+        secretType = "file";
+
         hideSecretForm.secret_message.required = false;
         secretFileContainer.classList.remove("hidden");
     }
@@ -952,11 +976,216 @@ function enableEncryption() {
         if (hideSecretForm.enable_encryption.checked) {
             encryptSecretPassField.classList.remove("hidden");
             hideSecretForm.secret_password.required = true;
+
+            enableEncryptionState = true;
         } else {
             encryptSecretPassField.classList.add("hidden");
             hideSecretForm.secret_password.required = false;
+
+            enableEncryptionState = false;
         }
     }, 50);
 }
 
 enableEncryptionCheckbox.addEventListener("click", enableEncryption);
+
+// Start the  encode
+function stegoEncode() {
+    // Check media carrier
+    if (!mediaCarrierInput.files[0]) {
+        showAlert(
+            "Unable to process file",
+            "No file has been provided for hiding the secret. Please ensure you select a file to hide the secret.",
+        );
+
+        hideSecretSubmitBtnIndicator.classList.add("hidden!");
+        return;
+    }
+
+    // Progress circle
+    const circularProgress = hideSecretSubmitBtnIndicator.querySelector(
+        "md-circular-progress",
+    );
+
+    // Form data for hiding secret
+    const formData = new FormData();
+    formData.append("secret_type", secretType);
+    formData.append("media_carrier", mediaCarrierInput.files[0]);
+
+    // Check secret type
+    if (secretType === "text") {
+        formData.append("secret_message", hideSecretForm.secret_message.value);
+    } else {
+        if (!secretFileInput.files[0]) {
+            showAlert(
+                "Unable to process file",
+                "No files have been provided to hide. Make sure you select the files you want to hide.",
+            );
+
+            hideSecretSubmitBtnIndicator.classList.add("hidden!");
+            return;
+        } else {
+            formData.append("secret_file_input", secretFileInput.files[0]);
+        }
+    }
+
+    // Is encryption enabled?
+    if (enableEncryptionState) {
+        formData.append(
+            "secret_password",
+            hideSecretForm.secret_password.value,
+        );
+    }
+
+    // clear previous download url
+    clearDownloadURL();
+
+    // Send the data to server
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", stegoEncodeAPI, true);
+
+    xhr.responseType = "blob";
+
+    xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+            const percentComplete = (e.loaded / e.total) * 100;
+            circularProgress.removeAttribute("indeterminate");
+            circularProgress.setAttribute("value", percentComplete / 100);
+        }
+    };
+
+    xhr.upload.onload = () => {
+        circularProgress.removeAttribute("value");
+        circularProgress.setAttribute("indeterminate", "");
+    };
+
+    xhr.onload = () => {
+        if (xhr.status === 200) {
+            let downloadName = mediaCarrierInput.files[0].name; // Fallback
+            const disposition = xhr.getResponseHeader("Content-Disposition");
+
+            if (disposition) {
+                const utf8Matches = /filename\*=UTF-8''([^;\n]*)/i.exec(
+                    disposition,
+                );
+                if (utf8Matches && utf8Matches[1]) {
+                    downloadName = decodeURIComponent(utf8Matches[1]);
+                } else {
+                    const standardMatches = /filename="?([^";\n]*)"?/i.exec(
+                        disposition,
+                    );
+                    if (standardMatches && standardMatches[1]) {
+                        downloadName = standardMatches[1];
+                    }
+                }
+            }
+
+            // Create a temporary link to trigger file download
+            const blob = xhr.response;
+            currentDownloadUrl = window.URL.createObjectURL(blob);
+
+            // Attach to the Download button
+            downloadEncodedResult.classList.remove("hidden");
+            downloadEncodedResult.onclick = function () {
+                const a = document.createElement("a");
+                a.href = currentDownloadUrl;
+                a.download = downloadName;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            };
+
+            // Success feedback
+            showSnackbar("The process was successfully completed.");
+            resetUploadButton();
+        } else {
+            const reader = new FileReader();
+
+            reader.onload = function () {
+                try {
+                    const responseJson = JSON.parse(reader.result);
+                    const errorMessage =
+                        responseJson.message ||
+                        "An unknown error occurred. Please try again";
+
+                    showSupportText(keyInput, errorMessage);
+                } catch (e) {
+                    showAlert(
+                        "Unable to process file",
+                        "Process failed. Please try again.",
+                    );
+                }
+                resetUploadButton();
+            };
+
+            // Read binary blob response
+            reader.readAsText(xhr.response);
+        }
+    };
+
+    xhr.onerror = function () {
+        showAlert(
+            "Unable to upload file",
+            "Network error occurred. Please try again.",
+        );
+        resetUploadButton();
+    };
+
+    xhr.send(formData);
+
+    function resetUploadButton() {
+        hideSecretSubmitBtnIndicator.classList.add("hidden!");
+        circularProgress.value = 0;
+    }
+}
+
+hideSecretForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    if (hideSecretSubmitBtnIndicator.classList.contains("hidden!")) {
+        hideSecretSubmitBtnIndicator.classList.remove("hidden!");
+
+        hideSupportText(hideSecretForm.secret_message);
+        hideSupportText(hideSecretForm.secret_password);
+
+        stegoEncode();
+    }
+});
+
+// ========== For reveal the secret ==========
+// File inspection
+async function inspectStegoFile(file) {
+    if (!file) return { hasSecret: false, isEncrypted: false };
+
+    // Read the file as an ArrayBuffer
+    const buffer = await file.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+
+    // Magic Bytes "SNK1" in ASCII decimal values: [83, 78, 75, 49]
+    const magic = [83, 78, 75, 49];
+    let magicIdx = -1;
+
+    // Search for "SNK1" from the back of the file
+    for (let i = bytes.length - 4; i >= 0; i--) {
+        if (
+            bytes[i] === magic[0] &&
+            bytes[i + 1] === magic[1] &&
+            bytes[i + 2] === magic[2] &&
+            bytes[i + 3] === magic[3]
+        ) {
+            magicIdx = i;
+            break;
+        }
+    }
+
+    // No SNK1 header found
+    if (magicIdx === -1) {
+        return { hasSecret: false, isEncrypted: false };
+    }
+
+    // Read the encryption flag byte right after SNK1
+    const flagIdx = magicIdx + 4;
+    const isEncrypted = bytes[flagIdx] === 0x01;
+
+    return { hasSecret: true, isEncrypted: isEncrypted };
+}
