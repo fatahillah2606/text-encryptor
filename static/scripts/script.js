@@ -269,8 +269,6 @@ function copyTextIconBtn(field, copyIconBtn, event) {
 
 // ========== Show password ==========
 function showPasswordCheckBox(elmCheckBox, elmPasswords) {
-    console.log(elmCheckBox.checked);
-
     // Get all password elm
     const passwordField = elmPasswords.map((id) => document.getElementById(id));
 
@@ -530,34 +528,6 @@ function debounce(func, delay = 300) {
     };
 }
 
-// ========== For textarea on tools page ==========
-// Auto-resize textarea height
-function autoResizeTextarea(textarea) {
-    textarea.style.height = "auto";
-    if (textarea.scrollHeight <= 320) {
-        textarea.style.height = `${textarea.scrollHeight}px`;
-    } else {
-        textarea.style.height = "320px";
-    }
-}
-
-// Dynamic font scaling based on character length
-function adjustFontSize(textarea) {
-    const length = textarea.value.length;
-
-    if (length > 300) {
-        textarea.classList.remove("sm:text-xl");
-    } else {
-        textarea.classList.add("sm:text-xl");
-    }
-}
-
-function resetTextarea(textarea) {
-    textarea.value = "";
-    textarea.style.height = "auto";
-    textarea.classList.add("sm:text-xl");
-}
-
 // ========== Helper function to format bytes into readable sizes ==========
 function formatFileSize(bytes) {
     if (bytes === 0) return "0 Bytes";
@@ -565,4 +535,84 @@ function formatFileSize(bytes) {
     const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+}
+
+// ========== Get material symbols based on file extension ==========
+function getMaterialFileIcon(fileNameOrExtension) {
+    if (!fileNameOrExtension) return "draft";
+
+    // Extract extension if a full filename or path was passed
+    let ext = fileNameOrExtension;
+    if (ext.includes(".")) {
+        ext = ext.split(".").pop();
+    }
+
+    // Normalize to lowercase and remove leading dot
+    ext = ext.toLowerCase().replace(/^\./, "").trim();
+
+    // Mapping table for common file types
+    const iconMap = {
+        // Images
+        jpg: "image",
+        jpeg: "image",
+        png: "image",
+        gif: "gif_box",
+        webp: "image",
+        bmp: "image",
+        ico: "image",
+
+        // Videos
+        mp4: "video_file",
+        mkv: "video_file",
+        avi: "video_file",
+        mov: "video_file",
+        webm: "video_file",
+        flv: "video_file",
+
+        // Audio
+        mp3: "audio_file",
+        wav: "audio_file",
+        ogg: "audio_file",
+        flac: "audio_file",
+        m4a: "audio_file",
+        aac: "audio_file",
+
+        // Documents & Text
+        pdf: "picture_as_pdf",
+        txt: "description",
+        md: "article",
+        doc: "description",
+        docx: "description",
+        xls: "table_chart",
+        xlsx: "table_chart",
+        csv: "csv",
+        ppt: "slideshow",
+        pptx: "slideshow",
+
+        // Archives / Compressed
+        zip: "folder_zip",
+        rar: "folder_zip",
+        "7z": "folder_zip",
+        tar: "folder_zip",
+        gz: "folder_zip",
+
+        // Code & Data
+        html: "code",
+        css: "code",
+        js: "javascript",
+        json: "data_object",
+        py: "code",
+        php: "code",
+        cpp: "code",
+        c: "code",
+
+        // Executables / System
+        exe: "terminal",
+        apk: "android",
+        bin: "binary",
+        iso: "disc_full",
+    };
+
+    // Return mapped icon or fallback to default file icon
+    return iconMap[ext] || "draft";
 }

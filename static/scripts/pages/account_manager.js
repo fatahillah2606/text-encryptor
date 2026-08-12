@@ -251,7 +251,7 @@ function showFileState(file) {
 
     // Display the file name
     fileNameSpan.textContent = file.name;
-    dropZone.style.display = "none";
+    dropZone.classList.add("hidden");
     fileInfo.style.display = "flex";
     importBtn.disabled = false;
 }
@@ -260,7 +260,7 @@ function showFileState(file) {
 function resetFileState() {
     fileInput.value = ""; // Clear file buffer
     fileInfo.style.display = "none";
-    dropZone.style.display = "flex";
+    dropZone.classList.remove("hidden");
 
     importManifestHead.textContent = "Awaiting File Selection";
     importManifestDesc.textContent =

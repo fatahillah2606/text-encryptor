@@ -2,14 +2,14 @@ import binascii
 import json
 from functools import wraps
 
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, Response, jsonify, request, session
 
 from src.converter import TextConverter
 from src.data_io import DataExporter, DataImporter
 from src.data_manager import KeyManager, PasswordManager, Recovery, UserManager
 from src.encryptor import FileEncryptor, NewEncryption, generate_password
 from src.essentials import createLoginSession, decrypt_payload, generate_share_link
-from src.stego_encoder import StegoEncoder
+from src.stego_encoder import StegoDecoder, StegoEncoder
 
 encryption_method = NewEncryption()
 text_converter = TextConverter()
@@ -457,6 +457,9 @@ def converter_text():
 
 
 # ========== Steganography ==========
+
+
+# Hide secret
 @api_route.route("/steganography/hide", methods=["POST"])
 def hideSecret():
     if "media_carrier" not in request.files:
@@ -495,6 +498,47 @@ def hideSecret():
             [],
             {},
         ), 400
+
+
+# Reveal secret
+@api_route.route("/steganography/reveal", methods=["POST"])
+def revealSecret():
+    if "media_carrier_input" not in request.files:
+        return api_response(
+            "error",
+            400,
+            "No media carrier provided.",
+            [],
+            {},
+        ), 400
+
+    media_carrier = request.files["media_carrier_input"]
+    raw_password = request.form.get("secret_password")
+    password = str(raw_password) if raw_password else None
+
+    status, result = StegoDecoder.reveal_secret(media_carrier, password)
+
+    if status == "PASSWORD_REQUIRED":
+        return api_response(
+            "error",
+            401,  # Unauthorized / password required
+            result,
+            [],
+            {"is_locked": True},
+        ), 401
+
+    elif status == "success":
+        # If result is Flask streaming Response (file download)
+        if isinstance(result, Response):
+            return result
+
+        # If result is dictionary (text content)
+        return api_response(
+            "success", 200, "Secret extracted successfully.", result, {}
+        )
+
+    else:
+        return api_response("error", 400, str(result), [], {}), 400
 
 
 #

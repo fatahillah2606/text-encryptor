@@ -15,6 +15,7 @@ TEMP_DIR.mkdir(parents=True, exist_ok=True)
 MAGIC_BYTES = b"SNK1"
 
 
+# ========== Encoder ==========
 class StegoEncoder:
     @staticmethod
     def get_secure_temp_path(prefix="stego") -> str:
@@ -54,15 +55,18 @@ class StegoEncoder:
             salt = get_random_bytes(16)
             key = scrypt(password.encode("utf-8"), salt, key_len=32, N=2**14, r=8, p=1)
 
-            cipher = AES.new(key, AES.MODE_GCM)
+            # Force a standard 12-byte (96-bit) nonce
+            nonce = get_random_bytes(12)
+            cipher = AES.new(key, AES.MODE_GCM, nonce=nonce)
             ciphertext, tag = cipher.encrypt_and_digest(raw_payload)
 
             payload_size = len(ciphertext)
+            # Total header size = 4B (MAGIC) + 1B (FLAG) + 16B (SALT) + 12B (NONCE) + 16B (TAG) + 4B (SIZE) = 53 bytes
             header = (
                 MAGIC_BYTES
                 + is_encrypted
                 + salt
-                + cipher.nonce
+                + nonce
                 + tag
                 + struct.pack(">I", payload_size)
             )
@@ -98,9 +102,11 @@ class StegoEncoder:
             if secret_type == "text":
                 payload_bytes = (secret_message or "").encode("utf-8")
                 filename = "secret_message.txt"
+
             elif secret_type == "file" and secret_file:
                 payload_bytes = secret_file.read()
                 filename = secret_file.filename or "secret_file.bin"
+
             else:
                 cls.cleanup_temp_file(temp_carrier_path)
                 return "error", "Invalid or missing secret payload."
@@ -151,3 +157,126 @@ class StegoEncoder:
                 cls.cleanup_temp_file(temp_output_path)
 
             return "error", str(e)
+
+
+# ========== Decoder ==========
+class StegoDecoder:
+    @staticmethod
+    def get_secure_temp_path(prefix="stego_dec") -> str:
+        filename = f"{prefix}_{os.urandom(8).hex()}.tmp"
+        return str(TEMP_DIR / filename)
+
+    @staticmethod
+    def cleanup_temp_file(path: str):
+        try:
+            if path and os.path.exists(path):
+                os.remove(path)
+                gc.collect()
+        except Exception as e:
+            print(f"[TMP CLEANUP] Failed to delete {path}: {e}")
+
+    @classmethod
+    def unpack_payload(cls, raw_payload: bytes) -> tuple[str, bytes]:
+        # Parses header structure
+        filename_len, data_len, padding_len = struct.unpack(">HQI", raw_payload[:14])
+
+        offset = 14
+        filename_bytes = raw_payload[offset : offset + filename_len]
+        filename = filename_bytes.decode("utf-8", errors="replace")
+
+        offset += filename_len
+        content_bytes = raw_payload[offset : offset + data_len]
+
+        return filename, content_bytes
+
+    @classmethod
+    def decrypt_stego_block(cls, encrypted_block: bytes, password: str) -> bytes:
+        salt = encrypted_block[:16]
+        nonce = encrypted_block[16:28]
+        tag = encrypted_block[28:44]
+        payload_size = struct.unpack(">I", encrypted_block[44:48])[0]
+
+        # Exact ciphertext block
+        ciphertext = encrypted_block[48 : 48 + payload_size]
+
+        key = scrypt(password.encode("utf-8"), salt, key_len=32, N=2**14, r=8, p=1)
+        cipher = AES.new(key, AES.MODE_GCM, nonce=nonce)
+
+        return cipher.decrypt_and_verify(ciphertext, tag)
+
+    @classmethod
+    def reveal_secret(cls, media_carrier, password: str = None):
+        temp_carrier_path = cls.get_secure_temp_path(prefix="carrier_dec")
+
+        try:
+            media_carrier.save(temp_carrier_path)
+
+            with open(temp_carrier_path, "rb") as f:
+                file_bytes = f.read()
+
+            # Find Magic Bytes SNK1 from the back
+            magic_idx = file_bytes.rfind(MAGIC_BYTES)
+            if magic_idx == -1:
+                cls.cleanup_temp_file(temp_carrier_path)
+                return "error", "No hidden secret found in this carrier file."
+
+            # Read 1-byte encryption flag immediately after SNK1
+            flag_idx = magic_idx + len(MAGIC_BYTES)
+            is_encrypted = file_bytes[flag_idx : flag_idx + 1]
+
+            if is_encrypted == b"\x01":
+                if not password:
+                    cls.cleanup_temp_file(temp_carrier_path)
+                    return (
+                        "PASSWORD_REQUIRED",
+                        "Secret locked; you need to enter the password to view it.",
+                    )
+
+                # Encrypted block starts right after the 1-byte flag
+                encrypted_block = file_bytes[flag_idx + 1 :]
+                try:
+                    raw_payload = cls.decrypt_stego_block(encrypted_block, password)
+
+                except Exception as err:
+                    cls.cleanup_temp_file(temp_carrier_path)
+                    return "error", f"Invalid password or corrupted payload: {str(err)}"
+            else:
+                # Unencrypted payload: Payload Size (4B) + Payload
+                payload_size = struct.unpack(
+                    ">I", file_bytes[flag_idx + 1 : flag_idx + 5]
+                )[0]
+                raw_payload = file_bytes[flag_idx + 5 : flag_idx + 5 + payload_size]
+
+            # Unpack metadata and raw content
+            filename, content_bytes = cls.unpack_payload(raw_payload)
+            cls.cleanup_temp_file(temp_carrier_path)
+
+            # Return text dict or file download response
+            if filename == "secret_message.txt":
+                text_content = content_bytes.decode("utf-8", errors="replace")
+                return "success", {"type": "text", "content": text_content}
+
+            else:
+                temp_output_path = cls.get_secure_temp_path(prefix="dec_out")
+                with open(temp_output_path, "wb") as f_out:
+                    f_out.write(content_bytes)
+
+                def generate():
+                    with open(temp_output_path, "rb") as f:
+                        while chunk := f.read(65536):
+                            yield chunk
+                    cls.cleanup_temp_file(temp_output_path)
+
+                response = Response(
+                    stream_with_context(generate()),
+                    mimetype="application/octet-stream",
+                    headers={
+                        "Content-Disposition": f'attachment; filename="{filename}"'
+                    },
+                )
+
+                return "success", response
+
+        except Exception as e:
+            cls.cleanup_temp_file(temp_carrier_path)
+            return "error", f"Extraction failed: {str(e)}"

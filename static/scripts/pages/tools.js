@@ -1,16 +1,244 @@
-// Current Download URL
-let currentDownloadUrl = null;
+// ========== Global functions ==========
 
-function clearDownloadURL() {
-    if (currentDownloadUrl) {
-        window.URL.revokeObjectURL(currentDownloadUrl);
-        currentDownloadUrl = null;
-
-        // Download buttons
-        encryptorDownloadButton.classList.add("hidden");
-        decryptorDownloadButton.classList.add("hidden");
-        downloadEncodedResult.classList.add("hidden");
+// Auto-resize textarea height
+function autoResizeTextarea(textarea) {
+    textarea.style.height = "auto";
+    if (textarea.scrollHeight <= 320) {
+        textarea.style.height = `${textarea.scrollHeight}px`;
+    } else {
+        textarea.style.height = "320px";
     }
+}
+
+// Dynamic font scaling based on character length
+function adjustFontSize(textarea) {
+    const length = textarea.value.length;
+
+    if (length > 300) {
+        textarea.classList.remove("sm:text-xl");
+    } else {
+        textarea.classList.add("sm:text-xl");
+    }
+}
+
+function resetTextarea(textarea) {
+    textarea.value = "";
+    textarea.style.height = "auto";
+    textarea.classList.add("sm:text-xl");
+}
+
+// Renders and appends file info items for an input file element
+function renderFileInputList(
+    container,
+    fileInput,
+    inputBtn,
+    onFileRemoved,
+    nextStep = null,
+    clearBlobUrl = null,
+) {
+    if (!container || !fileInput || !fileInput.files.length) return;
+
+    // Ensure container is visible and clear previous result cards
+    container.classList.remove("hidden!");
+    container.innerHTML = "";
+
+    Array.from(fileInput.files).forEach((file, index) => {
+        const fileInfoCard = document.createElement("div");
+        fileInfoCard.className = "file-info";
+
+        const fileDetails = document.createElement("div");
+        fileDetails.className = "file-details";
+
+        // Dynamic Icon
+        const icon = document.createElement("md-icon");
+        icon.textContent = getMaterialFileIcon(file.name);
+
+        // File Name & Size Label
+        const fileTextContainer = document.createElement("div");
+        fileTextContainer.className = "flex flex-col min-w-0 flex-1";
+
+        const fileNameSpan = document.createElement("span");
+        fileNameSpan.className =
+            "md-typescale-body-medium text-md-on-surface m-0 truncate";
+        fileNameSpan.textContent = file.name;
+
+        const fileSizeSpan = document.createElement("span");
+        fileSizeSpan.className =
+            "md-typescale-label-small text-md-on-surface-variant m-0";
+        fileSizeSpan.textContent = formatFileSize(file.size);
+
+        fileTextContainer.appendChild(fileNameSpan);
+        fileTextContainer.appendChild(fileSizeSpan);
+
+        // Clear / Remove Button
+        const clearBtn = document.createElement("md-icon-button");
+        clearBtn.type = "button";
+        clearBtn.setAttribute("aria-label", "Clear selected file");
+        clearBtn.className = "shrink-0!";
+
+        const closeIcon = document.createElement("md-icon");
+        closeIcon.textContent = "close";
+        clearBtn.appendChild(closeIcon);
+
+        // Delete specific file from input list
+        clearBtn.addEventListener("click", () => {
+            const dt = new DataTransfer();
+            Array.from(fileInput.files).forEach((f, idx) => {
+                if (idx !== index) dt.items.add(f);
+            });
+
+            fileInput.files = dt.files;
+            fileInfoCard.remove();
+
+            if (fileInput.files.length === 0) {
+                container.classList.add("hidden!");
+                inputBtn.classList.remove("hidden");
+
+                // If it has next step section
+                if (nextStep) {
+                    nextStep.classList.add("hidden");
+                }
+
+                // For clearing download URL
+                if (clearBlobUrl) {
+                    clearResultFileInfo(clearBlobUrl);
+                }
+            }
+
+            if (onFileRemoved) onFileRemoved(fileInput.files);
+        });
+
+        fileDetails.appendChild(icon);
+        fileDetails.appendChild(fileTextContainer);
+        fileDetails.appendChild(clearBtn);
+        fileInfoCard.appendChild(fileDetails);
+
+        container.appendChild(fileInfoCard);
+
+        inputBtn.classList.add("hidden");
+
+        // If it has next step section
+        if (nextStep) {
+            nextStep.classList.remove("hidden");
+        }
+    });
+}
+
+// Renders a result file card from a Blob object and appends it to a container
+function renderResultFileInfo(container, blobFile, fileName) {
+    if (!container || !blobFile) return;
+
+    // Ensure container is visible and clear previous result cards
+    container.classList.remove("hidden!");
+    container.innerHTML = "";
+
+    // Create object URL for download
+    const blobUrl = window.URL.createObjectURL(blobFile);
+
+    const fileInfoCard = document.createElement("div");
+    fileInfoCard.className = "file-info";
+
+    const fileDetails = document.createElement("div");
+    fileDetails.className = "file-details flex items-center gap-2";
+
+    // Dynamic Icon
+    const icon = document.createElement("md-icon");
+    icon.textContent = getMaterialFileIcon(fileName);
+
+    // Text Wrapper
+    const fileTextContainer = document.createElement("div");
+    fileTextContainer.className = "flex flex-col min-w-0 flex-1";
+
+    const fileNameSpan = document.createElement("span");
+    fileNameSpan.className =
+        "md-typescale-body-medium text-md-on-surface m-0 truncate";
+    fileNameSpan.textContent = fileName;
+
+    const fileSizeSpan = document.createElement("span");
+    fileSizeSpan.className =
+        "md-typescale-label-small text-md-on-surface-variant m-0";
+    fileSizeSpan.textContent = formatFileSize(blobFile.size);
+
+    fileTextContainer.appendChild(fileNameSpan);
+    fileTextContainer.appendChild(fileSizeSpan);
+
+    // Download Button
+    const downloadBtn = document.createElement("md-icon-button");
+    downloadBtn.type = "button";
+    downloadBtn.setAttribute("aria-label", "Download result file");
+    downloadBtn.className = "shrink-0!";
+
+    const downloadIcon = document.createElement("md-icon");
+    downloadIcon.textContent = "download";
+    downloadBtn.appendChild(downloadIcon);
+
+    // Trigger file download on click
+    downloadBtn.addEventListener("click", () => {
+        const downloadLink = document.createElement("a");
+        downloadLink.href = blobUrl;
+        downloadLink.download = fileName;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        downloadLink.remove();
+    });
+
+    // Store blobUrl on element dataset for cleanup later
+    fileInfoCard.dataset.blobUrl = blobUrl;
+
+    // Assemble DOM hierarchy
+    fileDetails.appendChild(icon);
+    fileDetails.appendChild(fileTextContainer);
+    fileDetails.appendChild(downloadBtn);
+    fileInfoCard.appendChild(fileDetails);
+
+    container.appendChild(fileInfoCard);
+}
+
+// Clears result file cards from a container and revokes memory Object URLs
+function clearResultFileInfo(container) {
+    if (!container) return;
+
+    // Revoke Object URLs to prevent memory leaks
+    const cards = container.querySelectorAll(".file-info");
+    cards.forEach((card) => {
+        if (card.dataset.blobUrl) {
+            window.URL.revokeObjectURL(card.dataset.blobUrl);
+        }
+    });
+
+    container.innerHTML = "";
+    container.classList.add("hidden!");
+}
+
+// Renders a result plain text from a JSON response and appends it to a container
+function renderResultText(container, secretMessage) {
+    if (!container || !secretMessage) return;
+
+    // Ensure container is visible and clear previous result cards
+    container.classList.remove("hidden!");
+    container.innerHTML = "";
+
+    // Create md-outlined-text-field for displaying the secret message
+    const mdTextField = document.createElement("md-outlined-text-field");
+    mdTextField.type = "textarea";
+    mdTextField.id = "revealed-message";
+    mdTextField.className = "w-full resize-y mb-2.5";
+    mdTextField.placeholder = "Revealed secret message will shown here...";
+    mdTextField.setAttribute("rows", "3");
+    mdTextField.value = secretMessage;
+
+    // Create copy button
+    const mdCopyBtn = document.createElement("md-filled-tonal-button");
+    mdCopyBtn.type = "button";
+    mdCopyBtn.textContent = "Copy";
+
+    mdCopyBtn.addEventListener("click", (e) => {
+        copyText("revealed-message", e.target);
+    });
+
+    // Assemble
+    container.appendChild(mdTextField);
+    container.appendChild(mdCopyBtn);
 }
 
 // ========== Tabs switcher ==========
@@ -279,13 +507,12 @@ regenerateBtn.addEventListener("click", () => {
 });
 
 // ========== File Encryptor ==========
-
 function encryptorSendFile(
     uploadAPI,
     fileInput,
     keyInput,
     progressIndicator,
-    downloadButton,
+    resultFile,
 ) {
     // Remove supporting text on keyInput
     hideSupportText(keyInput);
@@ -298,7 +525,7 @@ function encryptorSendFile(
     );
 
     // Clean up previous blob URL if the user is processing a new file and hide download button during process
-    clearDownloadURL();
+    clearResultFileInfo(resultFile);
 
     const formData = new FormData();
     formData.append("file", fileInput.files[0]);
@@ -351,18 +578,7 @@ function encryptorSendFile(
 
             // Create a temporary link to trigger file download
             const blob = xhr.response;
-            currentDownloadUrl = window.URL.createObjectURL(blob);
-
-            // Attach to the Download button
-            downloadButton.classList.remove("hidden");
-            downloadButton.onclick = function () {
-                const a = document.createElement("a");
-                a.href = currentDownloadUrl;
-                a.download = downloadName;
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-            };
+            renderResultFileInfo(resultFile, blob, downloadName);
 
             // Success feedback
             showSnackbar("The process was successfully completed.");
@@ -408,92 +624,50 @@ function encryptorSendFile(
     }
 }
 
-// Show file card, hide drop zone
-function encryptorShowFileState(
-    file,
-    fileName,
-    dropZone,
-    fileInfoContainer,
-    nextStep,
-) {
-    if (!file) return;
-
-    // Display the file name
-    fileName.textContent = `${file.name} (${formatFileSize(file.size)})`;
-    dropZone.style.display = "none";
-    fileInfoContainer.style.display = "flex";
-
-    // Display the next step
-    nextStep.classList.remove("hidden");
-}
-
-// Reset back to upload drop zone state
-function encryptorResetFileState(
-    fileInput,
-    keyInput,
-    fileInfoContainer,
-    dropZone,
-    nextStep,
-    downloadButton,
-) {
-    fileInput.value = ""; // Clear file buffer
-    fileInfoContainer.style.display = "none";
-    dropZone.style.display = "flex";
-    nextStep.classList.add("hidden");
-    downloadButton.classList.add("hidden");
-
-    hideSupportText(keyInput);
-    keyInput.value = "";
-
-    if (currentDownloadUrl) {
-        window.URL.revokeObjectURL(currentDownloadUrl);
-        currentDownloadUrl = null;
-    }
-}
-
 // ========== For encryption ==========
 const encryptorFileForm = document.getElementById("file_encrypt_form");
 const encryptorBrowseBtn = document.getElementById("encryptor-browse-btn");
 const encryptorFileInput = document.getElementById("encryptor_file_input");
 const encryptorDropZone = document.getElementById("encryptor-drop-zone");
 const encryptorFileInfo = document.getElementById("encryptor-file-info");
-const encryptorFileNameSpan = document.getElementById("encryptor-file-name");
-const encryptorClearFileBtn = document.getElementById(
-    "encryptor-clear-file-btn",
-);
+
 const encryptorNextStep = document.getElementById("encryptor-next-step");
 const encryptorButton = document.getElementById("encrypt_submit_btn");
 const encryptorProgressIndicator = encryptorButton.querySelector(
     ".button-progress-indicator",
 );
-const encryptorDownloadButton = document.getElementById("download-encrypted");
+const encryptResultContainer = document.getElementById(
+    "encrypt-result-container",
+);
 
 const fileEncryptAPI = "/api/encryptor/encrypt_file";
+let accumulatedEncryptFiles = new DataTransfer();
 
 // Native trigger
 encryptorBrowseBtn.addEventListener("click", () => encryptorFileInput.click());
-
 encryptorFileInput.addEventListener("change", (e) => {
-    if (e.target.files.length > 0) {
-        encryptorShowFileState(
-            e.target.files[0],
-            encryptorFileNameSpan,
-            encryptorDropZone,
-            encryptorFileInfo,
-            encryptorNextStep,
-        );
-    }
-});
+    // Merge new selections into accumulated list
+    Array.from(decoderFileInput.files).forEach((file) => {
+        accumulatedEncryptFiles.items.add(file);
+    });
 
-// Clear selection click event
-encryptorClearFileBtn.addEventListener("click", () => {
-    encryptorResetFileState(
-        encryptorFileInput,
-        encryptorFileForm.encrypt_key,
+    // Update the input element's files
+    decoderFileInput.files = accumulatedEncryptFiles.files;
+
+    // Render accumulated list
+    renderFileInputList(
         encryptorFileInfo,
+        encryptorFileInput,
         encryptorDropZone,
+        (updatedFiles) => {
+            // Sync DataTransfer when items are deleted via close button
+            accumulatedEncryptFiles = new DataTransfer();
+            Array.from(updatedFiles).forEach((f) =>
+                accumulatedEncryptFiles.items.add(f),
+            );
+        },
         encryptorNextStep,
-        encryptorDownloadButton,
+        encryptResultContainer,
     );
 });
 
@@ -516,12 +690,29 @@ encryptorDropZone.addEventListener("drop", (e) => {
         const extension = droppedFile.name.split(".").pop().toLowerCase();
 
         encryptorFileInput.files = e.dataTransfer.files;
-        encryptorShowFileState(
-            droppedFile,
-            encryptorFileNameSpan,
-            encryptorDropZone,
+
+        // Merge new selections into accumulated list
+        Array.from(decoderFileInput.files).forEach((file) => {
+            accumulatedEncryptFiles.items.add(file);
+        });
+
+        // Update the input element's files
+        decoderFileInput.files = accumulatedEncryptFiles.files;
+
+        // Render accumulated list
+        renderFileInputList(
             encryptorFileInfo,
+            encryptorFileInput,
+            encryptorDropZone,
+            (updatedFiles) => {
+                // Sync DataTransfer when items are deleted via close button
+                accumulatedEncryptFiles = new DataTransfer();
+                Array.from(updatedFiles).forEach((f) =>
+                    accumulatedEncryptFiles.items.add(f),
+                );
+            },
             encryptorNextStep,
+            encryptResultContainer,
         );
     }
 });
@@ -538,7 +729,7 @@ encryptorFileForm.addEventListener("submit", (event) => {
             encryptorFileInput,
             encryptorFileForm.encrypt_key,
             encryptorProgressIndicator,
-            encryptorDownloadButton,
+            encryptResultContainer,
         );
     }
 });
@@ -549,43 +740,44 @@ const decryptorBrowseBtn = document.getElementById("decryptor-browse-btn");
 const decryptorFileInput = document.getElementById("decryptor_file_input");
 const decryptorDropZone = document.getElementById("decryptor-drop-zone");
 const decryptorFileInfo = document.getElementById("decryptor-file-info");
-const decryptorFileNameSpan = document.getElementById("decryptor-file-name");
-const decryptorClearFileBtn = document.getElementById(
-    "decryptor-clear-file-btn",
-);
+
 const decryptorNextStep = document.getElementById("decryptor-next-step");
 const decryptorButton = document.getElementById("decrypt_submit_btn");
 const decryptorProgressIndicator = decryptorButton.querySelector(
     ".button-progress-indicator",
 );
-const decryptorDownloadButton = document.getElementById("download-decrypted");
+const decryptorResultContainer = document.getElementById(
+    "decrypt-result-container",
+);
 
 const fileDecryptAPI = "/api/encryptor/decrypt_file";
+let accumulatedDecryptFiles = new DataTransfer();
 
 // Native trigger
 decryptorBrowseBtn.addEventListener("click", () => decryptorFileInput.click());
+decryptorFileInput.addEventListener("change", () => {
+    // Merge new selections into accumulated list
+    Array.from(decoderFileInput.files).forEach((file) => {
+        accumulatedDecryptFiles.items.add(file);
+    });
 
-decryptorFileInput.addEventListener("change", (e) => {
-    if (e.target.files.length > 0) {
-        encryptorShowFileState(
-            e.target.files[0],
-            decryptorFileNameSpan,
-            decryptorDropZone,
-            decryptorFileInfo,
-            decryptorNextStep,
-        );
-    }
-});
+    // Update the input element's files
+    decoderFileInput.files = accumulatedDecryptFiles.files;
 
-// Clear selection click event
-decryptorClearFileBtn.addEventListener("click", () => {
-    encryptorResetFileState(
-        decryptorFileInput,
-        decryptorFileForm.decrypt_key,
+    // Render accumulated list
+    renderFileInputList(
         decryptorFileInfo,
+        decryptorFileInput,
         decryptorDropZone,
+        (updatedFiles) => {
+            // Sync DataTransfer when items are deleted via close button
+            accumulatedDecryptFiles = new DataTransfer();
+            Array.from(updatedFiles).forEach((f) =>
+                accumulatedDecryptFiles.items.add(f),
+            );
+        },
         decryptorNextStep,
-        decryptorDownloadButton,
+        decryptorResultContainer,
     );
 });
 
@@ -609,12 +801,29 @@ decryptorDropZone.addEventListener("drop", (e) => {
 
         if (extension === "sunako") {
             decryptorFileInput.files = e.dataTransfer.files;
-            encryptorShowFileState(
-                droppedFile,
-                decryptorFileNameSpan,
-                decryptorDropZone,
+
+            // Merge new selections into accumulated list
+            Array.from(decoderFileInput.files).forEach((file) => {
+                accumulatedDecryptFiles.items.add(file);
+            });
+
+            // Update the input element's files
+            decoderFileInput.files = accumulatedDecryptFiles.files;
+
+            // Render accumulated list
+            renderFileInputList(
                 decryptorFileInfo,
+                decryptorFileInput,
+                decryptorDropZone,
+                (updatedFiles) => {
+                    // Sync DataTransfer when items are deleted via close button
+                    accumulatedDecryptFiles = new DataTransfer();
+                    Array.from(updatedFiles).forEach((f) =>
+                        accumulatedDecryptFiles.items.add(f),
+                    );
+                },
                 decryptorNextStep,
+                decryptorResultContainer,
             );
         } else {
             showAlert(
@@ -637,7 +846,7 @@ decryptorFileForm.addEventListener("submit", (event) => {
             decryptorFileInput,
             decryptorFileForm.decrypt_key,
             decryptorProgressIndicator,
-            decryptorDownloadButton,
+            decryptorResultContainer,
         );
     }
 });
@@ -825,33 +1034,7 @@ converterForm.convert_to_option.addEventListener("change", () => {
 
 // ========== Steganography ==========
 
-// Show file info card, hide file selector button
-function steganographyShowFileState(
-    file,
-    selectBtnContainer,
-    fileName,
-    fileInfoContainer,
-) {
-    if (!file) return;
-
-    // Display file info
-    fileName.textContent = `${file.name} (${formatFileSize(file.size)})`;
-    selectBtnContainer.classList.add("hidden");
-    fileInfoContainer.classList.remove("hidden!");
-}
-
-// Reset back file selector button, hide file info card
-function steganographyResetFileState(
-    fileInput,
-    selectBtnContainer,
-    fileInfoContainer,
-) {
-    fileInput.value = "";
-    selectBtnContainer.classList.remove("hidden");
-    fileInfoContainer.classList.add("hidden!");
-}
-
-// ========== For hiding the secret ==========
+// For hiding the secret
 const hideSecretForm = document.getElementById("hide-secret-form");
 const typeSelector = hideSecretForm.type_selector;
 const secretMessageContainer = document.getElementById(
@@ -861,13 +1044,35 @@ const hideSecretSubmitBtn = document.getElementById("hide_submit_btn");
 const hideSecretSubmitBtnIndicator = hideSecretSubmitBtn.querySelector(
     ".button-progress-indicator",
 );
-const downloadEncodedResult = document.getElementById(
-    "download-encoded-result",
+
+const secretFileContainer = document.getElementById("secret-file-container");
+const secretFileChooser = document.getElementById("secret-file-chooser");
+const secretFileInput = hideSecretForm.secret_file_input;
+const secretFileInputBtn = document.getElementById("secret-file-select-btn");
+const secretFileInfo = document.getElementById("secret-file-info");
+
+const mediaCarrierChooser = document.getElementById("media-carrier-chooser");
+const mediaCarrierInput = hideSecretForm.media_carrier_input;
+const mediaCarrierInputBtn = document.getElementById(
+    "media-carrier-select-btn",
+);
+const mediaCarrierInfo = document.getElementById("media-carrier-info");
+
+const enableEncryptionCheckbox = hideSecretForm.enable_encryption;
+const encryptSecretPassField = document.getElementById(
+    "encrypt-secret-pass-field",
+);
+
+const encodeResult = document.getElementById("stego-encode-result");
+const encodeResultContainer = document.getElementById(
+    "encode-result-container",
 );
 
 const stegoEncodeAPI = "/api/steganography/hide";
 let secretType = "text";
 let enableEncryptionState = false;
+let accumulatedSecretFile = new DataTransfer();
+let accumulatedMediaCarrier = new DataTransfer();
 
 // Type selection listener
 typeSelector.addEventListener("change", () => {
@@ -879,13 +1084,6 @@ typeSelector.addEventListener("change", () => {
 
     // Reset secret message state
     hideSecretForm.secret_message.value = "";
-
-    // Reset secret file state
-    steganographyResetFileState(
-        secretFileInput,
-        secretFileChooser,
-        secretFileInfo,
-    );
 
     if (typeSelector.value === "plain-text") {
         secretType = "text";
@@ -900,76 +1098,60 @@ typeSelector.addEventListener("change", () => {
     }
 });
 
-// For secret file
-const secretFileContainer = document.getElementById("secret-file-container");
-const secretFileChooser = document.getElementById("secret-file-chooser");
-const secretFileInput = hideSecretForm.secret_file_input;
-const secretFileInputBtn = document.getElementById("secret-file-select-btn");
-
-const secretFileInfo = document.getElementById("secret-file-info");
-const secretFileName = document.getElementById("secret-file-name");
-const secretFileClearBtn = document.getElementById("secret-file-clear-btn");
-
+// Secret file handler
 secretFileInputBtn.addEventListener("click", () => secretFileInput.click());
+secretFileInput.addEventListener("change", () => {
+    // Merge new selections into accumulated list
+    Array.from(secretFileInput.files).forEach((file) => {
+        accumulatedSecretFile.items.add(file);
+    });
 
-secretFileInput.addEventListener("change", (e) => {
-    if (e.target.files.length > 0) {
-        steganographyShowFileState(
-            e.target.files[0],
-            secretFileChooser,
-            secretFileName,
-            secretFileInfo,
-        );
-    }
-});
+    // Update the input element's files
+    secretFileInput.files = accumulatedSecretFile.files;
 
-secretFileClearBtn.addEventListener("click", () => {
-    steganographyResetFileState(
+    // Render accumulated list
+    renderFileInputList(
+        secretFileInfo,
         secretFileInput,
         secretFileChooser,
-        secretFileInfo,
+        (updatedFiles) => {
+            // Sync DataTransfer when items are deleted via close button
+            accumulatedSecretFile = new DataTransfer();
+            Array.from(updatedFiles).forEach((f) =>
+                accumulatedSecretFile.items.add(f),
+            );
+        },
     );
 });
 
-// For media carrier
-const mediaCarrierChooser = document.getElementById("media-carrier-chooser");
-const mediaCarrierInput = hideSecretForm.media_carrier_input;
-const mediaCarrierInputBtn = document.getElementById(
-    "media-carrier-select-btn",
-);
-
-const mediaCarrierInfo = document.getElementById("media-carrier-info");
-const mediaCarrierName = document.getElementById("media-carrier-name");
-const mediaCarrierClearBtn = document.getElementById("media-carrier-clear-btn");
-
+// Media carrier handler
 mediaCarrierInputBtn.addEventListener("click", () => mediaCarrierInput.click());
+mediaCarrierInput.addEventListener("change", () => {
+    // Merge new selections into accumulated list
+    Array.from(mediaCarrierInput.files).forEach((file) => {
+        accumulatedMediaCarrier.items.add(file);
+    });
 
-mediaCarrierInput.addEventListener("change", (e) => {
-    if (e.target.files.length > 0) {
-        steganographyShowFileState(
-            e.target.files[0],
-            mediaCarrierChooser,
-            mediaCarrierName,
-            mediaCarrierInfo,
-        );
-    }
-});
+    // Update the input element's files
+    mediaCarrierInput.files = accumulatedMediaCarrier.files;
 
-mediaCarrierClearBtn.addEventListener("click", () => {
-    steganographyResetFileState(
+    // Render accumulated list
+    renderFileInputList(
+        mediaCarrierInfo,
         mediaCarrierInput,
         mediaCarrierChooser,
-        mediaCarrierInfo,
+        (updatedFiles) => {
+            // Sync DataTransfer when items are deleted via close button
+            accumulatedMediaCarrier = new DataTransfer();
+            Array.from(updatedFiles).forEach((f) =>
+                accumulatedMediaCarrier.items.add(f),
+            );
+        },
     );
 });
 
 // Security settings
 // Enable encryption
-const enableEncryptionCheckbox = hideSecretForm.enable_encryption;
-const encryptSecretPassField = document.getElementById(
-    "encrypt-secret-pass-field",
-);
-
 function enableEncryption() {
     // Setting the timeout for fixing stupid bug checkbox checked issue
     setTimeout(() => {
@@ -989,7 +1171,7 @@ function enableEncryption() {
 
 enableEncryptionCheckbox.addEventListener("click", enableEncryption);
 
-// Start the  encode
+// Start the encode
 function stegoEncode() {
     // Check media carrier
     if (!mediaCarrierInput.files[0]) {
@@ -1038,7 +1220,8 @@ function stegoEncode() {
     }
 
     // clear previous download url
-    clearDownloadURL();
+    encodeResult.classList.add("hidden");
+    clearResultFileInfo(encodeResultContainer);
 
     // Send the data to server
     const xhr = new XMLHttpRequest();
@@ -1068,6 +1251,7 @@ function stegoEncode() {
                 const utf8Matches = /filename\*=UTF-8''([^;\n]*)/i.exec(
                     disposition,
                 );
+
                 if (utf8Matches && utf8Matches[1]) {
                     downloadName = decodeURIComponent(utf8Matches[1]);
                 } else {
@@ -1082,18 +1266,10 @@ function stegoEncode() {
 
             // Create a temporary link to trigger file download
             const blob = xhr.response;
-            currentDownloadUrl = window.URL.createObjectURL(blob);
 
             // Attach to the Download button
-            downloadEncodedResult.classList.remove("hidden");
-            downloadEncodedResult.onclick = function () {
-                const a = document.createElement("a");
-                a.href = currentDownloadUrl;
-                a.download = downloadName;
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-            };
+            renderResultFileInfo(encodeResultContainer, blob, downloadName);
+            encodeResult.classList.remove("hidden");
 
             // Success feedback
             showSnackbar("The process was successfully completed.");
@@ -1189,3 +1365,301 @@ async function inspectStegoFile(file) {
 
     return { hasSecret: true, isEncrypted: isEncrypted };
 }
+
+const decoderFileForm = document.getElementById("reveal-secret-form");
+const decoderBrowseBtn = document.getElementById("reveal-secret-browse-btn");
+const decoderFileInput = document.getElementById("reveal_secret_file_input");
+const decoderDropZone = document.getElementById("reveal-secret-drop-zone");
+const decoderFileInfo = document.getElementById("reveal-secret-file-info");
+
+const decoderNextStep = document.getElementById("reveal-secret-next-step");
+const decoderPasswordElm = document.getElementById("decoder-password");
+const decoderButton = document.getElementById("decode_submit_btn");
+const decoderProgressIndicator = decoderButton.querySelector(
+    ".button-progress-indicator",
+);
+
+const decodeResultContainer = document.getElementById(
+    "decode-result-container",
+);
+
+const stegoDecodeAPI = "/api/steganography/reveal";
+let encryptedSecret = false;
+let accumulatedDecodeFile = new DataTransfer();
+
+// Native trigger
+decoderBrowseBtn.addEventListener("click", () => decoderFileInput.click());
+decoderFileInput.addEventListener("change", async () => {
+    // Check if the file has secret
+    const result = await inspectStegoFile(decoderFileInput.files[0]);
+
+    if (!result.hasSecret) {
+        showAlert(
+            "No hidden secret found",
+            "No hidden secret detected in this file.",
+        );
+    } else {
+        // Merge new selections into accumulated list
+        Array.from(decoderFileInput.files).forEach((file) => {
+            accumulatedDecodeFile.items.add(file);
+        });
+
+        // Update the input element's files
+        decoderFileInput.files = accumulatedDecodeFile.files;
+
+        // Render accumulated list
+        renderFileInputList(
+            decoderFileInfo,
+            decoderFileInput,
+            decoderDropZone,
+            (updatedFiles) => {
+                // Sync DataTransfer when items are deleted via close button
+                accumulatedDecodeFile = new DataTransfer();
+                Array.from(updatedFiles).forEach((f) =>
+                    accumulatedDecodeFile.items.add(f),
+                );
+            },
+            decoderNextStep,
+            decodeResultContainer,
+        );
+
+        if (result.isEncrypted) {
+            decoderPasswordElm.classList.remove("hidden");
+            decoderFileForm.decode_key.required = true;
+
+            encryptedSecret = true;
+        } else {
+            decoderPasswordElm.classList.add("hidden");
+            decoderFileForm.decode_key.required = false;
+
+            encryptedSecret = false;
+        }
+    }
+});
+
+// Drag-and-drop handles
+decoderDropZone.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    decoderDropZone.classList.add("drag-over");
+});
+
+decoderDropZone.addEventListener("dragleave", () => {
+    decoderDropZone.classList.remove("drag-over");
+});
+
+decoderDropZone.addEventListener("drop", async (e) => {
+    e.preventDefault();
+    decoderDropZone.classList.remove("drag-over");
+
+    if (e.dataTransfer.files.length > 0) {
+        const droppedFile = e.dataTransfer.files[0];
+        const extension = droppedFile.name.split(".").pop().toLowerCase();
+
+        decoderFileInput.files = e.dataTransfer.files;
+
+        // Check if the file has secret
+        const result = await inspectStegoFile(droppedFile);
+
+        if (!result.hasSecret) {
+            showAlert(
+                "No hidden secret found",
+                "No hidden secret detected in this file.",
+            );
+        } else {
+            // Merge new selections into accumulated list
+            Array.from(decoderFileInput.files).forEach((file) => {
+                accumulatedDecodeFile.items.add(file);
+            });
+
+            // Update the input element's files
+            decoderFileInput.files = accumulatedDecodeFile.files;
+
+            // Render accumulated list
+            renderFileInputList(
+                decoderFileInfo,
+                decoderFileInput,
+                decoderDropZone,
+                (updatedFiles) => {
+                    // Sync DataTransfer when items are deleted via close button
+                    accumulatedDecodeFile = new DataTransfer();
+                    Array.from(updatedFiles).forEach((f) =>
+                        accumulatedDecodeFile.items.add(f),
+                    );
+                },
+                decoderNextStep,
+                decodeResultContainer,
+            );
+
+            if (result.isEncrypted) {
+                decoderPasswordElm.classList.remove("hidden");
+                decoderFileForm.decode_key.required = true;
+
+                encryptedSecret = true;
+            } else {
+                decoderPasswordElm.classList.add("hidden");
+                decoderFileForm.decode_key.required = false;
+
+                encryptedSecret = false;
+            }
+        }
+    }
+});
+
+// Start the decode
+function stegoDecode() {
+    // Check media carrier
+    if (!decoderFileInput.files[0]) {
+        showAlert(
+            "Unable to process file",
+            "No file has been provided to reveal its secrets.",
+        );
+
+        decoderProgressIndicator.classList.add("hidden!");
+        return;
+    }
+
+    // Progress circle
+    const circularProgress = decoderProgressIndicator.querySelector(
+        "md-circular-progress",
+    );
+
+    // Form data for revealing secret
+    const formData = new FormData();
+    formData.append("media_carrier_input", decoderFileInput.files[0]);
+
+    // Is it encrypted?
+    if (encryptedSecret) {
+        formData.append("secret_password", decoderFileForm.decode_key.value);
+    }
+
+    // clear previous download url
+    clearResultFileInfo(decodeResultContainer);
+
+    // Send the data to server
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", stegoDecodeAPI, true);
+
+    xhr.responseType = "blob";
+
+    xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+            const percentComplete = (e.loaded / e.total) * 100;
+            circularProgress.removeAttribute("indeterminate");
+            circularProgress.setAttribute("value", percentComplete / 100);
+        }
+    };
+
+    xhr.upload.onload = () => {
+        circularProgress.removeAttribute("value");
+        circularProgress.setAttribute("indeterminate", "");
+    };
+
+    xhr.onload = () => {
+        const contentType = xhr.getResponseHeader("Content-Type") || "";
+
+        if (xhr.status === 200 && !contentType.includes("application/json")) {
+            let downloadName = decoderFileInput.files[0].name; // Fallback
+            const disposition = xhr.getResponseHeader("Content-Disposition");
+
+            if (disposition) {
+                const utf8Matches = /filename\*=UTF-8''([^;\n]*)/i.exec(
+                    disposition,
+                );
+                if (utf8Matches && utf8Matches[1]) {
+                    downloadName = decodeURIComponent(utf8Matches[1]);
+                } else {
+                    const standardMatches = /filename="?([^";\n]*)"?/i.exec(
+                        disposition,
+                    );
+                    if (standardMatches && standardMatches[1]) {
+                        downloadName = standardMatches[1];
+                    }
+                }
+            }
+
+            // Create a temporary link to trigger file download
+            const blob = xhr.response;
+            renderResultFileInfo(decodeResultContainer, blob, downloadName);
+
+            // Success feedback
+            showSnackbar("The process was successfully completed.");
+            resetUploadButton();
+        }
+
+        if (contentType.includes("application/json")) {
+            // Handle JSON response
+            const reader = new FileReader();
+            reader.onload = function () {
+                try {
+                    const responseJson = JSON.parse(reader.result);
+                    let errorMessage;
+
+                    if (
+                        xhr.status === 200 &&
+                        responseJson.status === "success"
+                    ) {
+                        // Success: Extracted plain text secret
+                        renderResultText(
+                            decodeResultContainer,
+                            responseJson.data.content,
+                        );
+                    } else if (
+                        xhr.status === 401 &&
+                        responseJson.data &&
+                        responseJson.data.is_locked
+                    ) {
+                        // Password Required Error
+                        errorMessage = responseJson.message;
+
+                        showSupportText(
+                            decoderFileForm.decode_key,
+                            errorMessage,
+                        );
+                    } else {
+                        // Standard Error
+                        errorMessage =
+                            responseJson.message ||
+                            "An unknown error occurred. Please try again";
+
+                        showAlert("Unable to process file", errorMessage);
+                    }
+                } catch (e) {
+                    showAlert(
+                        "Unable to process file",
+                        "Process failed. Please try again.",
+                    );
+                }
+
+                resetUploadButton();
+            };
+
+            // Read binary blob response
+            reader.readAsText(xhr.response);
+        }
+    };
+
+    xhr.onerror = function () {
+        showAlert(
+            "Unable to upload file",
+            "Network error occurred. Please try again.",
+        );
+        resetUploadButton();
+    };
+
+    xhr.send(formData);
+
+    function resetUploadButton() {
+        decoderProgressIndicator.classList.add("hidden!");
+        circularProgress.value = 0;
+    }
+}
+
+decoderFileForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    if (decoderProgressIndicator.classList.contains("hidden!")) {
+        decoderProgressIndicator.classList.remove("hidden!");
+
+        stegoDecode();
+    }
+});

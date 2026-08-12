@@ -299,7 +299,6 @@ md-filled-button .button-progress-indicator md-circular-progress {
     border: 2px dashed var(--md-sys-color-outline-variant);
     border-radius: 12px;
     padding: 32px 16px;
-    display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;

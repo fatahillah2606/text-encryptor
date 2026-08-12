@@ -234,7 +234,7 @@
                                                             class="upload-container col-span-2"
                                                         >
                                                             <div
-                                                                class="drop-zone"
+                                                                class="drop-zone flex"
                                                                 id="encryptor-drop-zone"
                                                             >
                                                                 <md-icon>
@@ -266,35 +266,8 @@
 
                                                             <div
                                                                 id="encryptor-file-info"
-                                                                class="file-info"
-                                                                style="
-                                                                    display: none;
-                                                                "
-                                                            >
-                                                                <div
-                                                                    class="file-details"
-                                                                >
-                                                                    <md-icon>
-                                                                        insert_drive_file
-                                                                    </md-icon>
-                                                                    <span
-                                                                        id="encryptor-file-name"
-                                                                        class="md-typescale-body-medium text-md-on-surface m-0 w-full whitespace-nowrap overflow-hidden text-ellipsis"
-                                                                    >
-                                                                        filename.json
-                                                                    </span>
-                                                                    <md-icon-button
-                                                                        type="button"
-                                                                        id="encryptor-clear-file-btn"
-                                                                        aria-label="Clear selected file"
-                                                                        class="shrink-0!"
-                                                                    >
-                                                                        <md-icon>
-                                                                            close
-                                                                        </md-icon>
-                                                                    </md-icon-button>
-                                                                </div>
-                                                            </div>
+                                                                class="flex flex-col gap-2 hidden!"
+                                                            ></div>
                                                         </div>
 
                                                         <div
@@ -348,21 +321,17 @@
                                                                 </label>
                                                             </div>
 
+                                                            <!-- Encrypt file result -->
+                                                            <md-divider
+                                                                class="my-5"
+                                                            ></md-divider>
                                                             <div
-                                                                class="pt-2 flex items-center justify-end gap-2"
+                                                                id="encrypt-result-container"
+                                                            ></div>
+
+                                                            <div
+                                                                class="pt-5 flex items-center justify-end gap-2"
                                                             >
-                                                                <md-outlined-button
-                                                                    type="button"
-                                                                    class="hidden"
-                                                                    id="download-encrypted"
-                                                                >
-                                                                    Download
-                                                                    <md-icon
-                                                                        slot="icon"
-                                                                    >
-                                                                        download
-                                                                    </md-icon>
-                                                                </md-outlined-button>
                                                                 <md-filled-button
                                                                     type="submit"
                                                                     id="encrypt_submit_btn"
@@ -426,7 +395,7 @@
                                                             class="upload-container col-span-2"
                                                         >
                                                             <div
-                                                                class="drop-zone"
+                                                                class="drop-zone flex"
                                                                 id="decryptor-drop-zone"
                                                             >
                                                                 <md-icon>
@@ -459,35 +428,8 @@
 
                                                             <div
                                                                 id="decryptor-file-info"
-                                                                class="file-info"
-                                                                style="
-                                                                    display: none;
-                                                                "
-                                                            >
-                                                                <div
-                                                                    class="file-details"
-                                                                >
-                                                                    <md-icon>
-                                                                        insert_drive_file
-                                                                    </md-icon>
-                                                                    <span
-                                                                        id="decryptor-file-name"
-                                                                        class="md-typescale-body-medium text-md-on-surface m-0 w-full whitespace-nowrap overflow-hidden text-ellipsis"
-                                                                    >
-                                                                        filename.json
-                                                                    </span>
-                                                                    <md-icon-button
-                                                                        type="button"
-                                                                        id="decryptor-clear-file-btn"
-                                                                        aria-label="Clear selected file"
-                                                                        class="shrink-0!"
-                                                                    >
-                                                                        <md-icon>
-                                                                            close
-                                                                        </md-icon>
-                                                                    </md-icon-button>
-                                                                </div>
-                                                            </div>
+                                                                class="flex flex-col gap-2 hidden!"
+                                                            ></div>
                                                         </div>
 
                                                         <div
@@ -532,21 +474,17 @@
                                                                 </label>
                                                             </div>
 
+                                                            <!-- Decrypt file result -->
+                                                            <md-divider
+                                                                class="my-5"
+                                                            ></md-divider>
+                                                            <div
+                                                                id="decrypt-result-container"
+                                                            ></div>
+
                                                             <div
                                                                 class="pt-2 flex items-center justify-end gap-2"
                                                             >
-                                                                <md-outlined-button
-                                                                    type="button"
-                                                                    class="hidden"
-                                                                    id="download-decrypted"
-                                                                >
-                                                                    Download
-                                                                    <md-icon
-                                                                        slot="icon"
-                                                                    >
-                                                                        download
-                                                                    </md-icon>
-                                                                </md-outlined-button>
                                                                 <md-filled-button
                                                                     type="submit"
                                                                     id="decrypt_submit_btn"
@@ -1035,30 +973,8 @@
                                                 </div>
                                                 <div
                                                     id="secret-file-info"
-                                                    class="file-info hidden!"
-                                                >
-                                                    <div class="file-details">
-                                                        <md-icon>
-                                                            insert_drive_file
-                                                        </md-icon>
-                                                        <span
-                                                            id="secret-file-name"
-                                                            class="md-typescale-body-medium text-md-on-surface m-0 w-full whitespace-nowrap overflow-hidden text-ellipsis"
-                                                        >
-                                                            filename.json
-                                                        </span>
-                                                        <md-icon-button
-                                                            type="button"
-                                                            id="secret-file-clear-btn"
-                                                            aria-label="Clear selected file"
-                                                            class="shrink-0!"
-                                                        >
-                                                            <md-icon>
-                                                                close
-                                                            </md-icon>
-                                                        </md-icon-button>
-                                                    </div>
-                                                </div>
+                                                    class="flex flex-col gap-2 hidden!"
+                                                ></div>
                                             </div>
 
                                             <!-- Media Carrier -->
@@ -1085,30 +1001,8 @@
                                                 </div>
                                                 <div
                                                     id="media-carrier-info"
-                                                    class="file-info hidden!"
-                                                >
-                                                    <div class="file-details">
-                                                        <md-icon>
-                                                            insert_drive_file
-                                                        </md-icon>
-                                                        <span
-                                                            id="media-carrier-name"
-                                                            class="md-typescale-body-medium text-md-on-surface m-0 w-full whitespace-nowrap overflow-hidden text-ellipsis"
-                                                        >
-                                                            filename.json
-                                                        </span>
-                                                        <md-icon-button
-                                                            type="button"
-                                                            id="media-carrier-clear-btn"
-                                                            aria-label="Clear selected file"
-                                                            class="shrink-0!"
-                                                        >
-                                                            <md-icon>
-                                                                close
-                                                            </md-icon>
-                                                        </md-icon-button>
-                                                    </div>
-                                                </div>
+                                                    class="flex flex-col gap-2 hidden!"
+                                                ></div>
                                             </div>
 
                                             <!-- Secret encryption key -->
@@ -1186,20 +1080,27 @@
                                                 </div>
                                             </div>
 
+                                            <!-- Result file (hidden by default) -->
+                                            <div
+                                                class="hidden"
+                                                id="stego-encode-result"
+                                            >
+                                                <p
+                                                    class="md-typescale-body-small font-semibold! uppercase! tracking-wider! text-md-on-surface-variant"
+                                                >
+                                                    4. Result File
+                                                </p>
+
+                                                <div
+                                                    id="encode-result-container"
+                                                    class="flex flex-col gap-2 hidden!"
+                                                ></div>
+                                            </div>
+
                                             <!-- Action button -->
                                             <div
                                                 class="flex items-center justify-end gap-2"
                                             >
-                                                <md-outlined-button
-                                                    type="button"
-                                                    class="hidden"
-                                                    id="download-encoded-result"
-                                                >
-                                                    Download
-                                                    <md-icon slot="icon">
-                                                        download
-                                                    </md-icon>
-                                                </md-outlined-button>
                                                 <md-filled-button
                                                     type="submit"
                                                     id="hide_submit_btn"
@@ -1259,7 +1160,7 @@
                                                 class="upload-container col-span-2"
                                             >
                                                 <div
-                                                    class="drop-zone"
+                                                    class="drop-zone flex"
                                                     id="reveal-secret-drop-zone"
                                                 >
                                                     <md-icon>
@@ -1280,7 +1181,6 @@
                                                     </md-filled-button>
                                                     <input
                                                         type="file"
-                                                        accept=".sunako"
                                                         id="reveal_secret_file_input"
                                                         name="reveal_secret_file_input"
                                                         style="display: none"
@@ -1289,83 +1189,64 @@
 
                                                 <div
                                                     id="reveal-secret-file-info"
-                                                    class="file-info"
-                                                    style="display: none"
-                                                >
-                                                    <div class="file-details">
-                                                        <md-icon>
-                                                            insert_drive_file
-                                                        </md-icon>
-                                                        <span
-                                                            id="reveal-secret-file-name"
-                                                            class="md-typescale-body-medium text-md-on-surface m-0 w-full whitespace-nowrap overflow-hidden text-ellipsis"
-                                                        >
-                                                            filename.json
-                                                        </span>
-                                                        <md-icon-button
-                                                            type="button"
-                                                            id="reveal-secret-clear-file-btn"
-                                                            aria-label="Clear selected file"
-                                                            class="shrink-0!"
-                                                        >
-                                                            <md-icon>
-                                                                close
-                                                            </md-icon>
-                                                        </md-icon-button>
-                                                    </div>
-                                                </div>
+                                                    class="flex flex-col gap-2 hidden!"
+                                                ></div>
                                             </div>
                                             <div
                                                 id="reveal-secret-next-step"
                                                 class="hidden"
                                             >
-                                                <!-- Secret Key / Password -->
+                                                <!-- Decoder Password -->
                                                 <div
-                                                    class="flex flex-col gap-1.5"
+                                                    id="decoder-password"
+                                                    class="hidden"
                                                 >
-                                                    <md-outlined-text-field
-                                                        type="password"
-                                                        id="decode_key"
-                                                        name="decode_key"
-                                                        label="Password"
-                                                    ></md-outlined-text-field>
+                                                    <div
+                                                        class="flex flex-col gap-1.5"
+                                                    >
+                                                        <md-outlined-text-field
+                                                            type="password"
+                                                            id="decode_key"
+                                                            name="decode_key"
+                                                            label="Password"
+                                                            supporting-text="Secret locked, please enter the password to unlock."
+                                                        ></md-outlined-text-field>
+                                                    </div>
+
+                                                    <div
+                                                        class="flex items-center justify-start gap-4 my-2.5"
+                                                        onclick="
+                                                            showPw(
+                                                                'reveal_secret_show_key',
+                                                                ['decode_key'],
+                                                            )
+                                                        "
+                                                    >
+                                                        <md-checkbox
+                                                            id="reveal_secret_show_key"
+                                                            touch-target="wrapper"
+                                                            class="m-0"
+                                                        ></md-checkbox>
+                                                        <label
+                                                            for="reveal_secret_show_key"
+                                                            class="md-typescale-body-medium text-md-on-surface m-0"
+                                                        >
+                                                            Show password
+                                                        </label>
+                                                    </div>
                                                 </div>
 
+                                                <!-- Decoder result -->
+                                                <md-divider
+                                                    class="my-5"
+                                                ></md-divider>
                                                 <div
-                                                    class="flex items-center justify-start gap-4 my-2.5"
-                                                    onclick="
-                                                        showPw(
-                                                            'reveal_secret_show_key',
-                                                            ['decode_key'],
-                                                        )
-                                                    "
-                                                >
-                                                    <md-checkbox
-                                                        id="reveal_secret_show_key"
-                                                        touch-target="wrapper"
-                                                        class="m-0"
-                                                    ></md-checkbox>
-                                                    <label
-                                                        for="reveal_secret_show_key"
-                                                        class="md-typescale-body-medium text-md-on-surface m-0"
-                                                    >
-                                                        Show password
-                                                    </label>
-                                                </div>
+                                                    id="decode-result-container"
+                                                ></div>
 
                                                 <div
-                                                    class="pt-2 flex items-center justify-end gap-2"
+                                                    class="pt-5 flex items-center justify-end gap-2"
                                                 >
-                                                    <md-outlined-button
-                                                        type="button"
-                                                        class="hidden"
-                                                        id="download-decoded-result"
-                                                    >
-                                                        Download
-                                                        <md-icon slot="icon">
-                                                            download
-                                                        </md-icon>
-                                                    </md-outlined-button>
                                                     <md-filled-button
                                                         type="submit"
                                                         id="decode_submit_btn"
