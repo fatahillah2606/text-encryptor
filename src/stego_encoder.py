@@ -239,7 +239,7 @@ class StegoDecoder:
 
                 except Exception as err:
                     cls.cleanup_temp_file(temp_carrier_path)
-                    return "error", f"Invalid password or corrupted payload: {str(err)}"
+                    return "error", "Invalid password or corrupted payload."
             else:
                 # Unencrypted payload: Payload Size (4B) + Payload
                 payload_size = struct.unpack(

@@ -562,20 +562,20 @@ function getMaterialFileIcon(fileNameOrExtension) {
         ico: "image",
 
         // Videos
-        mp4: "video_file",
-        mkv: "video_file",
-        avi: "video_file",
-        mov: "video_file",
-        webm: "video_file",
-        flv: "video_file",
+        mp4: "movie",
+        mkv: "movie",
+        avi: "movie",
+        mov: "movie",
+        webm: "movie",
+        flv: "movie",
 
         // Audio
-        mp3: "audio_file",
-        wav: "audio_file",
-        ogg: "audio_file",
-        flac: "audio_file",
-        m4a: "audio_file",
-        aac: "audio_file",
+        mp3: "music_note",
+        wav: "music_note",
+        ogg: "music_note",
+        flac: "music_note",
+        m4a: "music_note",
+        aac: "music_note",
 
         // Documents & Text
         pdf: "picture_as_pdf",
@@ -599,7 +599,7 @@ function getMaterialFileIcon(fileNameOrExtension) {
         // Code & Data
         html: "code",
         css: "code",
-        js: "javascript",
+        js: "code",
         json: "data_object",
         py: "code",
         php: "code",
@@ -609,8 +609,8 @@ function getMaterialFileIcon(fileNameOrExtension) {
         // Executables / System
         exe: "terminal",
         apk: "android",
-        bin: "binary",
-        iso: "disc_full",
+        bin: "terminal",
+        iso: "album",
     };
 
     // Return mapped icon or fallback to default file icon

@@ -42,7 +42,7 @@ function renderFileInputList(
     container.classList.remove("hidden!");
     container.innerHTML = "";
 
-    Array.from(fileInput.files).forEach((file, index) => {
+    Array.from(fileInput.files).forEach((file) => {
         const fileInfoCard = document.createElement("div");
         fileInfoCard.className = "file-info";
 
@@ -80,11 +80,21 @@ function renderFileInputList(
         closeIcon.textContent = "close";
         clearBtn.appendChild(closeIcon);
 
-        // Delete specific file from input list
+        // Delete specific file from input list using exact file reference match
         clearBtn.addEventListener("click", () => {
             const dt = new DataTransfer();
-            Array.from(fileInput.files).forEach((f, idx) => {
-                if (idx !== index) dt.items.add(f);
+
+            // Compare file objects directly to avoid index mismatch on fast clicking
+            Array.from(fileInput.files).forEach((f) => {
+                const isTargetFile =
+                    f === file ||
+                    (f.name === file.name &&
+                        f.size === file.size &&
+                        f.lastModified === file.lastModified);
+
+                if (!isTargetFile) {
+                    dt.items.add(f);
+                }
             });
 
             fileInput.files = dt.files;
@@ -518,7 +528,7 @@ function encryptorSendFile(
     hideSupportText(keyInput);
 
     // Check file and key input
-    if (!fileInput.files[0] || !keyInput.value) return;
+    if (!fileInput.files || !keyInput.value) return;
 
     const circularProgress = progressIndicator.querySelector(
         "md-circular-progress",
@@ -528,8 +538,12 @@ function encryptorSendFile(
     clearResultFileInfo(resultFile);
 
     const formData = new FormData();
-    formData.append("file", fileInput.files[0]);
     formData.append("key", keyInput.value);
+
+    // Proceed multiple file
+    Array.from(fileInput.files).forEach((file) => {
+        formData.append("files", file);
+    });
 
     const xhr = new XMLHttpRequest();
     xhr.open("POST", uploadAPI, true);
@@ -828,7 +842,7 @@ decryptorDropZone.addEventListener("drop", (e) => {
         } else {
             showAlert(
                 "Unsupported file format",
-                "The selected file could not be recognized. Please upload a valid encrypted file with a .sunako extension.",
+                "One of the selected files could not be recognized. Please select a valid encrypted file with the .sunako extension.",
             );
         }
     }
@@ -1370,6 +1384,8 @@ const decoderFileForm = document.getElementById("reveal-secret-form");
 const decoderBrowseBtn = document.getElementById("reveal-secret-browse-btn");
 const decoderFileInput = document.getElementById("reveal_secret_file_input");
 const decoderDropZone = document.getElementById("reveal-secret-drop-zone");
+const decoderDropZoneLoadingLayer =
+    decoderDropZone.querySelector(".loading-layer");
 const decoderFileInfo = document.getElementById("reveal-secret-file-info");
 
 const decoderNextStep = document.getElementById("reveal-secret-next-step");
@@ -1390,6 +1406,8 @@ let accumulatedDecodeFile = new DataTransfer();
 // Native trigger
 decoderBrowseBtn.addEventListener("click", () => decoderFileInput.click());
 decoderFileInput.addEventListener("change", async () => {
+    decoderDropZoneLoadingLayer.classList.remove("hidden");
+
     // Check if the file has secret
     const result = await inspectStegoFile(decoderFileInput.files[0]);
 
@@ -1398,7 +1416,11 @@ decoderFileInput.addEventListener("change", async () => {
             "No hidden secret found",
             "No hidden secret detected in this file.",
         );
+
+        decoderDropZoneLoadingLayer.classList.add("hidden");
     } else {
+        decoderDropZoneLoadingLayer.classList.add("hidden");
+
         // Merge new selections into accumulated list
         Array.from(decoderFileInput.files).forEach((file) => {
             accumulatedDecodeFile.items.add(file);
@@ -1456,6 +1478,7 @@ decoderDropZone.addEventListener("drop", async (e) => {
         const extension = droppedFile.name.split(".").pop().toLowerCase();
 
         decoderFileInput.files = e.dataTransfer.files;
+        decoderDropZoneLoadingLayer.classList.remove("hidden");
 
         // Check if the file has secret
         const result = await inspectStegoFile(droppedFile);
@@ -1465,7 +1488,11 @@ decoderDropZone.addEventListener("drop", async (e) => {
                 "No hidden secret found",
                 "No hidden secret detected in this file.",
             );
+
+            decoderDropZoneLoadingLayer.classList.add("hidden");
         } else {
+            decoderDropZoneLoadingLayer.classList.add("hidden");
+
             // Merge new selections into accumulated list
             Array.from(decoderFileInput.files).forEach((file) => {
                 accumulatedDecodeFile.items.add(file);

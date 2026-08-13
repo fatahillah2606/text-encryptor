@@ -7,7 +7,12 @@ from flask import Blueprint, Response, jsonify, request, session
 from src.converter import TextConverter
 from src.data_io import DataExporter, DataImporter
 from src.data_manager import KeyManager, PasswordManager, Recovery, UserManager
-from src.encryptor import FileEncryptor, NewEncryption, generate_password
+from src.encryptor import (
+    FileEncryptor,
+    NewEncryption,
+    create_zip_response,
+    generate_password,
+)
 from src.essentials import createLoginSession, decrypt_payload, generate_share_link
 from src.stego_encoder import StegoDecoder, StegoEncoder
 
@@ -248,19 +253,10 @@ def decrypt_shared_link():
 # ========== File encryption ==========
 @api_route.route("/encryptor/encrypt_file", methods=["POST"])
 def proceed_file_encryption():
-    if "file" not in request.files:
-        return api_response(
-            "error",
-            400,
-            "No files provided, make sure you select the files you want to encrypt and try again.",
-            [],
-            {},
-        ), 400
-
-    file = request.files["file"]
+    files = request.files.getlist("files")
     password = request.form.get("key")
 
-    if not file or not password:
+    if not files or not password:
         return api_response(
             "error",
             400,
@@ -269,7 +265,21 @@ def proceed_file_encryption():
             {},
         ), 400
 
-    status, result = file_encryptor.encrypt_file(file, password)
+    status = None
+    result = None
+
+    # Check if multiple file selected
+    if len(files) > 1:
+        status, result = create_zip_response(
+            files,
+            password,
+            file_encryptor.encrypt_file,
+            bundle_name="encrypted_files.zip",
+        )
+    else:
+        status, result = file_encryptor.encrypt_file(files[0], password)
+
+    # Return the response
     if status == "success":
         return result
     else:
@@ -285,19 +295,10 @@ def proceed_file_encryption():
 # ========== File decryption ==========
 @api_route.route("/encryptor/decrypt_file", methods=["POST"])
 def proceed_file_decryption():
-    if "file" not in request.files:
-        return api_response(
-            "error",
-            400,
-            "No files provided, make sure you select the files you want to decrypt and try again.",
-            [],
-            {},
-        ), 400
-
-    file = request.files["file"]
+    files = request.files.getlist("files")
     password = request.form.get("key")
 
-    if not file or not password:
+    if not files or not password:
         return api_response(
             "error",
             400,
@@ -306,7 +307,21 @@ def proceed_file_decryption():
             {},
         ), 400
 
-    status, result = file_encryptor.decrypt_file(file, password)
+    status = None
+    result = None
+
+    # Check if multiple file selected
+    if len(files) > 1:
+        status, result = create_zip_response(
+            files,
+            password,
+            file_encryptor.decrypt_file,
+            bundle_name="decrypted_files.zip",
+        )
+    else:
+        status, result = file_encryptor.decrypt_file(files[0], password)
+
+    # Return the response
     if status == "success":
         return result
     else:

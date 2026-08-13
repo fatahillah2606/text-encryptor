@@ -6,6 +6,7 @@ import os
 import secrets
 import string
 import struct
+import zipfile
 from pathlib import Path
 from urllib.parse import quote
 
@@ -38,6 +39,91 @@ def cleanup_temp_file(path):
             gc.collect()
     except Exception as e:
         print(f"[TMP CLEANUP] Failed to delete {path}: {e}")
+
+
+def process_to_temp_file(stream_generator):
+    # Consumes a streaming generator and writes its contents to a temporary file.
+    # Returns the path to the written file.
+    temp_path = get_secure_temp_path("processed_chunk")
+    with open(temp_path, "wb") as f:
+        for chunk in stream_generator:
+            f.write(chunk)
+    return temp_path
+
+
+def create_zip_response(files, password, process_func, bundle_name="sunako_bundle.zip"):
+    # Helper to bundle multiple files into a single ZIP archive response.
+    if not files:
+        return "error", "No files provided for batch processing."
+
+    zip_temp_path = get_secure_temp_path("zip_bundle")
+
+    try:
+        with zipfile.ZipFile(
+            zip_temp_path, "w", compression=zipfile.ZIP_DEFLATED
+        ) as zip_file:
+            for file in files:
+                # Execute the single file processing function
+                status, result = process_func(file, password)
+
+                if status == "error":
+                    # If any single file fails (e.g. wrong key on decryption), abort and return error
+                    cleanup_temp_file(zip_temp_path)
+                    return "error", f"Failed processing '{file.filename}': {result}"
+
+                # Extract filename from Content-Disposition or fallback to original
+                content_disp = result.headers.get("Content-Disposition", "")
+                inner_filename = None
+
+                if "filename*=" in content_disp:
+                    utf8_part = content_disp.split("filename*=UTF-8''")[-1]
+                    inner_filename = quote(utf8_part, safe="")
+                elif "filename=" in content_disp:
+                    inner_filename = content_disp.split('filename="')[-1].split('"')[0]
+
+                if not inner_filename:
+                    inner_filename = file.filename or "processed_file"
+
+                # Materialize the streamed response to write into the ZIP archive
+                processed_temp_path = process_to_temp_file(result.response)
+
+                try:
+                    # Write file contents into the ZIP archive
+                    zip_file.write(processed_temp_path, arcname=inner_filename)
+                finally:
+                    cleanup_temp_file(processed_temp_path)
+
+        # Build streaming response for the final ZIP archive
+        def generate_zip_stream():
+            try:
+                chunk_size = 64 * 1024
+                with open(zip_temp_path, "rb") as f:
+                    while True:
+                        chunk = f.read(chunk_size)
+                        if not chunk:
+                            break
+                        yield chunk
+            finally:
+                cleanup_temp_file(zip_temp_path)
+
+        # Header formatting with RFC 5987 non-ASCII handling
+        utf8_filename = quote(bundle_name)
+        ascii_fallback = (
+            bundle_name.encode("ascii", "ignore").decode("ascii") or "bundle.zip"
+        )
+        content_disposition = f"attachment; filename=\"{ascii_fallback}\"; filename*=UTF-8''{utf8_filename}"
+
+        response = Response(
+            stream_with_context(generate_zip_stream()),
+            mimetype="application/zip",
+        )
+        response.headers["Content-Disposition"] = content_disposition
+
+        return "success", response
+
+    except Exception as e:
+        cleanup_temp_file(zip_temp_path)
+        return "error", f"Batch compression failed: {str(e)}"
 
 
 # ========== AES-128 Encryption ==========

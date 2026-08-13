@@ -261,6 +261,7 @@
                                                                     style="
                                                                         display: none;
                                                                     "
+                                                                    multiple
                                                                 />
                                                             </div>
 
@@ -423,6 +424,7 @@
                                                                     style="
                                                                         display: none;
                                                                     "
+                                                                    multiple
                                                                 />
                                                             </div>
 
@@ -1160,9 +1162,16 @@
                                                 class="upload-container col-span-2"
                                             >
                                                 <div
-                                                    class="drop-zone flex"
+                                                    class="drop-zone flex relative"
                                                     id="reveal-secret-drop-zone"
                                                 >
+                                                    <div
+                                                        class="loading-layer absolute w-full h-full bg-md-surface-container flex items-center justify-center z-50 hidden"
+                                                    >
+                                                        <md-circular-progress
+                                                            indeterminate
+                                                        ></md-circular-progress>
+                                                    </div>
                                                     <md-icon>
                                                         upload_file
                                                     </md-icon>
