@@ -1,0 +1,812 @@
+// ========== Define variable ==========
+// API
+const createNewKeyApi = "/api/user/key/create";
+
+// New key modal
+const newKeyModal = document.getElementById("new-key-modal");
+const newKeyForm = newKeyModal.querySelector("#new_key");
+
+// Edit key modal
+const editKeyModal = document.getElementById("edit-key-modal");
+const editKeyForm = editKeyModal.querySelector("#edit_key");
+
+const editModalOption = editKeyModal.querySelector("#modal_option");
+const editModalAction = editKeyModal.querySelector("#modal_action");
+
+const editModalHeadline = editKeyModal.querySelector("[slot='headline']");
+
+// Confirm delete dialog
+const confirmDeleteDialog = document.getElementById("confirm-delete");
+
+// Progress dialog
+const progressDialog = document.getElementById("progress-dialog");
+
+// ========== For the process of adding key ==========
+// Show/Close new key modal
+async function openNewKeyModal() {
+    // Clear the form first
+    newKeyForm.reset;
+    newKeyForm.add_btn.disabled = true;
+
+    await newKeyModal.show();
+}
+
+async function closeNewKeyModal() {
+    await newKeyModal.close();
+}
+
+// Generate key
+newKeyForm.generate_key.addEventListener("click", async () => {
+    const result = await generateKey("#the_key");
+    if (result) {
+        newKeyForm.add_btn.disabled = false;
+    }
+});
+
+// Add new key
+async function createNewKey(theForm) {
+    const progressIndicator = newKeyModal.querySelector(
+        ".button-progress-indicator",
+    );
+
+    try {
+        let formData = new FormData(theForm);
+        formData = Object.fromEntries(formData.entries());
+
+        // Send request
+        const result = await sendRequest(createNewKeyApi, formData, "POST");
+
+        if (result.code === 200) {
+            // Reinit the keys
+            loadKeys();
+
+            progressIndicator.classList.add("hidden!");
+            newKeyForm.add_btn.disabled = true;
+
+            showSnackbar(result.message);
+            closeNewKeyModal();
+        }
+    } catch (error) {
+        progressIndicator.classList.add("hidden!");
+        showAlert("Failed to add key", error.message);
+    }
+}
+
+newKeyForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const progressIndicator = newKeyModal.querySelector(
+        ".button-progress-indicator",
+    );
+    if (progressIndicator.classList.contains("hidden!")) {
+        progressIndicator.classList.remove("hidden!");
+
+        createNewKey(newKeyForm);
+    }
+});
+
+// ========== For part of the key editing process ==========
+// Show/Close edit key modal
+async function openEditKeyModal(uri) {
+    // Reset everything first
+    editKeyForm.dataset.keyId = "";
+    editKeyForm.reset();
+    editKeyForm.save_btn.disabled = true;
+
+    // Set keyId with API url
+    editKeyForm.dataset.keyId = uri;
+
+    await editKeyModal.show();
+}
+
+async function closeEditKeyModal() {
+    await editKeyModal.close();
+}
+
+// Generate key
+editKeyForm.generate_key.addEventListener("click", async () => {
+    const result = await generateKey("#edit_the_key");
+    if (result) {
+        editKeyForm.save_btn.disabled = false;
+    }
+});
+
+// Get key info
+async function getKeyInfo() {
+    // Get key id api
+    const keyId = editKeyForm.dataset.keyId;
+
+    if (keyId && keyId.trim() !== "") {
+        try {
+            // Send request
+            const result = await sendRequest(keyId, {}, "GET");
+
+            if (result.code === 200) {
+                const data = result.data;
+
+                // Set the form values
+                editKeyForm.edit_key_name.value = data.key_name;
+                editKeyForm.edit_the_key.value = data.encryption_key;
+
+                editKeyForm.save_btn.disabled = true;
+            }
+        } catch (error) {
+            showAlert("Failed to retrieve key information", error.message);
+        }
+    } else {
+        console.warn("Warning: 'data-key-id' is empty!");
+    }
+}
+
+// Open existing account
+async function openExistingKey(uri) {
+    const available = await checkSession();
+
+    if (available) {
+        // Set the action button
+        editKeyForm.reset_info.onclick = getKeyInfo;
+        editKeyForm.cancle_editing.onclick = disableEditing;
+        editKeyForm.delete_key.onclick = function () {
+            deleteKey(uri, true);
+        };
+
+        // Show the modal
+        openEditKeyModal(uri);
+        getKeyInfo();
+    } else {
+        showAlert(
+            "Failed to retrieve key information",
+            "Your session has expired. Please log in again.",
+        );
+    }
+}
+
+// Set to readonly
+function setToReadonly() {
+    editKeyForm.edit_key_name.setAttribute("readonly", "");
+    editKeyForm.edit_the_key.setAttribute("readonly", "");
+    editKeyForm.generate_key.disabled = true;
+    editKeyForm.save_btn.disabled = true;
+}
+
+// Set to writeable
+function setToWriteable() {
+    editKeyForm.edit_key_name.removeAttribute("readonly");
+    editKeyForm.edit_the_key.removeAttribute("readonly");
+    editKeyForm.generate_key.disabled = false;
+}
+
+// Enable editing
+function enableEditing() {
+    editModalHeadline.textContent = "Edit key";
+    setToWriteable();
+
+    editModalOption.classList.add("hidden");
+    editModalAction.classList.remove("hidden");
+}
+
+// Disable editing
+async function disableEditing() {
+    const available = await checkSession();
+
+    if (available) {
+        // Reset the info
+        getKeyInfo();
+
+        editModalHeadline.textContent = "Key info";
+        setToReadonly();
+
+        editModalOption.classList.remove("hidden");
+        editModalAction.classList.add("hidden");
+    } else {
+        showAlert(
+            "Failed to retrieve key information",
+            "Your session has expired. Please log in again.",
+        );
+    }
+}
+
+// Prevents dialogs from remaining in edit mode when closed.
+editKeyModal.addEventListener("closed", () => {
+    editModalHeadline.textContent = "Key info";
+    setToReadonly();
+
+    editModalOption.classList.remove("hidden");
+    editModalAction.classList.add("hidden");
+});
+
+// Save key changes
+async function editKey(theForm) {
+    // Get password id api
+    const keyId = editKeyForm.dataset.keyId;
+
+    const progressIndicator = editKeyModal.querySelector(
+        ".button-progress-indicator",
+    );
+
+    if (keyId && keyId.trim() !== "") {
+        try {
+            let formData = new FormData(theForm);
+            formData = Object.fromEntries(formData.entries());
+
+            // Send request
+            const result = await sendRequest(`${keyId}/edit`, formData, "PUT");
+
+            if (result.code === 200) {
+                // Reinit keys
+                loadKeys();
+
+                progressIndicator.classList.add("hidden!");
+                editKeyForm.save_btn.disabled = true;
+
+                showSnackbar(result.message);
+                disableEditing();
+            }
+        } catch (error) {
+            progressIndicator.classList.add("hidden!");
+            showAlert("Unable to edit key", error.message);
+        }
+    } else {
+        console.warn("Warning: 'data-key-id' is empty!");
+    }
+}
+
+editKeyForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const progressIndicator = editKeyModal.querySelector(
+        ".button-progress-indicator",
+    );
+
+    if (progressIndicator.classList.contains("hidden!")) {
+        progressIndicator.classList.remove("hidden!");
+        editKey(editKeyForm);
+    }
+});
+
+// ========== Delete key ==========
+async function deleteKey(keysId, state_backed = false) {
+    if (keysId && keysId.trim() !== "") {
+        closeEditKeyModal();
+
+        // Wait for the response
+        const choise = await confirmDialog(
+            "confirm-delete",
+            "Delete Key?",
+            "This will delete the password associated with this key.",
+        );
+
+        if (choise === "delete") {
+            try {
+                // Send request
+                const result = await sendRequest(
+                    `${keysId}/delete`,
+                    {},
+                    "DELETE",
+                );
+
+                if (result.code === 200) {
+                    closeEditKeyModal();
+                    showSnackbar(result.message);
+
+                    // Reinit keys
+                    loadKeys();
+                }
+            } catch (error) {
+                showAlert("Unable to delete key", error.message);
+            }
+        } else {
+            state_backed ? openExistingKey(keysId) : "";
+        }
+    } else {
+        console.warn("Warning: 'data-key-id' is empty!");
+    }
+}
+
+// ========== Delete selected keys ==========
+async function deleteSelected() {
+    const choise = await confirmDialog(
+        "confirm-delete",
+        `Delete ${selectedKeyIds.length} keys?`,
+        "You cannot undo this action.",
+    );
+
+    if (choise === "delete") {
+        await progressDialog.show();
+
+        try {
+            // Send request
+            const result = await sendRequest(
+                "/api/user/key/delete_many",
+                {
+                    selected_key: selectedKeyIds,
+                },
+                "PUT",
+            );
+
+            if (result.code === 200) {
+                showSnackbar(result.message);
+
+                // Deselect and Reinit keys
+                deselectAll();
+                loadKeys();
+                await progressDialog.close();
+            }
+        } catch (error) {
+            showAlert("Failed to delete key", error.message);
+        }
+    }
+}
+
+// ========== Load keys ==========
+let allKeys = [];
+let visibleKeyCount = 0;
+let keyAnimationTimeouts = [];
+let isKeyObserving = false;
+let keySearchQuery = ""; // Tracks the text input for keys
+let isSelectionMode = false;
+let selectedKeyIds = [];
+
+// Keys list container
+const keyList = document.getElementById("data_list");
+
+// Selection appbar
+const selectionAppbar = document.getElementById("selection-appbar");
+const selectionCount = selectionAppbar.querySelector("#select-count");
+
+// Load the keys
+async function loadKeys() {
+    try {
+        const result = await sendRequest(userKeysAPI, {}, "GET");
+
+        if (result.code === 200) {
+            // Save the base data after removing master_key
+            allKeys = result.data.filter(
+                (item) => item.key_name !== "master_key",
+            );
+
+            renderKeys();
+            setupKeyInfiniteScroll();
+        }
+    } catch (error) {
+        showAlert("Unable to load key list", error.message);
+    }
+}
+
+function renderKeys() {
+    // Clear active timeouts to avoid element overlap issues
+    keyAnimationTimeouts.forEach((timeout) => clearTimeout(timeout));
+    keyAnimationTimeouts = [];
+
+    keyList.innerHTML = "";
+    visibleKeyCount = 0;
+
+    const filtered = getFilteredKeys();
+
+    if (allKeys.length === 0) {
+        keyList.innerHTML = `
+                <blockquote class="flex items-start bg-md-tertiary-container rounded-2xl w-full m-0 p-5 gap-2.5 animate-showup">
+                    <md-icon class="material-icon-fill text-md-on-tertiary-container shrink-0">info</md-icon>
+                    <p class="md-typescale-body-large text-md-on-tertiary-container italic! font-semibold! m-0">
+                        "The gateway is locked. No encryption keys have been established here yet. Let's register a new key first."
+                    </p>
+                </blockquote>
+            `;
+        return;
+    } else if (filtered.length === 0) {
+        keyList.innerHTML = `
+                <blockquote class="flex items-start bg-md-tertiary-container rounded-2xl w-full m-0 p-5 gap-2.5 animate-showup">
+                    <md-icon class="material-icon-fill text-md-on-tertiary-container shrink-0">info</md-icon>
+                    <p class="md-typescale-body-large text-md-on-tertiary-container italic! font-semibold! m-0">
+                        "Search returned zero results. No keys match that name. Check the spelling or typos, precision is key"
+                    </p>
+                </blockquote>
+            `;
+        return;
+    }
+
+    appendNextKeyChunk(15);
+}
+
+// Helper function to update the visual state of a row instantly based on selection
+function updateRowSelectionVisuals(keysId) {
+    const itemWrapper = document.getElementById(`key-row-${keysId}`);
+    const menuContainer = document.getElementById(`menu-container-${keysId}`);
+
+    if (!itemWrapper || !menuContainer) return;
+
+    const isSelected = selectedKeyIds.includes(keysId);
+
+    if (isSelectionMode) {
+        // Check if the checkbox already exists in the container
+        let checkbox = document.getElementById(`checkbox-${keysId}`);
+
+        if (!checkbox) {
+            // Create it once if it doesn't exist
+            menuContainer.innerHTML = `
+                <md-checkbox 
+                    id="checkbox-${keysId}" 
+                    class="pointer-events-auto">
+                </md-checkbox>
+            `;
+            checkbox = document.getElementById(`checkbox-${keysId}`);
+
+            checkbox.onclick = (e) => {
+                e.stopPropagation();
+                toggleKeySelection(keysId);
+            };
+        }
+
+        // Animate the property change smoothly instead of rebuilding the DOM
+        if (checkbox.checked !== isSelected) {
+            checkbox.checked = isSelected;
+        }
+
+        // Apply M3 Selected State Colors
+        if (isSelected) {
+            itemWrapper.classList.remove("bg-md-surface-container");
+            itemWrapper.classList.add("bg-md-secondary-container");
+
+            // Switch icon style
+            itemWrapper
+                .querySelector("md-icon")
+                .classList.add("material-icon-fill");
+
+            // Switch text/icon color
+            itemWrapper
+                .querySelectorAll(".text-md-on-surface")
+                .forEach((el) => {
+                    el.classList.replace(
+                        "text-md-on-surface",
+                        "text-md-secondary",
+                    );
+                });
+        } else {
+            itemWrapper.classList.remove("bg-md-secondary-container");
+            itemWrapper.classList.add("bg-md-surface-container");
+
+            itemWrapper
+                .querySelector("md-icon")
+                .classList.remove("material-icon-fill");
+
+            itemWrapper.querySelectorAll(".text-md-secondary").forEach((el) => {
+                el.classList.replace("text-md-secondary", "text-md-on-surface");
+            });
+        }
+    } else {
+        // Restore default state
+        itemWrapper.classList.remove("bg-md-secondary-container");
+        itemWrapper.classList.add("bg-md-surface-container");
+
+        itemWrapper
+            .querySelector("md-icon")
+            .classList.remove("material-icon-fill");
+
+        itemWrapper.querySelectorAll(".text-md-secondary").forEach((el) => {
+            el.classList.replace("text-md-secondary", "text-md-on-surface");
+        });
+
+        menuContainer.innerHTML = `
+                <md-icon-button id="menu-${keysId}-anchor" class="text-md-on-surface-variant">
+                    <md-icon>more_vert</md-icon>
+                </md-icon-button>
+
+                <md-menu id="menu-${keysId}-menu" anchor="menu-${keysId}-anchor">
+                    <md-menu-item id="menu-${keysId}-select">
+                        <div slot="headline">Select</div>
+                    </md-menu-item>
+                    <md-menu-item id="menu-${keysId}-edit">
+                        <div slot="headline">Edit</div>
+                    </md-menu-item>
+                    <md-menu-item id="menu-${keysId}-delete">
+                        <div slot="headline">Delete</div>
+                    </md-menu-item>
+                </md-menu>
+            `;
+
+        bindMenuEvents(keysId);
+    }
+}
+
+// Helper to check selection states and update the App Bar UI
+function syncSelectAllButtonState() {
+    const filtered = getFilteredKeys();
+
+    // If no items are visible, don't try to sync
+    if (filtered.length === 0) return;
+
+    // Check if every single visible filtered item is in selection array
+    const areAllFilteredSelected = filtered.every((key) =>
+        selectedKeyIds.includes(key.key_id),
+    );
+
+    // Target select-all button
+    const selectAllButton = document.getElementById("select-all-btn");
+    const selectAllMenu = document.getElementById("select-all-menu");
+
+    if (!selectAllButton && !selectAllMenu) return;
+
+    if (areAllFilteredSelected) {
+        // Change button layout/text to Deselect All mode
+        selectAllButton.title = "Clear all";
+        selectAllButton.querySelector("md-icon").innerHTML = "deselect";
+
+        selectAllMenu.textContent = "Clear all";
+    } else {
+        // Fallback to standard Select All layout
+        selectAllButton.title = "Select all";
+        selectAllButton.querySelector("md-icon").innerHTML = "select_all";
+
+        selectAllMenu.textContent = "Select all";
+    }
+}
+
+// Function to toggle selection states
+function toggleKeySelection(keysId) {
+    const index = selectedKeyIds.indexOf(keysId);
+    if (index > -1) {
+        selectedKeyIds.splice(index, 1);
+    } else {
+        selectedKeyIds.push(keysId);
+    }
+
+    // If no items are left selected, exit selection mode automatically
+    if (selectedKeyIds.length === 0) {
+        isSelectionMode = false;
+        selectionAppbar.classList.add("hidden");
+
+        // Refresh all elements currently inside the DOM list
+        document.querySelectorAll('[id^="key-row-"]').forEach((row) => {
+            const id = parseInt(row.id.replace("key-row-", ""));
+            updateRowSelectionVisuals(id);
+        });
+    } else {
+        selectionCount.textContent = selectedKeyIds.length;
+        updateRowSelectionVisuals(keysId);
+    }
+
+    syncSelectAllButtonState();
+}
+
+// Enter selection mode globally
+function enterSelectionMode(initialKeysId) {
+    isSelectionMode = true;
+    selectedKeyIds = [initialKeysId];
+    selectionAppbar.classList.remove("hidden");
+    selectionCount.textContent = selectedKeyIds.length;
+
+    // Switch every rendered item in the list into selection mode view state
+    document.querySelectorAll('[id^="key-row-"]').forEach((row) => {
+        const id = parseInt(row.id.replace("key-row-", ""));
+        updateRowSelectionVisuals(id);
+    });
+}
+
+// Helper to bind standard item menus
+function bindMenuEvents(keysId) {
+    const anchor = document.getElementById(`menu-${keysId}-anchor`);
+    const menu = document.getElementById(`menu-${keysId}-menu`);
+
+    if (!anchor || !menu) return;
+
+    anchor.onclick = (e) => {
+        e.stopPropagation();
+
+        const isOpen = !menu.open;
+        menu.open = isOpen;
+
+        const row = document.getElementById(`key-row-${keysId}`);
+        if (row) {
+            if (isOpen) {
+                // Elevate the active row above all other list rows
+                row.style.zIndex = "50";
+            } else {
+                // Reset z-index when closed
+                row.style.zIndex = "";
+            }
+        }
+    };
+
+    menu.addEventListener("closed", () => {
+        const row = document.getElementById(`key-row-${keysId}`);
+        if (row) row.style.zIndex = "";
+    });
+
+    // Select option
+    document.getElementById(`menu-${keysId}-select`).onclick = (e) => {
+        e.stopPropagation();
+        menu.open = false;
+        enterSelectionMode(keysId);
+    };
+
+    // Edit option
+    document.getElementById(`menu-${keysId}-edit`).onclick = (e) => {
+        e.stopPropagation();
+        menu.open = false;
+        openExistingKey(`/api/user/key/${keysId}`);
+        enableEditing();
+    };
+
+    // Delete option
+    document.getElementById(`menu-${keysId}-delete`).onclick = (e) => {
+        e.stopPropagation();
+        menu.open = false;
+        deleteKey(`/api/user/key/${keysId}`);
+    };
+}
+
+function appendNextKeyChunk(limit) {
+    const filtered = getFilteredKeys();
+    const start = visibleKeyCount;
+    const end = Math.min(start + limit, filtered.length);
+
+    if (start >= filtered.length) return;
+
+    let localIndex = 0;
+
+    for (let i = start; i < end; i++) {
+        const key = filtered[i];
+
+        const itemWrapper = document.createElement("div");
+        itemWrapper.id = `key-row-${key.key_id}`;
+
+        // Material You curves
+        let radiusClasses = "rounded-none";
+        if (i === 0) {
+            radiusClasses = "rounded-t-2xl rounded-b-md";
+        } else if (i === filtered.length - 1) {
+            radiusClasses = "rounded-b-2xl rounded-t-md";
+        } else {
+            radiusClasses = "rounded-md";
+        }
+
+        // Base classes + initial hidden transition state
+        itemWrapper.className = `relative py-5 px-5 max-h-16 bg-md-surface-container ${radiusClasses} flex items-center justify-between gap-5 cursor-pointer transition-all duration-500 ease-out transition-showup-start`;
+
+        itemWrapper.onclick = () => {
+            if (isSelectionMode) {
+                toggleKeySelection(key.key_id);
+            } else {
+                openExistingKey(`/api/user/key/${key.key_id}`);
+            }
+        };
+
+        itemWrapper.innerHTML = `
+                <md-icon class="text-md-on-surface">key_vertical</md-icon>
+                <h2 class="md-typescale-title-medium text-md-on-surface font-bold! m-0 w-full whitespace-nowrap overflow-hidden text-ellipsis">${key.key_name}</h2>
+
+                <div id="menu-container-${key.key_id}" class="relative flex items-center justify-center"></div>
+                <md-ripple></md-ripple>
+            `;
+
+        // Append IMMEDIATELY to DOM in strict sequential order
+        keyList.appendChild(itemWrapper);
+        updateRowSelectionVisuals(key.key_id);
+
+        // Trigger transition stagger without delaying DOM insertion
+        const delay = localIndex * 35;
+        setTimeout(() => {
+            itemWrapper.classList.remove("transition-showup-start");
+            itemWrapper.classList.add("transition-showup-end");
+        }, delay);
+
+        localIndex++;
+    }
+
+    visibleKeyCount = end;
+}
+
+function getFilteredKeys() {
+    if (!keySearchQuery) return allKeys;
+    return allKeys.filter((key) =>
+        key.key_name.toLowerCase().includes(keySearchQuery),
+    );
+}
+
+function setupKeyInfiniteScroll() {
+    if (isKeyObserving) return;
+
+    let sentinel = document.getElementById("key-scroll-sentinel");
+    if (!sentinel) {
+        sentinel = document.createElement("div");
+        sentinel.id = "key-scroll-sentinel";
+        sentinel.className = "h-1 w-full";
+        keyList.after(sentinel);
+    }
+
+    const observer = new IntersectionObserver(
+        (entries) => {
+            if (entries[0].isIntersecting) {
+                const filtered = getFilteredKeys();
+                if (visibleKeyCount < filtered.length) {
+                    appendNextKeyChunk(10);
+                }
+            }
+        },
+        { rootMargin: "100px" },
+    );
+
+    observer.observe(sentinel);
+    isKeyObserving = true;
+}
+
+// Select all keys that match the current filter
+function selectAllFiltered() {
+    // Ensure selection mode is globally active
+    isSelectionMode = true;
+
+    // Get the current filtered subset
+    const filtered = getFilteredKeys();
+
+    // Determine if ALL currently filtered keys are already selected
+    const areAllFilteredSelected = filtered.every((key) =>
+        selectedKeyIds.includes(key.key_id),
+    );
+
+    if (areAllFilteredSelected) {
+        // If all filtered keys are selected, deselect only these filtered ones
+        const filteredIds = filtered.map((key) => key.key_id);
+        selectedKeyIds = selectedKeyIds.filter(
+            (id) => !filteredIds.includes(id),
+        );
+
+        // If this leaves the global list completely clear, exit selection mode
+        if (selectedKeyIds.length === 0) {
+            isSelectionMode = false;
+
+            // Update selection count and hide selection appbar
+            selectionCount.textContent = selectedKeyIds.length;
+            selectionAppbar.classList.add("hidden");
+        }
+    } else {
+        // If none or only some are selected, select all remaining filtered ones
+        filtered.forEach((key) => {
+            if (!selectedKeyIds.includes(key.key_id)) {
+                selectedKeyIds.push(key.key_id);
+            }
+        });
+    }
+
+    // Update the UI for all rendered rows inside the DOM list
+    document.querySelectorAll('[id^="key-row-"]').forEach((row) => {
+        const id = parseInt(row.id.replace("key-row-", ""));
+        updateRowSelectionVisuals(id);
+    });
+
+    // Update the selection count and select all button
+    selectionCount.textContent = selectedKeyIds.length;
+    syncSelectAllButtonState();
+}
+
+// Clear all selections globally
+function deselectAll() {
+    // Reset state tracking
+    isSelectionMode = false;
+    selectedKeyIds = [];
+
+    // Refresh every rendered row back to default state (three-dots menu)
+    document.querySelectorAll('[id^="key-row-"]').forEach((row) => {
+        const id = parseInt(row.id.replace("key-row-", ""));
+        updateRowSelectionVisuals(id);
+    });
+
+    // Update selection count and hide selection appbar
+    selectionCount.textContent = selectedKeyIds.length;
+    selectionAppbar.classList.add("hidden");
+    syncSelectAllButtonState();
+}
+
+// Initialization trigger
+loadKeys();
+
+// for enable/disable submit btn
+document.addEventListener("DOMContentLoaded", () => {
+    // For add account/password
+    const newKeyFields = newKeyModal.querySelectorAll("md-filled-text-field");
+    const newKeyBtn = newKeyForm.add_btn;
+    requireAllFields(newKeyFields, newKeyBtn);
+
+    // For edit account/password
+    const editKeyFields = editKeyModal.querySelectorAll("md-filled-text-field");
+    const editKeyBtn = editKeyForm.save_btn;
+    requireAllFields(editKeyFields, editKeyBtn);
+});

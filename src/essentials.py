@@ -88,7 +88,7 @@ def decrypt_payload(ciphertext_b64, key):
         # Check the expired time first
         current_time = int(time.time())
         if current_time > data["e"]:
-            return "expired", "The link has expired"
+            return "EXPIRED", 410, "The link has expired"
 
         valid_key = linkEncryptor.get_valid_key(key)
         convert_content = binascii.unhexlify(data["d"])
@@ -96,7 +96,11 @@ def decrypt_payload(ciphertext_b64, key):
             convert_content, valid_key["encoded_key"]
         )
 
-        return "success", decrypted_content
+        return "SUCCESS", 200, decrypted_content
 
     except Exception as err:
-        return "error", f"An error occurred when decrypting.\n Error message: {err}"
+        return (
+            "SERVER_ERROR",
+            500,
+            f"An error occurred when decrypting.\n Error message: {err}",
+        )

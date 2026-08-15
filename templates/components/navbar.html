@@ -2,9 +2,8 @@
 <div
     class="w-full fixed bottom-0 md:hidden bg-md-surface-container py-1.5 flex justify-around z-20 shrink-0"
 >
-    <!-- Dashboard -->
-    {{ bar_items('Dashboard', 'dashboard', url_for('pages.dashboard'),
-    active_page, 'dashboard') }}
+    <!-- Home -->
+    {{ bar_items('Home', 'home', url_for('pages.home'), active_page, 'home') }}
 
     <!-- For logged-in only user -->
     {% if 'username' in session %}
@@ -25,6 +24,7 @@
     active_page, 'tools') }}
 
     <!-- Account manager -->
-    {{ bar_items('Account', 'account_circle', url_for('pages.account_manager'),
-    active_page, 'account_manager') }}
+    {{ bar_items('You' if 'username' in session else 'Account',
+    'account_circle', url_for('pages.account_manager'), active_page,
+    'account_manager') }}
 </div>

@@ -50,7 +50,7 @@ def login():
     recoveryAvailable = recovery_method.check_old_users()
 
     if "username" in session:
-        return redirect(url_for("pages.dashboard"))
+        return redirect(url_for("pages.home"))
     elif userList:
         return render_template(
             "pages/login.html", userlist=userList, recovery=recoveryAvailable
@@ -67,7 +67,7 @@ def register():
     recoveryAvailable = recovery_method.check_old_users()
 
     if "username" in session:
-        return redirect(url_for("pages.dashboard"))
+        return redirect(url_for("pages.home"))
     else:
         notice = (
             "No user accounts have been registered yet. To begin using the full password manager suite, please create an account."
@@ -96,9 +96,9 @@ def logout():
     return redirect(url_for("pages.login"))
 
 
-@pages_route.route("/dashboard")
-def dashboard():
-    return render_template("pages/dashboard.html", active_page="dashboard")
+@pages_route.route("/home")
+def home():
+    return render_template("pages/home.html", active_page="home")
 
 
 @pages_route.route("/account_manager")

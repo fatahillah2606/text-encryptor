@@ -24,7 +24,7 @@ db_path = os.path.join("db", "vault_manager.db")
 
 
 def check_and_setup_db():
-    print("Checking database...")
+    print(" * Checking database...")
     initialize_db()
 
 
@@ -71,7 +71,7 @@ def favicon():
 
 @app.route("/")
 def home():
-    return redirect(url_for("pages.dashboard"))
+    return redirect(url_for("pages.home"))
 
 
 user = UserManager()

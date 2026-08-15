@@ -3,18 +3,22 @@ import gc
 import hashlib
 import hmac
 import os
-import random
+import secrets
 import string
 import struct
+import zipfile
 from pathlib import Path
 from urllib.parse import quote
 
+from colorama import Fore, init
 from Crypto.Cipher import AES
 from Crypto.Hash import SHA256
 from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Random import get_random_bytes
 from Crypto.Util.Padding import pad, unpad
 from flask import Response, stream_with_context
+
+init(autoreset=True)
 
 # Set 'tmp' folder relative to project root
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -36,8 +40,132 @@ def cleanup_temp_file(path):
         if path and os.path.exists(path):
             os.remove(path)
             gc.collect()
+
     except Exception as e:
-        print(f"[TMP CLEANUP] Failed to delete {path}: {e}")
+        print(f"{Fore.YELLOW} ! [TMP CLEANUP] Failed to delete {path}: {e}")
+
+
+def process_to_temp_file(stream_generator):
+    # Consumes a streaming generator and writes its contents to a temporary file.
+    # Returns the path to the written file.
+    temp_path = get_secure_temp_path("processed_chunk")
+    with open(temp_path, "wb") as f:
+        for chunk in stream_generator:
+            f.write(chunk)
+
+    return temp_path
+
+
+def create_zip_response(files, password, process_func, bundle_name="sunako_bundle.zip"):
+    # Helper to bundle multiple files into a single ZIP archive response.
+    if not files:
+        return "NO_FILES_PROVIDED", 400, "No files provided for batch processing."
+
+    zip_temp_path = get_secure_temp_path("zip_bundle")
+    staged_file_paths = []
+
+    try:
+        # STEP 1: Pre-buffer all incoming network file streams to disk first
+        for file in files:
+            temp_path = get_secure_temp_path("batch_input")
+            if hasattr(file, "seek"):
+                file.seek(0)
+            file.save(temp_path)
+            staged_file_paths.append(temp_path)
+
+            # Re-wrap the local file back into a clean FileStorage-like object
+            # or pass the file object directly after resetting its stream
+            with open(temp_path, "rb") as f_staged:
+                from werkzeug.datastructures import FileStorage
+
+                staged_storage = FileStorage(
+                    stream=f_staged,
+                    filename=file.filename,
+                    content_type=file.content_type,
+                )
+
+                # Execute single file encryption/decryption function
+                res = process_func(staged_storage, password)
+
+                # Handle 2-tuple or 3-tuple status unpacking cleanly
+                if len(res) == 2:
+                    status, result = res
+                    code = 400
+                else:
+                    status, code, result = res
+
+                # Catch non-SUCCESS status or plain error string responses
+                if status != "SUCCESS" or isinstance(result, str):
+                    cleanup_temp_file(zip_temp_path)
+                    return (
+                        "PROCESS_FAILED",
+                        code if isinstance(code, int) else 400,
+                        f"Failed processing '{file.filename}': {result}",
+                    )
+
+                # Extract filename from Content-Disposition header
+                content_disp = getattr(result, "headers", {}).get(
+                    "Content-Disposition", ""
+                )
+                inner_filename = None
+
+                if "filename*=" in content_disp:
+                    utf8_part = content_disp.split("filename*=UTF-8''")[-1]
+                    inner_filename = quote(utf8_part, safe="")
+                elif "filename=" in content_disp:
+                    inner_filename = content_disp.split('filename="')[-1].split('"')[0]
+
+                if not inner_filename:
+                    inner_filename = file.filename or "processed_file"
+
+                # Materialize the streamed response to write into the ZIP archive
+                processed_temp_path = process_to_temp_file(result.response)
+
+                try:
+                    # Write file contents into the ZIP archive
+                    with zipfile.ZipFile(
+                        zip_temp_path, "a", compression=zipfile.ZIP_DEFLATED
+                    ) as zip_file:
+                        zip_file.write(processed_temp_path, arcname=inner_filename)
+                finally:
+                    cleanup_temp_file(processed_temp_path)
+
+        # STEP 2: Build streaming response for the final ZIP archive
+        def generate_zip_stream():
+            try:
+                chunk_size = 64 * 1024
+                with open(zip_temp_path, "rb") as f:
+                    while True:
+                        chunk = f.read(chunk_size)
+                        if not chunk:
+                            break
+                        yield chunk
+            finally:
+                cleanup_temp_file(zip_temp_path)
+
+        # Header formatting with RFC 5987 non-ASCII handling
+        utf8_filename = quote(bundle_name)
+        ascii_fallback = (
+            bundle_name.encode("ascii", "ignore").decode("ascii") or "bundle.zip"
+        )
+        content_disposition = f"attachment; filename=\"{ascii_fallback}\"; filename*=UTF-8''{utf8_filename}"
+
+        response = Response(
+            stream_with_context(generate_zip_stream()),
+            mimetype="application/zip",
+        )
+        response.headers["Content-Disposition"] = content_disposition
+
+        return "SUCCESS", 200, response
+
+    except Exception as e:
+        cleanup_temp_file(zip_temp_path)
+        return "SERVER_ERROR", 500, f"Batch compression failed: {str(e)}"
+
+    finally:
+        # STEP 3: Always clean up staged batch files from disk
+        for path in staged_file_paths:
+            cleanup_temp_file(path)
 
 
 # ========== AES-128 Encryption ==========
@@ -117,6 +245,10 @@ class FileEncryptor:
 
     # ========== Encrypt file ==========
     def encrypt_file(self, file, password):
+        # Reset stream position to byte 0 to guarantee clean header alignment
+        if hasattr(file, "seek"):
+            file.seek(0)
+
         # Save to project's /tmp directory
         temp_path = get_secure_temp_path("encrypt")
         file.save(temp_path)
@@ -197,14 +329,18 @@ class FileEncryptor:
                 mimetype="application/octet-stream",
             )
             response.headers["Content-Disposition"] = content_disposition
-            return "success", response
+            return "SUCCESS", 200, response
 
         except Exception as e:
             cleanup_temp_file(temp_path)
-            return "error", str(e)
+            return "SERVER_ERROR", 500, str(e)
 
     # ========== Decrypt file ==========
     def decrypt_file(self, file, password):
+        # Reset stream position to byte 0 to guarantee clean header alignment
+        if hasattr(file, "seek"):
+            file.seek(0)
+
         # Tempoary save the file
         temp_path = get_secure_temp_path("decrypt")
         file.save(temp_path)
@@ -215,14 +351,22 @@ class FileEncryptor:
             # Minimum valid size check:
             if file_size < 82:
                 cleanup_temp_file(temp_path)
-                return "error", "Invalid or corrupted file"
+                return (
+                    "INVALID_FILE_SIZE",
+                    400,
+                    "Invalid or corrupt file. Try using another file.",
+                )
 
             with open(temp_path, "rb") as f:
                 # Verify Magic Signature
                 magic = f.read(6)
                 if magic != b"SUNAKO":
                     cleanup_temp_file(temp_path)
-                    return "error", "Invalid file format. Not a .sunako file."
+                    return (
+                        "INVALID_FILE_FORMAT",
+                        400,
+                        "Invalid file format. Make sure the file you provide is in .sunako format.",
+                    )
 
                 # Read Random Padding Length & Skip Padding
                 padding_len = int.from_bytes(f.read(1), "big")
@@ -256,7 +400,11 @@ class FileEncryptor:
                 ciphertext_length = file_size - len(header_metadata) - 32
                 if ciphertext_length < 0:
                     cleanup_temp_file(temp_path)
-                    return "error", "Corrupted file header"
+                    return (
+                        "FILE_HEADER_CORRUPT",
+                        400,
+                        "Corrupted header files. Try using another file.",
+                    )
 
                 f.seek(file_size - 32)
                 expected_hmac = f.read(32)
@@ -285,7 +433,7 @@ class FileEncryptor:
                 # If HMAC fails, wrong key or file was modified
                 if not hmac.compare_digest(h.digest(), expected_hmac):
                     cleanup_temp_file(temp_path)
-                    return "error", "Incorrect decryption key"
+                    return "INCORRECT_KEY", 400, "Incorrect decryption key. Try again."
 
             # Key derivation & Cipher setup for Streaming Decryption
             key = PBKDF2(
@@ -327,22 +475,47 @@ class FileEncryptor:
                 mimetype="application/octet-stream",
             )
             response.headers["Content-Disposition"] = content_disposition
-            return "success", response
+            return "SUCCESS", 200, response
 
         except Exception as e:
             cleanup_temp_file(temp_path)
-            return "error", str(e)
+            return "SERVER_ERROR", 500, str(e)
 
 
 # ========== Password Generator ==========
 def generate_password(passLenth):
     try:
-        characters = string.ascii_letters + string.digits + string.punctuation
-        password = "".join(random.choice(characters) for i in range(int(passLenth)))
-        return password
+        length = int(passLenth)
+
+        # Check (again) if password length is bellow 8
+        if length < 8:
+            return "Password length must be at least 8 characters."
+
+        # Character pools
+        lowers = string.ascii_lowercase
+        uppers = string.ascii_uppercase
+        digits = string.digits
+        punctuation = string.punctuation
+        all_characters = lowers + uppers + digits + punctuation
+
+        # Guarantee at least one character from each required set
+        password = [
+            secrets.choice(lowers),
+            secrets.choice(uppers),
+            secrets.choice(digits),
+            secrets.choice(punctuation),
+        ]
+
+        # Fill the remaining length from all characters combined
+        password += [secrets.choice(all_characters) for _ in range(length - 4)]
+
+        # Shuffle to break predictable character positioning
+        secrets.SystemRandom().shuffle(password)
+
+        return "".join(password)
 
     except ValueError:
         return "The password length value must be numeric."
 
     except Exception as error:
-        return error
+        return str(error)
