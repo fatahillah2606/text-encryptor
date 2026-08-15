@@ -4,10 +4,7 @@
 @layer theme {
   :root, :host {
     --color-red-300: oklch(80.8% 0.114 19.571);
-    --color-red-500: oklch(63.7% 0.237 25.331);
     --color-red-900: oklch(39.6% 0.141 25.723);
-    --color-yellow-300: oklch(90.5% 0.182 98.111);
-    --color-yellow-900: oklch(42.1% 0.095 57.708);
     --color-green-300: oklch(87.1% 0.15 154.449);
     --color-green-900: oklch(39.3% 0.095 152.535);
     --color-blue-300: oklch(80.9% 0.105 251.813);
@@ -52,7 +49,6 @@
     --radius-4xl: 2rem;
     --ease-out: cubic-bezier(0, 0, 0.2, 1);
     --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-    --blur-2xl: 40px;
     --default-transition-duration: 150ms;
     --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     --color-md-primary: var(--md-sys-color-primary);
@@ -313,6 +309,9 @@
   .max-h-16 {
     max-height: calc(var(--spacing) * 16);
   }
+  .max-h-52 {
+    max-height: calc(var(--spacing) * 52);
+  }
   .max-h-57\.5 {
     max-height: calc(var(--spacing) * 57.5);
   }
@@ -494,6 +493,9 @@
   .overflow-x-auto {
     overflow-x: auto;
   }
+  .overflow-y-auto {
+    overflow-y: auto;
+  }
   .overflow-y-auto\! {
     overflow-y: auto !important;
   }
@@ -594,9 +596,6 @@
   }
   .bg-transparent {
     background-color: transparent;
-  }
-  .bg-yellow-300 {
-    background-color: var(--color-yellow-300);
   }
   .p-0 {
     padding: 0px;
@@ -823,9 +822,6 @@
   }
   .text-red-900\! {
     color: var(--color-red-900) !important;
-  }
-  .text-yellow-900\! {
-    color: var(--color-yellow-900) !important;
   }
   .text-zinc-600 {
     color: var(--color-zinc-600);

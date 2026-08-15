@@ -56,15 +56,17 @@ class UserManager:
 
                 if data:
                     return (
-                        "failed",
+                        "DUPLICATE_USERNAME",
+                        409,
                         "Username is already in use. Please try another one.",
                     )
                 else:
-                    return "success", "Username available!"
+                    return "SUCCESS", 200, "Username available!"
 
         except sqlite3.Error as err:
             return (
-                "error",
+                "DATABASE_ERROR",
+                500,
                 f"An error occurred in the database. \nError message: {str(err)}",
             )
 
@@ -110,20 +112,26 @@ class UserManager:
                     valid = scryptCheck(password, userdata["password_hash"])
 
                     if valid:
-                        return "success", userdata
+                        return "SUCCESS", 200, userdata
                     else:
-                        return "fail", "Incorrect password. Please try again."
+                        return (
+                            "INCORRECT_PASSWORD",
+                            403,
+                            "Incorrect password. Please try again.",
+                        )
 
                 # If username not found
                 else:
                     return (
-                        "fail",
-                        "Username not found. Make sure you entered the correct username.",
+                        "USERNAME_NOT_FOUND",
+                        404,
+                        "Username is unavailable. Try refreshing the page or restarting the program.",
                     )
 
         except sqlite3.Error as err:
             return (
-                "error",
+                "DATABASE_ERROR",
+                500,
                 f"An error occurred in the database. \nError message: {str(err)}",
             )
 
@@ -131,7 +139,7 @@ class UserManager:
     def updateProfile(self, user_id, updates):
         try:
             if not updates:
-                return "failed", "No data provided."
+                return "BAD_REQUEST", 400, "No data provided."
 
             # Make a dynamic query
             set_clause = ", ".join([f"{column} = ?" for column in updates.keys()])
@@ -146,11 +154,12 @@ class UserManager:
 
                 conn.commit()
 
-            return "success", "Profile successfully updated."
+            return "SUCCESS", 200, "Profile successfully updated."
 
         except sqlite3.Error as err:
             return (
-                "error",
+                "DATABASE_ERROR",
+                500,
                 f"An error occurred in the database. \nError message: {str(err)}",
             )
 
@@ -218,11 +227,12 @@ class UserManager:
 
                         conn.commit()
 
-            return "success", "Password changed."
+            return "SUCCESS", 200, "Password changed."
 
         except sqlite3.Error as err:
             return (
-                "error",
+                "DATABASE_ERROR",
+                500,
                 f"An error occurred in the database. \nError message: {str(err)}",
             )
 
@@ -251,11 +261,12 @@ class UserManager:
                 key_id = cursor.lastrowid
                 conn.commit()
 
-                return "success", key_id
+                return "SUCCESS", 200, key_id
 
         except sqlite3.Error as err:
             return (
-                "error",
+                "DATABASE_ERROR",
+                500,
                 f"An error occurred in the database. \nError message: {str(err)}",
             )
 
@@ -308,9 +319,12 @@ class UserManager:
 
                 conn.commit()
 
+            return "SUCCESS", 200, "Successfully imported account."
+
         except sqlite3.Error as err:
             return (
-                "error",
+                "DATABASE_ERROR",
+                500,
                 f"An error occurred in the database. \nError message: {str(err)}",
             )
 
@@ -419,10 +433,7 @@ class UserManager:
                 return result
 
         except sqlite3.Error as err:
-            return (
-                "error",
-                f"An error occurred in the database. \nError message: {str(err)}",
-            )
+            return (f"An error occurred in the database. \nError message: {str(err)}",)
 
     # ========== Delete profile ==========
     def deleteProfile(self, user_id):
@@ -438,16 +449,18 @@ class UserManager:
                 # It's already deleted?
                 if cursor.rowcount == 0:
                     return (
-                        "success",
+                        "SUCCESS",
+                        200,
                         "The profile is not available or may have been deleted previously.",
                     )
 
                 conn.commit()
-                return "success", "Profile deleted."
+                return "SUCCESS", 200, "Profile deleted."
 
         except sqlite3.Error as err:
             return (
-                "error",
+                "DATABASE_ERROR",
+                500,
                 f"An error occurred in the database. \nError message: {str(err)}",
             )
 
@@ -570,11 +583,12 @@ class KeyManager:
 
                 conn.commit()
 
-                return "success", f"Successfully added key: {keyName}"
+                return "SUCCESS", 200, f"Successfully added key: {keyName}"
 
         except sqlite3.Error as err:
             return (
-                "error",
+                "DATABASE_ERROR",
+                500,
                 f"An error occurred in the database. \nError message: {str(err)}",
             )
 
@@ -703,11 +717,12 @@ class KeyManager:
 
                         conn.commit()
 
-            return "success", f"{keyName} edited."
+            return "SUCCESS", 200, f"{keyName} edited."
 
         except sqlite3.Error as err:
             return (
-                "error",
+                "DATABASE_ERROR",
+                500,
                 f"An error occurred in the database. \nError message: {str(err)}",
             )
 
@@ -725,16 +740,18 @@ class KeyManager:
                 # It's already deleted?
                 if cursor.rowcount == 0:
                     return (
-                        "success",
+                        "SUCCESS",
+                        200,
                         "The key is not available or may have been deleted previously.",
                     )
 
                 conn.commit()
-                return "success", "Key deleted."
+                return "SUCCESS", 200, "Key deleted."
 
         except sqlite3.Error as err:
             return (
-                "error",
+                "DATABASE_ERROR",
+                500,
                 f"An error occurred in the database. \nError message: {str(err)}",
             )
 
@@ -914,11 +931,12 @@ class PasswordManager:
 
                 conn.commit()
 
-                return "success", f"Successfully added password: {serviceName}"
+                return "SUCCESS", 200, f"Successfully added password: {serviceName}"
 
         except sqlite3.Error as err:
             return (
-                "error",
+                "DATABASE_ERROR",
+                500,
                 f"An error occurred in the database. \nError message: {str(err)}",
             )
 
@@ -975,11 +993,12 @@ class PasswordManager:
 
                 conn.commit()
 
-                return "success", f"{serviceName} edited."
+                return "SUCCESS", 200, f"{serviceName} edited."
 
         except sqlite3.Error as err:
             return (
-                "error",
+                "DATABASE_ERROR",
+                500,
                 f"An error occurred in the database. \nError message: {str(err)}",
             )
 
@@ -997,16 +1016,18 @@ class PasswordManager:
                 # It's already deleted?
                 if cursor.rowcount == 0:
                     return (
-                        "success",
+                        "SUCCESS",
+                        200,
                         "The password is not available or may have been deleted previously.",
                     )
 
                 conn.commit()
-                return "success", "Password deleted."
+                return "SUCCESS", 200, "Password deleted."
 
         except sqlite3.Error as err:
             return (
-                "error",
+                "DATABASE_ERROR",
+                500,
                 f"An error occurred in the database. \nError message: {str(err)}",
             )
 
@@ -1106,15 +1127,17 @@ class Recovery:
                         )
                     except Exception:
                         return (
-                            "error",
+                            "INCORRECT_PASSWORD",
+                            403,
                             "Decryption failed due to incorrect password. Please try again.",
                         )
 
-                return "success", result
+                return "SUCCESS", 200, result
 
         except sqlite3.Error as err:
             return (
-                "error",
+                "DATABASE_ERROR",
+                500,
                 f"An error occurred in the database, \nError message: {str(err)}",
             )
 
@@ -1211,7 +1234,4 @@ class Recovery:
                 return result
 
         except sqlite3.Error as err:
-            return (
-                "error",
-                f"An error occurred in the database. \nError message: {str(err)}",
-            )
+            return (f"An error occurred in the database. \nError message: {str(err)}",)

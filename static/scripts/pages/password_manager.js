@@ -62,7 +62,6 @@ async function newAccount(theForm) {
         }
     } catch (error) {
         progressIndicator.classList.add("hidden!");
-
         showAlert("Failed to add password", error.message);
     }
 }
@@ -119,17 +118,20 @@ async function getAccountInfo() {
         try {
             // Send request
             const result = await sendRequest(passId, {}, "GET");
-            const data = result.data;
 
-            // Set the form values
-            editAccountForm.edit_service_url.value = data.service_url;
-            editAccountForm.edit_service_name.value = data.service_name;
-            editAccountForm.edit_username.value = data.username_account;
-            editAccountForm.edit_password.value = data.decrypted_password;
-            editAccountForm.edit_service_notes.value = data.service_note;
-            editAccountForm.edit_selected_key.value = String(data.key_id);
+            if (result.code === 200) {
+                const data = result.data;
 
-            editAccountForm.save_btn.disabled = true;
+                // Set the form values
+                editAccountForm.edit_service_url.value = data.service_url;
+                editAccountForm.edit_service_name.value = data.service_name;
+                editAccountForm.edit_username.value = data.username_account;
+                editAccountForm.edit_password.value = data.decrypted_password;
+                editAccountForm.edit_service_notes.value = data.service_note;
+                editAccountForm.edit_selected_key.value = String(data.key_id);
+
+                editAccountForm.save_btn.disabled = true;
+            }
         } catch (error) {
             showAlert("Failed to load password info", error.message);
         }
@@ -575,10 +577,13 @@ const selectionCount = selectionAppbar.querySelector("#select-count");
 async function loadPasswords() {
     try {
         const result = await sendRequest(userPasswordsAPI, {}, "GET");
-        allPasswords = result.data;
 
-        renderPasswords();
-        setupInfiniteScroll();
+        if (result.code === 200) {
+            allPasswords = result.data;
+
+            renderPasswords();
+            setupInfiniteScroll();
+        }
     } catch (error) {
         showAlert("Failed to load password list", error.message);
     }

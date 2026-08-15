@@ -139,12 +139,14 @@
                 "POST",
             );
 
-            decryptResult.value = result.data;
-            decryptContainer.classList.remove("hidden");
+            if (result.code === 200) {
+                decryptResult.value = result.data;
+                decryptContainer.classList.remove("hidden");
 
-            // Remove unnecessary element
-            decryptProgress.classList.add("hidden");
-            expiredQuote.classList.add("hidden");
+                // Remove unnecessary element
+                decryptProgress.classList.add("hidden");
+                expiredQuote.classList.add("hidden");
+            }
         } catch (error) {
             decryptProgress.classList.add("hidden");
 

@@ -3,11 +3,13 @@ import os
 import struct
 from pathlib import Path
 
+from colorama import Fore, init
 from Crypto.Cipher import AES
 from Crypto.Protocol.KDF import scrypt
 from Crypto.Random import get_random_bytes
 from flask import Response, stream_with_context
 
+init(autoreset=True)
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 TEMP_DIR = PROJECT_ROOT / "tmp"
 TEMP_DIR.mkdir(parents=True, exist_ok=True)
@@ -32,7 +34,7 @@ class StegoEncoder:
                 gc.collect()
 
         except Exception as e:
-            print(f"[TMP CLEANUP] Failed to delete {path}: {e}")
+            print(f"{Fore.YELLOW} ! [TMP CLEANUP] Failed to delete {path}: {e}")
 
     @staticmethod
     def prepare_payload(data_bytes: bytes, filename: str = "") -> bytes:
@@ -95,10 +97,10 @@ class StegoEncoder:
         temp_output_path = None
 
         try:
-            # 1. Save uploaded carrier file to disk
+            # Save uploaded carrier file to disk
             media_carrier.save(temp_carrier_path)
 
-            # 2. Extract payload bytes based on type
+            # Extract payload bytes based on type
             if secret_type == "text":
                 payload_bytes = (secret_message or "").encode("utf-8")
                 filename = "secret_message.txt"
@@ -109,9 +111,13 @@ class StegoEncoder:
 
             else:
                 cls.cleanup_temp_file(temp_carrier_path)
-                return "error", "Invalid or missing secret payload."
+                return (
+                    "INVALID",
+                    400,
+                    "Invalid or missing secret payload. Make sure you provide the text or files you want to hide.",
+                )
 
-            # 3. Build stego block and prepare output file path
+            # Build stego block and prepare output file path
             raw_payload = cls.prepare_payload(payload_bytes, filename)
             stego_block = cls.build_stego_block(raw_payload, password)
 
@@ -120,7 +126,7 @@ class StegoEncoder:
                 cls.get_secure_temp_path(prefix="stego_out") + carrier_ext
             )
 
-            # 4. Copy carrier and append EOF payload
+            # Copy carrier and append EOF payload
             with (
                 open(temp_carrier_path, "rb") as f_in,
                 open(temp_output_path, "wb") as f_out,
@@ -129,7 +135,7 @@ class StegoEncoder:
                     f_out.write(chunk)
                 f_out.write(stego_block)
 
-            # 5. Define streaming generator with automatic file deletion
+            # Define streaming generator with automatic file deletion
             def generate():
                 with open(temp_output_path, "rb") as f:
                     while chunk := f.read(65536):
@@ -148,7 +154,7 @@ class StegoEncoder:
                 },
             )
 
-            return "success", response
+            return "SUCCESS", 400, response
 
         except Exception as e:
             cls.cleanup_temp_file(temp_carrier_path)
@@ -156,7 +162,7 @@ class StegoEncoder:
             if temp_output_path:
                 cls.cleanup_temp_file(temp_output_path)
 
-            return "error", str(e)
+            return "SERVER_ERROR", 500, str(e)
 
 
 # ========== Decoder ==========
@@ -172,8 +178,9 @@ class StegoDecoder:
             if path and os.path.exists(path):
                 os.remove(path)
                 gc.collect()
+
         except Exception as e:
-            print(f"[TMP CLEANUP] Failed to delete {path}: {e}")
+            print(f"{Fore.YELLOW} ! [TMP CLEANUP] Failed to delete {path}: {e}")
 
     @classmethod
     def unpack_payload(cls, raw_payload: bytes) -> tuple[str, bytes]:
@@ -218,7 +225,7 @@ class StegoDecoder:
             magic_idx = file_bytes.rfind(MAGIC_BYTES)
             if magic_idx == -1:
                 cls.cleanup_temp_file(temp_carrier_path)
-                return "error", "No hidden secret found in this carrier file."
+                return "NO_SECRET", 400, "No hidden secret found in this carrier file."
 
             # Read 1-byte encryption flag immediately after SNK1
             flag_idx = magic_idx + len(MAGIC_BYTES)
@@ -229,6 +236,7 @@ class StegoDecoder:
                     cls.cleanup_temp_file(temp_carrier_path)
                     return (
                         "PASSWORD_REQUIRED",
+                        401,
                         "Secret locked; you need to enter the password to view it.",
                     )
 
@@ -237,9 +245,13 @@ class StegoDecoder:
                 try:
                     raw_payload = cls.decrypt_stego_block(encrypted_block, password)
 
-                except Exception as err:
+                except Exception:
                     cls.cleanup_temp_file(temp_carrier_path)
-                    return "error", "Invalid password or corrupted payload."
+                    return (
+                        "INCORRECT_KEY",
+                        400,
+                        "Invalid password or corrupted payload.",
+                    )
             else:
                 # Unencrypted payload: Payload Size (4B) + Payload
                 payload_size = struct.unpack(
@@ -254,7 +266,7 @@ class StegoDecoder:
             # Return text dict or file download response
             if filename == "secret_message.txt":
                 text_content = content_bytes.decode("utf-8", errors="replace")
-                return "success", {"type": "text", "content": text_content}
+                return "SUCCESS", 200, {"type": "text", "content": text_content}
 
             else:
                 temp_output_path = cls.get_secure_temp_path(prefix="dec_out")
@@ -275,8 +287,8 @@ class StegoDecoder:
                     },
                 )
 
-                return "success", response
+                return "SUCCESS", 200, response
 
         except Exception as e:
             cls.cleanup_temp_file(temp_carrier_path)
-            return "error", f"Extraction failed: {str(e)}"
+            return "SERVER_ERROR", 500, f"Extraction failed: {str(e)}"

@@ -15,8 +15,8 @@ from src.db_manager import initialize_db
 load_dotenv()
 
 
-# SESSION_KEY = secrets.token_hex()
-SESSION_KEY = os.getenv("SESSION_KEY") # for development, to prevent logged out when restarting
+SESSION_KEY = secrets.token_hex()
+# SESSION_KEY = os.getenv("SESSION_KEY") # for development, to prevent logged out when restarting
 
 
 # ========== Check db ==========
@@ -24,7 +24,7 @@ db_path = os.path.join("db", "vault_manager.db")
 
 
 def check_and_setup_db():
-    print("Checking database...")
+    print(" * Checking database...")
     initialize_db()
 
 
@@ -71,7 +71,7 @@ def favicon():
 
 @app.route("/")
 def home():
-    return redirect(url_for("pages.dashboard"))
+    return redirect(url_for("pages.home"))
 
 
 user = UserManager()
@@ -109,4 +109,4 @@ def share_page(shared_type, blob):
 
 if __name__ == "__main__":
     check_and_setup_db()
-    app.run(debug=True)
+    app.run(debug=False)

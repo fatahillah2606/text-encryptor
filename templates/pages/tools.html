@@ -267,7 +267,7 @@
 
                                                             <div
                                                                 id="encryptor-file-info"
-                                                                class="flex flex-col gap-2 hidden!"
+                                                                class="flex flex-col gap-2 hidden! h-auto max-h-52 overflow-y-auto"
                                                             ></div>
                                                         </div>
 
@@ -275,6 +275,23 @@
                                                             id="encryptor-next-step"
                                                             class="hidden"
                                                         >
+                                                            <!-- Buttons for add or clear selected files -->
+                                                            <div
+                                                                class="flex items-center justify-start gap-2 mb-5"
+                                                            >
+                                                                <md-filled-button
+                                                                    type="button"
+                                                                    id="encryptor-add-more"
+                                                                >
+                                                                    Add
+                                                                </md-filled-button>
+                                                                <md-outlined-button
+                                                                    type="button"
+                                                                    id="encryptor-clear-all"
+                                                                >
+                                                                    Clear
+                                                                </md-outlined-button>
+                                                            </div>
                                                             <!-- Secret Key / Password -->
                                                             <div
                                                                 class="flex flex-col gap-1.5"
@@ -430,7 +447,7 @@
 
                                                             <div
                                                                 id="decryptor-file-info"
-                                                                class="flex flex-col gap-2 hidden!"
+                                                                class="flex flex-col gap-2 hidden! h-auto max-h-52 overflow-y-auto"
                                                             ></div>
                                                         </div>
 
@@ -438,6 +455,23 @@
                                                             id="decryptor-next-step"
                                                             class="hidden"
                                                         >
+                                                            <!-- Buttons for add or clear selected files -->
+                                                            <div
+                                                                class="flex items-center justify-start gap-2 mb-5"
+                                                            >
+                                                                <md-filled-button
+                                                                    type="button"
+                                                                    id="decryptor-add-more"
+                                                                >
+                                                                    Add
+                                                                </md-filled-button>
+                                                                <md-outlined-button
+                                                                    type="button"
+                                                                    id="decryptor-clear-all"
+                                                                >
+                                                                    Clear
+                                                                </md-outlined-button>
+                                                            </div>
                                                             <!-- Secret Key / Password -->
                                                             <div
                                                                 class="flex flex-col gap-1.5"

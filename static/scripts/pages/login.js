@@ -15,7 +15,6 @@ function slidePrev() {
 // ========== Auth ==========
 const login_api = "/api/auth/login";
 const loginForm = document.getElementById("login_form");
-const theField = document.querySelector("#password");
 
 async function login(formulir) {
     // Prograss bar
@@ -37,13 +36,17 @@ async function login(formulir) {
             loginForm.login.disabled = false;
 
             progressBar.classList.add("hidden");
-            location.href = "/pages/dashboard";
+            location.href = "/pages/home";
         }
     } catch (error) {
         progressBar.classList.add("hidden");
         loginForm.login.disabled = false;
 
-        showSupportText(theField, error.message);
+        if (error.status === "INCORRECT_PASSWORD") {
+            showSupportText(loginForm.password, error.message);
+        } else {
+            showAlert("Something went wrong", error.message);
+        }
     }
 }
 
@@ -52,7 +55,7 @@ loginForm.addEventListener("submit", (event) => {
 
     if (loginForm.login.disabled === false) {
         loginForm.login.disabled = true;
-        hideSupportText(theField);
+        hideSupportText(loginForm.password);
         login(loginForm);
     }
 });

@@ -61,7 +61,7 @@ async function decryptAndRecover(formulir, duplicate_action = null) {
 
                 showSnackbar(response.message);
             } else {
-                location.href = "/pages/dashboard";
+                location.href = "/pages/home";
             }
 
             recoveryForm.recover.disabled = false;
@@ -69,7 +69,7 @@ async function decryptAndRecover(formulir, duplicate_action = null) {
             progressBar.classList.add("hidden");
         })
         .catch((error) => {
-            if (error.code === 409 && currentIndex === 1) {
+            if (error.status === "NO_ACTION_PROVIDED" && currentIndex === 1) {
                 slideNext();
             } else {
                 // Password form

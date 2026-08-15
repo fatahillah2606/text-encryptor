@@ -26,13 +26,13 @@
     </md-fab>
     {% endif %}
 
-    <!-- Dashboard -->
-    {{ rail_items('Dashboard', 'dashboard', url_for('pages.dashboard'),
-    active_page, 'dashboard') }}
+    <!-- Home -->
+    {{ rail_items('Home', 'home', url_for('pages.home'), active_page, 'home') }}
 
     <!-- Account manager -->
-    {{ rail_items('Account', 'account_circle', url_for('pages.account_manager'),
-    active_page, 'account_manager') }}
+    {{ rail_items('You' if 'username' in session else 'Account',
+    'account_circle', url_for('pages.account_manager'), active_page,
+    'account_manager') }}
 
     <!-- For logged-in only user -->
     {% if 'username' in session %}

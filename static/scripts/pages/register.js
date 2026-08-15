@@ -97,7 +97,7 @@ async function register(formulir) {
         if (result.code === 200) {
             progressBar.classList.add("hidden");
             registerForm.register.disabled = false;
-            location.href = "/pages/dashboard";
+            location.href = "/pages/home";
         }
     } catch (error) {
         progressBar.classList.add("hidden");

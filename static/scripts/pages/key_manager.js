@@ -120,13 +120,16 @@ async function getKeyInfo() {
         try {
             // Send request
             const result = await sendRequest(keyId, {}, "GET");
-            const data = result.data;
 
-            // Set the form values
-            editKeyForm.edit_key_name.value = data.key_name;
-            editKeyForm.edit_the_key.value = data.encryption_key;
+            if (result.code === 200) {
+                const data = result.data;
 
-            editKeyForm.save_btn.disabled = true;
+                // Set the form values
+                editKeyForm.edit_key_name.value = data.key_name;
+                editKeyForm.edit_the_key.value = data.encryption_key;
+
+                editKeyForm.save_btn.disabled = true;
+            }
         } catch (error) {
             showAlert("Failed to retrieve key information", error.message);
         }
@@ -354,11 +357,16 @@ const selectionCount = selectionAppbar.querySelector("#select-count");
 async function loadKeys() {
     try {
         const result = await sendRequest(userKeysAPI, {}, "GET");
-        // Save the base data after removing master_key
-        allKeys = result.data.filter((item) => item.key_name !== "master_key");
 
-        renderKeys();
-        setupKeyInfiniteScroll();
+        if (result.code === 200) {
+            // Save the base data after removing master_key
+            allKeys = result.data.filter(
+                (item) => item.key_name !== "master_key",
+            );
+
+            renderKeys();
+            setupKeyInfiniteScroll();
+        }
     } catch (error) {
         showAlert("Unable to load key list", error.message);
     }

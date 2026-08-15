@@ -55,12 +55,13 @@ class DataImporter:
 
             # Return the data
             parsed_data = json.loads(plaintext_bytes.decode("utf-8"))
-            return "success", parsed_data
+            return "SUCCESS", 200, parsed_data
 
         except ValueError:
             return (
-                "error",
-                "The encryption password is incorrect or the data is corrupted. Ensure the password is correct and try again.",
+                "INCORRECT_PASSWORD",
+                401,
+                "The encryption password is incorrect. Ensure the password is correct and try again.",
             )
 
     # ========== Import into database ==========
@@ -85,11 +86,11 @@ class DataImporter:
                 json_key_id = key_data.get("key_id")
 
                 # Insert the key into db
-                status, db_key_id = self.usermgr.import_keys(
+                status, code, db_key_id = self.usermgr.import_keys(
                     key_data, user_id, master_key
                 )
 
-                if status == "success":
+                if status == "SUCCESS":
                     # Retrieve only the passwords that belong to this specific key
                     matching_passwords = passwords_by_key.get(json_key_id, [])
 
@@ -98,10 +99,10 @@ class DataImporter:
                             pw_data, db_key_id, user_id, master_key
                         )
 
-            return "success", ""
+            return "SUCCESS", 200, "Successfully imported to the database."
 
         except Exception as err:
-            return "error", str(err)
+            return "SERVER_ERROR", 500, str(err)
 
     # ========== Compatibility mode import (csv) ==========
     def process_csv(self, csv_data):
@@ -130,7 +131,8 @@ class DataImporter:
         # Quick validation check on headers
         if not reader.fieldnames:
             return (
-                "error",
+                "UNSUPPORTED_FILE",
+                400,
                 "CSV format is not supported. Make sure the CSV file you select is from a Chromium-based browser, Firefox, or Sunako.",
             )
 
@@ -164,11 +166,12 @@ class DataImporter:
 
         else:
             return (
-                "error",
+                "UNSUPPORTED_FORMAT",
+                400,
                 "CSV format is not supported. Make sure the CSV file you select is from a Chromium-based browser, Firefox, or Sunako.",
             )
 
-        return "success", parsed_passwords
+        return "SUCCESS", 200, parsed_passwords
 
 
 # ========== Exporter ==========

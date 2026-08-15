@@ -134,6 +134,49 @@ function renderFileInputList(
     });
 }
 
+// Completely clears a file input, resets its UI container, and restores its trigger button.
+function clearFileInput(
+    container,
+    fileInput,
+    inputTrigger,
+    onCleared,
+    nextStep = null,
+    blobUrl = null,
+) {
+    if (!fileInput) return;
+
+    // Reset file input value and files array
+    fileInput.value = "";
+    try {
+        fileInput.files = new DataTransfer().files;
+    } catch (e) {
+        console.warn(e);
+    }
+
+    // Clear UI container and hide it
+    container.innerHTML = "";
+    container.classList.add("hidden!");
+
+    // Restore visibility of the trigger button
+    inputTrigger.classList.remove("hidden");
+
+    // Hide next step if exist
+    if (nextStep) {
+        nextStep.classList.add("hidden");
+    }
+
+    // Clear blob url if exist
+    if (blobUrl) {
+        clearResultFileInfo(blobUrl);
+    }
+
+    // Optional callback hook
+    if (onCleared) onCleared();
+
+    // Dispatch 'change' event so dependent form listeners update
+    fileInput.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
 // Renders a result file card from a Blob object and appends it to a container
 function renderResultFileInfo(container, blobFile, fileName) {
     if (!container || !blobFile) return;
@@ -458,29 +501,31 @@ async function generate_link(textToShare, targetElm, noticeBanner) {
         // Get generated link
         const result = await sendRequest(generateLinkAPI, data, "POST");
 
-        if (targetElm.value !== undefined) {
-            targetElm.value = result.data.link;
-        } else {
-            targetElm.textContent = result.data.link;
+        if (result.code === 200) {
+            if (targetElm.value !== undefined) {
+                targetElm.value = result.data.link;
+            } else {
+                targetElm.textContent = result.data.link;
+            }
+
+            // Link span
+            const currentTime = new Date();
+            currentTime.setMinutes(currentTime.getMinutes() + 5);
+
+            let hour = currentTime.getHours();
+            let minute = currentTime.getMinutes();
+
+            hour = hour < 10 ? "0" + hour : hour;
+            minute = minute < 10 ? "0" + minute : minute;
+
+            let bannerText = `The link is valid until ${hour}:${minute}`;
+
+            noticeBanner.classList.remove("hidden");
+            noticeBanner.querySelector("span:nth-child(2)").textContent =
+                bannerText;
+
+            showSnackbar(result.message);
         }
-
-        // Link span
-        const currentTime = new Date();
-        currentTime.setMinutes(currentTime.getMinutes() + 5);
-
-        let hour = currentTime.getHours();
-        let minute = currentTime.getMinutes();
-
-        hour = hour < 10 ? "0" + hour : hour;
-        minute = minute < 10 ? "0" + minute : minute;
-
-        let bannerText = `The link is valid until ${hour}:${minute}`;
-
-        noticeBanner.classList.remove("hidden");
-        noticeBanner.querySelector("span:nth-child(2)").textContent =
-            bannerText;
-
-        showSnackbar(result.message);
     } catch (error) {
         showAlert("Unable to generate link", error.message);
     }
@@ -607,11 +652,15 @@ function encryptorSendFile(
                         responseJson.message ||
                         "An unknown error occurred. Please try again";
 
-                    showSupportText(keyInput, errorMessage);
+                    if (responseJson.status === "INCORRECT_KEY") {
+                        showSupportText(keyInput, errorMessage);
+                    } else {
+                        showAlert("Unable to process file", errorMessage);
+                    }
                 } catch (e) {
                     showAlert(
                         "Unable to process file",
-                        "Process failed. Please try again.",
+                        "Failed to process response from server. Please try again.",
                     );
                 }
                 resetUploadButton();
@@ -625,7 +674,7 @@ function encryptorSendFile(
     xhr.onerror = function () {
         showAlert(
             "Unable to upload file",
-            "Network error occurred. Please try again.",
+            "Unable to connect to server. Make sure the application is running and do not close the terminal.",
         );
         resetUploadButton();
     };
@@ -646,11 +695,13 @@ const encryptorDropZone = document.getElementById("encryptor-drop-zone");
 const encryptorFileInfo = document.getElementById("encryptor-file-info");
 
 const encryptorNextStep = document.getElementById("encryptor-next-step");
+const encryptorAddMore = document.getElementById("encryptor-add-more");
+const encryptorClearAll = document.getElementById("encryptor-clear-all");
 const encryptorButton = document.getElementById("encrypt_submit_btn");
 const encryptorProgressIndicator = encryptorButton.querySelector(
     ".button-progress-indicator",
 );
-const encryptResultContainer = document.getElementById(
+const encryptorResultContainer = document.getElementById(
     "encrypt-result-container",
 );
 
@@ -659,14 +710,15 @@ let accumulatedEncryptFiles = new DataTransfer();
 
 // Native trigger
 encryptorBrowseBtn.addEventListener("click", () => encryptorFileInput.click());
+encryptorAddMore.addEventListener("click", () => encryptorFileInput.click());
 encryptorFileInput.addEventListener("change", (e) => {
     // Merge new selections into accumulated list
-    Array.from(decoderFileInput.files).forEach((file) => {
+    Array.from(encryptorFileInput.files).forEach((file) => {
         accumulatedEncryptFiles.items.add(file);
     });
 
     // Update the input element's files
-    decoderFileInput.files = accumulatedEncryptFiles.files;
+    encryptorFileInput.files = accumulatedEncryptFiles.files;
 
     // Render accumulated list
     renderFileInputList(
@@ -681,7 +733,21 @@ encryptorFileInput.addEventListener("change", (e) => {
             );
         },
         encryptorNextStep,
-        encryptResultContainer,
+        encryptorResultContainer,
+    );
+});
+
+// Clear all selected files
+encryptorClearAll.addEventListener("click", () => {
+    clearFileInput(
+        encryptorFileInfo,
+        encryptorFileInput,
+        encryptorDropZone,
+        () => {
+            accumulatedEncryptFiles = new DataTransfer();
+        },
+        encryptorNextStep,
+        encryptorResultContainer,
     );
 });
 
@@ -706,12 +772,12 @@ encryptorDropZone.addEventListener("drop", (e) => {
         encryptorFileInput.files = e.dataTransfer.files;
 
         // Merge new selections into accumulated list
-        Array.from(decoderFileInput.files).forEach((file) => {
+        Array.from(encryptorFileInput.files).forEach((file) => {
             accumulatedEncryptFiles.items.add(file);
         });
 
         // Update the input element's files
-        decoderFileInput.files = accumulatedEncryptFiles.files;
+        encryptorFileInput.files = accumulatedEncryptFiles.files;
 
         // Render accumulated list
         renderFileInputList(
@@ -726,7 +792,7 @@ encryptorDropZone.addEventListener("drop", (e) => {
                 );
             },
             encryptorNextStep,
-            encryptResultContainer,
+            encryptorResultContainer,
         );
     }
 });
@@ -743,7 +809,7 @@ encryptorFileForm.addEventListener("submit", (event) => {
             encryptorFileInput,
             encryptorFileForm.encrypt_key,
             encryptorProgressIndicator,
-            encryptResultContainer,
+            encryptorResultContainer,
         );
     }
 });
@@ -756,6 +822,8 @@ const decryptorDropZone = document.getElementById("decryptor-drop-zone");
 const decryptorFileInfo = document.getElementById("decryptor-file-info");
 
 const decryptorNextStep = document.getElementById("decryptor-next-step");
+const decryptorAddMore = document.getElementById("decryptor-add-more");
+const decryptorClearAll = document.getElementById("decryptor-clear-all");
 const decryptorButton = document.getElementById("decrypt_submit_btn");
 const decryptorProgressIndicator = decryptorButton.querySelector(
     ".button-progress-indicator",
@@ -769,14 +837,15 @@ let accumulatedDecryptFiles = new DataTransfer();
 
 // Native trigger
 decryptorBrowseBtn.addEventListener("click", () => decryptorFileInput.click());
+decryptorAddMore.addEventListener("click", () => decryptorFileInput.click());
 decryptorFileInput.addEventListener("change", () => {
     // Merge new selections into accumulated list
-    Array.from(decoderFileInput.files).forEach((file) => {
+    Array.from(decryptorFileInput.files).forEach((file) => {
         accumulatedDecryptFiles.items.add(file);
     });
 
     // Update the input element's files
-    decoderFileInput.files = accumulatedDecryptFiles.files;
+    decryptorFileInput.files = accumulatedDecryptFiles.files;
 
     // Render accumulated list
     renderFileInputList(
@@ -789,6 +858,20 @@ decryptorFileInput.addEventListener("change", () => {
             Array.from(updatedFiles).forEach((f) =>
                 accumulatedDecryptFiles.items.add(f),
             );
+        },
+        decryptorNextStep,
+        decryptorResultContainer,
+    );
+});
+
+// Clear all selected files
+decryptorClearAll.addEventListener("click", () => {
+    clearFileInput(
+        decryptorFileInfo,
+        decryptorFileInput,
+        decryptorDropZone,
+        () => {
+            accumulatedDecryptFiles = new DataTransfer();
         },
         decryptorNextStep,
         decryptorResultContainer,
@@ -817,12 +900,12 @@ decryptorDropZone.addEventListener("drop", (e) => {
             decryptorFileInput.files = e.dataTransfer.files;
 
             // Merge new selections into accumulated list
-            Array.from(decoderFileInput.files).forEach((file) => {
+            Array.from(decryptorFileInput.files).forEach((file) => {
                 accumulatedDecryptFiles.items.add(file);
             });
 
             // Update the input element's files
-            decoderFileInput.files = accumulatedDecryptFiles.files;
+            decryptorFileInput.files = accumulatedDecryptFiles.files;
 
             // Render accumulated list
             renderFileInputList(
@@ -901,11 +984,13 @@ async function generatePassword() {
                 "POST",
             );
 
-            generatedPassword.textContent = result.data.password;
-            encryptedGeneratedPassword.textContent =
-                result.data.encrypted_password;
+            if (result.code === 200) {
+                generatedPassword.textContent = result.data.password;
+                encryptedGeneratedPassword.textContent =
+                    result.data.encrypted_password;
 
-            showSnackbar(result.message);
+                showSnackbar(result.message);
+            }
         } catch (error) {
             showAlert("Unable to generate password", error.message);
         }
@@ -1098,6 +1183,16 @@ typeSelector.addEventListener("change", () => {
 
     // Reset secret message state
     hideSecretForm.secret_message.value = "";
+    clearFileInput(
+        secretFileInfo,
+        secretFileInput,
+        secretFileChooser,
+        () => {
+            accumulatedSecretFile = new DataTransfer();
+        },
+        null,
+        null,
+    );
 
     if (typeSelector.value === "plain-text") {
         secretType = "text";
@@ -1298,11 +1393,11 @@ function stegoEncode() {
                         responseJson.message ||
                         "An unknown error occurred. Please try again";
 
-                    showSupportText(keyInput, errorMessage);
+                    showAlert("Unable to process file", errorMessage);
                 } catch (e) {
                     showAlert(
                         "Unable to process file",
-                        "Process failed. Please try again.",
+                        "Failed to process response from server. Please try again.",
                     );
                 }
                 resetUploadButton();
@@ -1316,7 +1411,7 @@ function stegoEncode() {
     xhr.onerror = function () {
         showAlert(
             "Unable to upload file",
-            "Network error occurred. Please try again.",
+            "Unable to connect to server. Make sure the application is running and do not close the terminal.",
         );
         resetUploadButton();
     };
@@ -1414,7 +1509,7 @@ decoderFileInput.addEventListener("change", async () => {
     if (!result.hasSecret) {
         showAlert(
             "No hidden secret found",
-            "No hidden secret detected in this file.",
+            "No hidden secret detected in this file. Try using another file.",
         );
 
         decoderDropZoneLoadingLayer.classList.add("hidden");
@@ -1486,7 +1581,7 @@ decoderDropZone.addEventListener("drop", async (e) => {
         if (!result.hasSecret) {
             showAlert(
                 "No hidden secret found",
-                "No hidden secret detected in this file.",
+                "No hidden secret detected in this file. Try using another file.",
             );
 
             decoderDropZoneLoadingLayer.classList.add("hidden");
@@ -1623,7 +1718,7 @@ function stegoDecode() {
 
                     if (
                         xhr.status === 200 &&
-                        responseJson.status === "success"
+                        responseJson.status === "SUCCESS"
                     ) {
                         // Success: Extracted plain text secret
                         renderResultText(
@@ -1631,9 +1726,8 @@ function stegoDecode() {
                             responseJson.data.content,
                         );
                     } else if (
-                        xhr.status === 401 &&
-                        responseJson.data &&
-                        responseJson.data.is_locked
+                        xhr.status === "PASSWORD_REQUIRED" ||
+                        xhr.status === "INCORRECT_KEY"
                     ) {
                         // Password Required Error
                         errorMessage = responseJson.message;
@@ -1653,7 +1747,7 @@ function stegoDecode() {
                 } catch (e) {
                     showAlert(
                         "Unable to process file",
-                        "Process failed. Please try again.",
+                        "Failed to process response from server. Please try again.",
                     );
                 }
 
@@ -1668,7 +1762,7 @@ function stegoDecode() {
     xhr.onerror = function () {
         showAlert(
             "Unable to upload file",
-            "Network error occurred. Please try again.",
+            "Unable to connect to server. Make sure the application is running and do not close the terminal.",
         );
         resetUploadButton();
     };

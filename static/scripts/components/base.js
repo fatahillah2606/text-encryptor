@@ -74,13 +74,14 @@ async function checkEncryptionKey() {
     } else {
         try {
             const result = await sendRequest(userKeysAPI, {}, "GET");
-            const masterKey = result.data[0];
 
-            saveKeyToSession(masterKey);
-            checkEncryptionKey();
+            if (result.status === "SUCCESS") {
+                const masterKey = result.data[0];
+
+                saveKeyToSession(masterKey);
+                checkEncryptionKey();
+            }
         } catch (error) {
-            // openKeyModal();
-
             // Auto generate key for guest mode
             const keyGenerated = await generateKey("#custom_key");
             if (keyGenerated) {

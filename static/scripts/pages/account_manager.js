@@ -19,6 +19,13 @@ const showPasswordContainer = document.getElementById(
 // ========== Biodata ==========
 // Form dialog
 async function formDialog(name, headline, label, type) {
+    // Reset everything first when opening dialog
+    dialogForm.reset();
+    dialogForm.save_changes.disabled = true;
+    hideSupportText(dialogForm.edit_account);
+    hideSupportText(dialogForm.retype_password);
+
+    // Prepare for opening the dialog
     dialogElm.querySelector('[slot="headline"]').innerText = headline;
 
     // Set the form field
@@ -54,16 +61,8 @@ async function formDialog(name, headline, label, type) {
 }
 
 async function closeDialog() {
-    dialogForm.reset();
     await dialogElm.close();
 }
-
-// Reset everything on dialog if closed
-dialogElm.addEventListener("close", () => {
-    dialogForm.save_changes.disabled = true;
-    hideSupportText(dialogForm.edit_account);
-    hideSupportText(dialogForm.retype_password);
-});
 
 // Dialog action button
 dialogForm.addEventListener("submit", (event) => {
@@ -376,7 +375,7 @@ async function importData(theForm) {
                             closeImportMenu();
                         })
                         .catch((error) => {
-                            if (error.code === 403) {
+                            if (error.status === "INCORRECT_PASSWORD") {
                                 showSupportText(
                                     importForm.file_password,
                                     error.message,
@@ -593,12 +592,14 @@ async function loadUserData() {
     try {
         const result = await sendRequest(whoami, {}, "GET");
 
-        userdata = {
-            name: result.data.name,
-            username: result.data.username,
-        };
+        if (result.code === 200) {
+            userdata = {
+                name: result.data.name,
+                username: result.data.username,
+            };
 
-        return true;
+            return true;
+        }
     } catch (error) {
         showAlert("Failed to load account data", error.message);
     }
