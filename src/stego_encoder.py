@@ -2,6 +2,7 @@ import gc
 import os
 import struct
 from pathlib import Path
+from urllib.parse import quote
 
 from colorama import Fore, init
 from Crypto.Cipher import AES
@@ -145,15 +146,18 @@ class StegoEncoder:
             # Cleanup input carrier immediately
             cls.cleanup_temp_file(temp_carrier_path)
 
-            download_name = f"stego_{media_carrier.filename}"
+            # Fix foreign language characters
+            utf8_filename = quote(media_carrier.filename)
+            ascii_fallback = (
+                media_carrier.filename.encode("ascii", "ignore").decode("ascii").strip()
+            )
+            content_disposition = f"attachment; filename=\"{ascii_fallback}\"; filename*=UTF-8''{utf8_filename}"
+
             response = Response(
                 stream_with_context(generate()),
                 mimetype=media_carrier.mimetype or "application/octet-stream",
-                headers={
-                    "Content-Disposition": f'attachment; filename="{download_name}"'
-                },
             )
-
+            response.headers["Content-Disposition"] = content_disposition
             return "SUCCESS", 400, response
 
         except Exception as e:
@@ -279,13 +283,18 @@ class StegoDecoder:
                             yield chunk
                     cls.cleanup_temp_file(temp_output_path)
 
+                # Fix foreign language characters
+                utf8_filename = quote(filename)
+                ascii_fallback = (
+                    filename.encode("ascii", "ignore").decode("ascii").strip()
+                )
+                content_disposition = f"attachment; filename=\"{ascii_fallback}\"; filename*=UTF-8''{utf8_filename}"
+
                 response = Response(
                     stream_with_context(generate()),
                     mimetype="application/octet-stream",
-                    headers={
-                        "Content-Disposition": f'attachment; filename="{filename}"'
-                    },
                 )
+                response.headers["Content-Disposition"] = content_disposition
 
                 return "SUCCESS", 200, response
 

@@ -6,10 +6,6 @@ import urllib.request
 import webbrowser
 from threading import Thread
 
-from colorama import Fore, init
-
-init(autoreset=True)
-
 
 # ========== Install the requirements ==========
 def install_requirements():
@@ -24,10 +20,10 @@ def install_requirements():
             )
             print(" + Dependencies are up to date.")
         except Exception as e:
-            print(f"{Fore.RED} - Failed to install requirements: {e}")
+            print(f" - Failed to install requirements: {e}")
             sys.exit(1)
     else:
-        print(f"{Fore.YELLOW} ! {req_file} not found. Skipping installation.")
+        print(f" ! {req_file} not found. Skipping installation.")
 
 
 # ========== Wait for the Flask is ready ==========
@@ -46,7 +42,7 @@ def wait_for_flask(url, timeout=15):
             # Connection failed (server not ready yet). Wait a moment and try again.
             time.sleep(0.2)
 
-    print(f"{Fore.RED} - Timeout reached. Could not detect Flask server.")
+    print(f" - Timeout reached. Could not detect Flask server.")
 
 
 # ========== Start the program ==========
@@ -64,7 +60,7 @@ def start_app():
         # Keep run.py alive while Flask runs
         process.wait()
     except KeyboardInterrupt:
-        print(f"\n{Fore.YELLOW} ! Operation cancelled by user. Goodbye.")
+        print(f"\n ! Operation cancelled by user. Goodbye.")
         if "process" in locals():
             process.terminate()
 
