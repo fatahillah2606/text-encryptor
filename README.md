@@ -90,11 +90,16 @@ If you want to modify or build the project assets yourself, follow these steps:
 
 8.  Open your browser and navigate to [http://127.0.0.1:5000/](http://127.0.0.1:5000/)
 
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 ---
 
-## Disclaimer
+## Disclaimer & Legal Notice
 
-This project is an independent open-source tool and is not affiliated with, endorsed by, or connected to the NEXON Korea Corp. and NEXON Games Co., Ltd.
+- **Project Ownership:** This project is an independent open-source tool and is not affiliated with, endorsed by, or connected to the NEXON Korea Corp. and NEXON Games Co., Ltd.
+- **Artwork & Character Assets:** The halo graphics, design elements, and character references inspired by Sunaookami Shiroko / Blue Archive are fan-made assets created for non-commercial, artistic purposes. All character rights and original intellectual properties belong to NEXON Korea Corp. and NEXON Games Co., Ltd.
 
 ---
 
