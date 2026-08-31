@@ -16,9 +16,25 @@ This program is a simple project that I made to practice my coding skills, featu
 
 ### Windows
 
-Simply execute the `run_encryptor.bat` file
+Simply execute the `start_sunako_windows.bat` file
 
-### Linux & macOS
+### Linux
+
+Give execution permissions to `start_sunako_linux.sh` file:
+
+```bash
+chmod +x start_sunako_linux.sh
+```
+
+Then run the program:
+
+```bash
+./start_sunako_linux.sh
+```
+
+or simply double-click the file.
+
+### macOS
 
 1.  Clone the repository:
 
