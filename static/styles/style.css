@@ -1,40 +1,43 @@
-@import url("/static/fonts/Inter-4.1/inter.css");
 @import url("/static/styles/material-theme/light.css");
 @import url("/static/styles/material-theme/dark.css");
 
 @font-face {
     font-family: "Material Symbols Rounded";
     font-style: normal;
-    src: url("/static/icons/material-symbols/MaterialSymbolsRounded.woff2")
+    src: url("/static/icons/material-symbols/MaterialSymbolsRounded[FILL,GRAD,opsz,wght].woff2")
         format("woff");
 }
 
-/* ========== Plus Jakarta Sans font ========== */
+/* ========== Google Sans Sans font ========== */
 @font-face {
-    font-family: "Plus Jakarta Sans";
-    src: url("/static/fonts/Plus_Jakarta_Sans/PlusJakartaSans-VariableFont_wght.ttf");
+    font-family: "Google Sans";
+    src: url("/static/fonts/Google_Sans_Flex/GoogleSansFlex-VariableFont_GRAD,ROND,opsz,slnt,wdth,wght.ttf");
 }
 
 @font-face {
-    font-family: "Plus Jakarta Sans Italic";
-    src: url("/static/fonts/Plus_Jakarta_Sans/PlusJakartaSans-Italic-VariableFont_wght.ttf");
+    font-family: "Google Sans Italic";
+    src: url("/static/fonts/Google_Sans/GoogleSans-Italic-VariableFont_GRAD,opsz,wght.ttf");
 }
 
 :root {
-    font-family: Inter, sans-serif;
+    font-family: "Google Sans", sans-serif;
     font-feature-settings:
         "liga" 1,
         "calt" 1; /* fix for Chrome */
 
-    --md-ref-typeface-brand: Inter, sans-serif;
-    --md-ref-typeface-plain: Inter, sans-serif;
+    --md-ref-typeface-brand: "Google Sans", sans-serif;
+    --md-ref-typeface-plain: "Google Sans", sans-serif;
 }
 @supports (font-variation-settings: normal) {
     :root {
-        font-family: InterVariable, sans-serif;
-        --md-ref-typeface-brand: Inter, sans-serif;
-        --md-ref-typeface-plain: Inter, sans-serif;
+        font-family: "Google Sans", sans-serif;
+        --md-ref-typeface-brand: "Google Sans", sans-serif;
+        --md-ref-typeface-plain: "Google Sans", sans-serif;
     }
+}
+
+* {
+    font-family: "Google Sans", sans-serif;
 }
 
 /* ========== Scrollbar ========== */
@@ -239,7 +242,7 @@ md-filled-button .button-progress-indicator md-circular-progress {
 
 /* ========== Appbar ========== */
 .sunako-appbar-title {
-    font-family: "Plus Jakarta Sans", sans-serif;
+    font-family: "Google Sans", sans-serif;
     font-weight: 600;
     font-size: var(--md-sys-typescale-title-large-size, 1.375rem);
     line-height: var(--md-sys-typescale-title-large-line-height, 1.75rem);
@@ -386,7 +389,7 @@ md-filled-button .button-progress-indicator md-circular-progress {
     width: 100%;
     min-height: calc(160px - 40px);
     resize: none;
-    font-family: Inter, sans-serif;
+    font-family: "Google Sans", sans-serif;
     color: var(--md-sys-color-on-surface-variant);
 }
 
