@@ -12,6 +12,8 @@ from routes.pages import pages_route
 from src.data_manager import UserManager
 from src.db_manager import initialize_db
 
+from colorama import Fore, Style
+
 load_dotenv()
 
 
@@ -24,7 +26,7 @@ db_path = os.path.join("db", "vault_manager.db")
 
 
 def check_and_setup_db():
-    print(" * Checking database...")
+    print(f"[{Fore.GREEN}info{Style.RESET_ALL}] Checking database...")
     initialize_db()
 
 

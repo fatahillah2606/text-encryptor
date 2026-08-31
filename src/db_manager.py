@@ -1,9 +1,8 @@
 import os
 import sqlite3
 
-from colorama import Fore, init
+from colorama import Fore, Style
 
-init(autoreset=True)
 db_path = "db/vault_manager.db"
 old_db_path = "db/old_vault_manager.db"
 
@@ -31,7 +30,7 @@ def initialize_db():
         if not version == 2:
             if not os.path.exists(old_db_path):
                 os.rename(db_path, old_db_path)
-                print(" * Old database found. Renaming to old_vault_db for recovery.")
+                print(f"[{Fore.GREEN}info{Style.RESET_ALL}] Old database found. Renaming to old_vault_db for recovery.")
 
             else:
                 # If old db already exist, create another one
@@ -39,14 +38,14 @@ def initialize_db():
                 duplicate_name = f"db/old_vault_manager_{duplicate_count}.db"
 
                 while os.path.exists(duplicate_name):
-                    print(f" * {duplicate_name} already exist. Creating another one")
+                    print(f"[{Fore.GREEN}info{Style.RESET_ALL}] {duplicate_name} already exist. Creating another one")
                     duplicate_count += 1
                     duplicate_name = f"db/old_vault_manager_{duplicate_count}.db"
 
                 os.rename(db_path, duplicate_name)
 
         else:
-            print(" * Database found!")
+            print(f"[{Fore.GREEN}info{Style.RESET_ALL}] Database found!")
 
     if not os.path.exists(db_path):
         create_database()
@@ -111,7 +110,7 @@ def create_database():
 
             conn.commit()
 
-        print(" * Generation complete.")
+        print(f"[{Fore.GREEN}info{Style.RESET_ALL}] Generation complete.")
 
     except sqlite3.Error as e:
-        print(f"{Fore.RED} * An error occurred: {e}")
+        print(f"[{Fore.RED}error{Style.RESET_ALL}] An error occurred: {e}")

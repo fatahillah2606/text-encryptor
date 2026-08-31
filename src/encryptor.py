@@ -10,7 +10,7 @@ import zipfile
 from pathlib import Path
 from urllib.parse import quote
 
-from colorama import Fore, init
+from colorama import Fore, Style
 from Crypto.Cipher import AES
 from Crypto.Hash import SHA256
 from Crypto.Protocol.KDF import PBKDF2
@@ -18,7 +18,6 @@ from Crypto.Random import get_random_bytes
 from Crypto.Util.Padding import pad, unpad
 from flask import Response, stream_with_context
 
-init(autoreset=True)
 
 # Set 'tmp' folder relative to project root
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -42,7 +41,7 @@ def cleanup_temp_file(path):
             gc.collect()
 
     except Exception as e:
-        print(f"{Fore.YELLOW} ! [TMP CLEANUP] Failed to delete {path}: {e}")
+        print(f"[{Fore.YELLOW}TMP CLEANUP{Style.RESET_ALL}] Failed to delete {path}: {e}")
 
 
 def process_to_temp_file(stream_generator):

@@ -968,7 +968,7 @@ def exportData():
             # Serialize data for support Excel and Browser
             for pw in allUserPw:
                 service_url = (
-                    pw["url"] if pw["url"] else "https://from.text-encryptor.app/"
+                    pw["url"] if pw["url"] else "https://from.sunako.app/"
                 )
                 service_notes = pw["note"] if pw["note"] else ""
 
@@ -1605,7 +1605,7 @@ def exportPassword():
             # Serialize data for support Excel and Browser
             for pw in passwordList:
                 service_url = (
-                    pw["url"] if pw["url"] else "https://from.text-encryptor.app/"
+                    pw["url"] if pw["url"] else "https://from.sunako.app/"
                 )
                 service_notes = pw["note"] if pw["note"] else ""
 

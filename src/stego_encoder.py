@@ -4,13 +4,12 @@ import struct
 from pathlib import Path
 from urllib.parse import quote
 
-from colorama import Fore, init
+from colorama import Fore, Style
 from Crypto.Cipher import AES
 from Crypto.Protocol.KDF import scrypt
 from Crypto.Random import get_random_bytes
 from flask import Response, stream_with_context
 
-init(autoreset=True)
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 TEMP_DIR = PROJECT_ROOT / "tmp"
 TEMP_DIR.mkdir(parents=True, exist_ok=True)
@@ -35,7 +34,7 @@ class StegoEncoder:
                 gc.collect()
 
         except Exception as e:
-            print(f"{Fore.YELLOW} ! [TMP CLEANUP] Failed to delete {path}: {e}")
+            print(f"[{Fore.YELLOW}TMP CLEANUP{Style.RESET_ALL}] Failed to delete {path}: {e}")
 
     @staticmethod
     def prepare_payload(data_bytes: bytes, filename: str = "") -> bytes:
@@ -184,7 +183,7 @@ class StegoDecoder:
                 gc.collect()
 
         except Exception as e:
-            print(f"{Fore.YELLOW} ! [TMP CLEANUP] Failed to delete {path}: {e}")
+            print(f"[{Fore.YELLOW}TMP CLEANUP{Style.RESET_ALL}] Failed to delete {path}: {e}")
 
     @classmethod
     def unpack_payload(cls, raw_payload: bytes) -> tuple[str, bytes]:
