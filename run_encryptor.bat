@@ -2,33 +2,17 @@
 :: Navigate to the script's directory
 cd /d "%~dp0"
 
-:: Set the repo url
-set REPO_URL=https://github.com/fatahillah2606/sunako.git
+echo [warning] "run_encryptor.bat" is deprecated and will be removed in a future update.
+echo Please use "start_sunako_windows.bat" to launch Sunako from now on.
+echo.
+timeout /t 3 >nul
 
-:: Check if .git directory exists (for ZIP download users)
-if not exist ".git" (
-    echo Initializing Git repository...
-    git init
-    git remote add origin %REPO_URL%
-    git fetch
-    git checkout -t origin/main -f
+:: Launch the new script and exit immediately
+if exist "start_sunako_windows.bat" (
+    start "" "start_sunako_windows.bat"
+    exit
 ) else (
-    :: For existing users: update the remote URL to the new repository link
-    git remote set-url origin %REPO_URL%
+    echo [error] "start_sunako_windows.bat" was not found. 
+    echo Please pull the latest updates or check your repository files.
+    pause
 )
-
-:: Pull latest changes
-echo Pulling latest updates from Git...
-git pull
-
-if %errorlevel% neq 0 (
-    echo.
-    echo [Warning] Git pull failed. Starting the program anyway...
-    echo.
-)
-
-:: Run the application
-echo Starting Sunako...
-python run.py
-
-pause
