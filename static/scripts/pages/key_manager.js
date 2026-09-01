@@ -386,7 +386,7 @@ function renderKeys() {
         keyList.innerHTML = `
                 <blockquote class="flex items-start bg-md-tertiary-container rounded-2xl w-full m-0 p-5 gap-2.5 animate-showup">
                     <md-icon class="material-icon-fill text-md-on-tertiary-container shrink-0">info</md-icon>
-                    <p class="md-typescale-body-large text-md-on-tertiary-container italic! font-semibold! m-0">
+                    <p class="md-typescale-body-large text-md-on-tertiary-container font-google-sans-italic italic! font-semibold! m-0">
                         "The gateway is locked. No encryption keys have been established here yet. Let's register a new key first."
                     </p>
                 </blockquote>
@@ -396,7 +396,7 @@ function renderKeys() {
         keyList.innerHTML = `
                 <blockquote class="flex items-start bg-md-tertiary-container rounded-2xl w-full m-0 p-5 gap-2.5 animate-showup">
                     <md-icon class="material-icon-fill text-md-on-tertiary-container shrink-0">info</md-icon>
-                    <p class="md-typescale-body-large text-md-on-tertiary-container italic! font-semibold! m-0">
+                    <p class="md-typescale-body-large text-md-on-tertiary-container font-google-sans-italic italic! font-semibold! m-0">
                         "Search returned zero results. No keys match that name. Check the spelling or typos, precision is key"
                     </p>
                 </blockquote>

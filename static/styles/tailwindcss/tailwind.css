@@ -78,6 +78,7 @@
         --md-sys-color-surface-container-high
     );
     --animate-showup: showup 0.5s ease;
+    --font-google-sans-italic: "Google Sans Italic", sans-serif;
   }
 }
 @layer utilities {
@@ -689,6 +690,9 @@
   }
   .text-left {
     text-align: left;
+  }
+  .font-google-sans-italic {
+    font-family: var(--font-google-sans-italic);
   }
   .text-2xl {
     font-size: var(--text-2xl);
